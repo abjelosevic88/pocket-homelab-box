@@ -1,0 +1,95 @@
+{
+  "nodes": {
+    "nixpkgs": {
+      "locked": {
+        "lastModified": 1792773339,
+        "narHash": "sha256-rZLrzrC6i+jnTAlvPZHogKDulY7WWDEv9hJeHieO7Zw=",
+        "owner": "NixOS",
+        "repo": "nixpkgs",
+        "rev": "3ec636362e1816bc2f0888fa0fa2c69f1bc9e504",
+        "type": "github"
+      },
+      "original": {
+        "owner": "NixOS",
+        "ref": "nixos-unstable",
+        "repo": "nixpkgs",
+        "type": "github"
+      }
+    },
+    "pocket-core": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1793129715,
+        "narHash": "sha256-Xdk26NsS2kiKoawvutcXPloadLv/6Hr+6SqfU68a3lc=",
+        "owner": "abjelosevic88",
+        "repo": "pocket-homelab-core",
+        "rev": "d1691a1ecf5494fd8aa3c8562d629aed049a0e49",
+        "type": "github"
+      },
+      "original": {
+        "owner": "abjelosevic88",
+        "repo": "pocket-homelab-core",
+        "type": "github"
+      }
+    },
+    "pocket-habits": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1793098507,
+        "narHash": "sha256-dKq/GXfJa5/AHO1rRLkz12RsHk8uuyG/9y2zdCWwLJY=",
+        "owner": "abjelosevic88",
+        "repo": "pocket-homelab-habit-tracker",
+        "rev": "024a2f28891a95db509121490e3e237a6697527c",
+        "type": "github"
+      },
+      "original": {
+        "owner": "abjelosevic88",
+        "repo": "pocket-homelab-habit-tracker",
+        "type": "github"
+      }
+    },
+    "pocket-kitchen": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1793098507,
+        "narHash": "sha256-KPmDeIIky0GXVhaUqPgLb6JBkTAv3oH/bMUumPz/aFo=",
+        "owner": "abjelosevic88",
+        "repo": "pocket-homelab-kitchen",
+        "rev": "db8c8e4eb3e60eb50da1626492388f28b569d664",
+        "type": "github"
+      },
+      "original": {
+        "owner": "abjelosevic88",
+        "repo": "pocket-homelab-kitchen",
+        "type": "github"
+      }
+    },
+    "pocket-notes": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1793098507,
+        "narHash": "sha256-bJMkI+vf1ayndyeKmPzPlMH7XStWpFIK17IMv6Z50/4=",
+        "owner": "abjelosevic88",
+        "repo": "pocket-homelab-notes",
+        "rev": "b2ad557e2758ca985744be10609914b0668541ef",
+        "type": "github"
+      },
+      "original": {
+        "owner": "abjelosevic88",
+        "repo": "pocket-homelab-notes",
+        "type": "github"
+      }
+    },
+    "root": {
+      "inputs": {
+        "nixpkgs": "nixpkgs",
+        "pocket-core": "pocket-core",
+        "pocket-habits": "pocket-habits",
+        "pocket-kitchen": "pocket-kitchen",
+        "pocket-notes": "pocket-notes"
+      }
+    }
+  },
+  "root": "root",
+  "version": 7
+}
