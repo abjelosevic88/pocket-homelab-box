@@ -75,8 +75,9 @@ def set_timezone(tz):
     run(T["timedatectl"], "set-timezone", tz)
     # The apps read the zone when they start. Restart them a moment after answering, so Core
     # (which asked, and is one of them) can reply first.
+    # Only the apps: the box's own services (the updater, the agent itself…) must not restart.
     run(T["systemd-run"], "--on-active=3", "--unit", f"pocket-box-tz-{int(time.time())}",
-        T["systemctl"], "restart", "pocket-*.service", check=False)
+        T["systemctl"], "restart", *CONFIG["app_units"], check=False)
 
 
 # ---- network ----

@@ -11,6 +11,8 @@ let
     group = "pocket-box-agent";
     state_dir = "/var/lib/pocket-box/agent";
     update_dir = "/var/lib/pocket-box/update";
+    # What a time zone change restarts: the apps, not the box's own services.
+    app_units = map (slug: "pocket-${slug}.service") (lib.unique ([ "core" ] ++ cfg.apps));
     console_user = "pocket";
     hostname = config.networking.hostName;
     inherit (cfg) domain;
