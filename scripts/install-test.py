@@ -1,5 +1,5 @@
 """Installs the Pocket Box ISO onto a blank virtual disk over the serial console, then boots the disk. Run via install-test.sh."""
-import json, os, re, subprocess, sys, time, select, shutil, urllib.request
+import json, os, re, socket, subprocess, sys, threading, time, select, shutil, urllib.request
 
 iso, ovmf, qemu, work = sys.argv[1:5]
 os.makedirs(work, exist_ok=True)
@@ -11,11 +11,32 @@ if not boot_only: subprocess.run([f"{qemu}/bin/qemu-img", "create", "-q", "-f", 
 if not boot_only: shutil.copy(f"{ovmf}/FV/OVMF_VARS.fd", vars_fd); os.chmod(vars_fd, 0o644)
 log = open(os.path.join(work, "serial-boot.log" if boot_only else "serial.log"), "wb")
 
+qmp = os.path.join(work, "qmp.sock")
+
+
+def power_down(p, seconds=180):
+    """Press the virtual power button and wait for the box to shut down (a kill can lose writes)."""
+    try:
+        q = socket.socket(socket.AF_UNIX)
+        q.connect(qmp)
+        q.recv(4096)
+        for cmd in ("qmp_capabilities", "system_powerdown"):
+            q.sendall(json.dumps({"execute": cmd}).encode() + b"\n")
+            time.sleep(0.5)
+            q.recv(4096)
+        q.close()
+        p.wait(timeout=seconds)
+    except (OSError, subprocess.TimeoutExpired):
+        p.terminate()
+        p.wait()
+
+
 def vm(extra):
     return subprocess.Popen([f"{qemu}/bin/qemu-system-x86_64", "-enable-kvm", "-m", "6144", "-smp", "4",
         "-drive", f"if=pflash,format=raw,readonly=on,file={ovmf}/FV/OVMF_CODE.fd",
         "-drive", f"if=pflash,format=raw,file={vars_fd}",
-        "-drive", f"file={disk},if=virtio", "-display", "none", "-serial", "stdio", "-monitor", "none", *extra],
+        "-drive", f"file={disk},if=virtio", "-display", "none", "-serial", "stdio", "-monitor", "none",
+        "-qmp", f"unix:{qmp},server,nowait", *extra],
         stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
 
 buf = b""
@@ -63,12 +84,21 @@ ca = os.path.join(work, "ca.crt")
 p = vm(["-nic", f"user,model=virtio-net-pci,hostfwd=tcp:127.0.0.1:{https_port}-:443,hostfwd=tcp:127.0.0.1:{http_port}-:80"])
 
 
-def drain_log():
-    while select.select([p.stdout], [], [], 0)[0]:
+def pump():
+    # Read the serial console all the time: a full pipe would block qemu, and with it the disk.
+    while True:
         c = os.read(p.stdout.fileno(), 65536)
-        log.write(c)
         if not c:
-            break
+            return
+        log.write(c)
+        log.flush()
+
+
+threading.Thread(target=pump, daemon=True).start()
+
+
+def drain_log():
+    pass
 
 
 def curl(*args):
@@ -152,6 +182,5 @@ for backend, app in backends.items():
         print(f"{app} connection:", json.dumps(conn)[:300], flush=True)
 print("owner's accounts: " + ", ".join(sorted(accounts)) + "; apps connected: "
       + ", ".join(a for b, a in backends.items() if f"{a} → {b}" not in failed and b in accounts), flush=True)
-p.terminate()
-p.wait()
+power_down(p)
 sys.exit(1 if failed else 0)
