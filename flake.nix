@@ -67,7 +67,7 @@
       };
 
       nixosModules.default = {
-        imports = [ ./modules/box.nix ];
+        imports = [ ./modules/box.nix ./modules/ai-sandbox.nix ];
         nixpkgs.overlays = [ self.overlays.default ];
       };
 

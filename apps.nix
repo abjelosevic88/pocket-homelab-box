@@ -39,7 +39,8 @@ in
     vendorHash = "sha256-6g5wONZ4vrl1eyPakgacCtrfbtdvf7aBBSlLl/gezbs=";
     npmDepsHash = "sha256-PUK9D/bqTUPuylyudwfL7i50c+R7aiqW2TO95/oeTmk=";
     # Front-end for coding agents. Codex ships on the box; Claude Code is unfree, so add it yourself.
-    runtime = pkgs: with pkgs; [ git codex bash coreutils findutils gnugrep gnused ];
+    # bubblewrap: everyone but the owner runs in a jail in their own folder (modules/ai-sandbox.nix).
+    runtime = pkgs: with pkgs; [ git codex bash coreutils findutils gnugrep gnused bubblewrap ];
     environment = { ROOTS = "/var/lib/pocket-ai/projects"; };
   };
 
