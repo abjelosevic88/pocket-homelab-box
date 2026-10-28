@@ -2,13 +2,13 @@
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-A NixOS appliance that runs [Pocket Core](https://github.com/abjelosevic88/pocket-homelab-core) and the Pocket apps on one machine. Boot the installer from a USB stick, pick a disk, reboot. Then open `http://pocket.local:8179` from a phone or laptop on the same network.
+A NixOS appliance that runs [Pocket Core](https://github.com/abjelosevic88/pocket-homelab-core) and the Pocket apps on one machine. Boot the installer from a USB stick, pick a disk, reboot. Then open `http://pocket.local` from a phone or laptop on the same network: install the box's certificate there once, and continue to Pocket Core at `https://core.pocket.local`.
 
 The whole system is declared in this flake. The installer ISO already contains the finished system, so installing needs no network.
 
 ## What's on the box
 
-All 39 Pocket apps, each on its own port:
+All 39 Pocket apps, each at `https://<slug>.pocket.local` (the port is where it listens on loopback):
 
 | App | Port |
 |---|---|
@@ -54,12 +54,12 @@ All 39 Pocket apps, each on its own port:
 
 And the third-party services some of them sit on top of, from the NixOS modules in nixpkgs (each one can be switched off under `pocket.box.services`):
 
-| Service | Port | Used by |
+| Service | Address | Used by |
 |---|---|---|
-| Jellyfin | 8096 | Pocket Watch, Pocket Subtitles |
-| Navidrome | 4533 | Pocket Music |
-| Immich | 2283 | Pocket Photos |
-| OnlyOffice Document Server | 8166 | Pocket Office |
+| Jellyfin | `jellyfin.pocket.local` | Pocket Watch, Pocket Subtitles |
+| Navidrome | `navidrome.pocket.local` | Pocket Music |
+| Immich | `immich.pocket.local` | Pocket Photos |
+| OnlyOffice Document Server | `onlyoffice.pocket.local` | Pocket Office |
 
 The apps get these services' URLs automatically. Accounts and API keys are created in each service's own first-run screen. Pocket Office and OnlyOffice share a JWT secret that is generated on the first boot.
 
@@ -78,7 +78,22 @@ Tools the apps shell out to are put on their PATH:
 - **Backups:** restic and rclone
 - **Pocket AI:** codex. Claude Code is unfree, so it is not in the image.
 
-The box announces itself as `pocket.local` over mDNS (Avahi). Core's first-run screen creates the admin account.
+## Addresses, HTTPS and sign-in
+
+Caddy is the only thing listening on the network (ports 80 and 443). The apps and services listen on loopback.
+- **Every app and service:** served at `https://<name>.pocket.local`, with certificates from Caddy's local CA, *Pocket Box Root CA*.
+- **`http://pocket.local`:** stays plain http on purpose. It's a landing page where each phone or computer downloads that CA once, with steps for iPhone, Mac, Android and Windows. It then links to Core.
+- **`https://pocket.local`:** redirects to Core.
+
+`pocket.local` and all 43 names are announced over mDNS. `pocket-box-mdns-aliases` follows address changes and spreads the records over several Avahi groups, because Avahi allows 32 entries per group.
+- **Apple devices and Linux with Avahi:** resolve these multi-label `.local` names.
+- **Android and some Windows versions:** may not.
+
+The box resolves its own names through `/etc/hosts`. The apps trust the CA through `SSL_CERT_FILE`, so they reach each other and Core by their public names.
+
+Core's first-run screen creates the admin account. Every app has "Sign in with Pocket Core", and the first person to sign in becomes that app's admin. In the VM, the Core account signed in to all 38 apps this way and was admin in each.
+
+Options: `pocket.box.domain` (default `<hostname>.local`), `pocket.box.httpsPort` and `pocket.box.httpPort`.
 
 ## Build
 
@@ -86,7 +101,7 @@ Needs Nix with flakes on x86_64 Linux.
 
 ```sh
 nix build .#iso       # result/iso/pocket-box-installer.iso
-nix run .#vm          # the box in a VM, apps on localhost:8179, :8169 …
+nix run .#vm          # the box in a VM: http://pocket.localhost:8080, then https://core.pocket.localhost:8443
 nix build .#habits    # a single app
 ```
 
@@ -100,7 +115,7 @@ The installed system has a console-only user `pocket` with the password `pocket`
 scripts/install-test.sh
 ```
 
-This builds the ISO and boots it in QEMU (KVM + OVMF). It runs `pocket-install` on a blank 32 GB virtual disk over the serial console, then boots that disk and checks every app's `/healthz` on host ports +20000 (28179, 28169 …). Logs go to `.installtest/`.
+This builds the ISO and boots it in QEMU (KVM + OVMF). It runs `pocket-install` on a blank 32 GB virtual disk over the serial console, then boots that disk. It downloads the CA from the landing page and checks every app and service over https through Caddy, verifying certificates against that CA (host ports 28443/28080). Logs go to `.installtest/`.
 
 ## Adding or updating an app
 
@@ -116,7 +131,9 @@ Apps are listed in [`apps.nix`](apps.nix), and each one's source is a flake inpu
 flake.nix             inputs, overlay (pkgs.pocket.<slug>), box / installer systems, iso / vm packages
 apps.nix              the app catalog: pname, version, port, hashes
 lib/mkPocketApp.nix   UI + Go build for one app
-modules/box.nix       pocket.box.* options: services, first-boot secrets, Avahi, firewall
+modules/box.nix       pocket.box.* options: app services, first-boot secrets, Avahi
+modules/proxy.nix     Caddy, local CA, landing page, mDNS names
+modules/services.nix  Jellyfin, Navidrome, Immich, OnlyOffice
 hosts/box.nix         the installed system (hardware-agnostic, file systems by label)
 hosts/installer.nix   the ISO and pocket-install
 scripts/              install-test
@@ -126,9 +143,9 @@ scripts/              install-test
 
 - Setting up the third-party services from Core: making the Jellyfin/Navidrome/Immich accounts and handing their keys to the apps (Core's connectors already do this for Immich and Jellyfin on the home server).
 - Collabora as a second Office engine, and Bazarr plus the arr apps for Subtitles and Watch.
-- HTTPS and nicer addresses (`habits.pocket.local` or paths) behind one reverse proxy.
+- Remote access: Tailscale (the `.local` names and the local CA only work on the LAN).
+- Installing the CA from the native client during pairing, instead of the landing page.
 - A first-boot wizard that also sets the system password, Wi-Fi and Tailscale. Disk encryption with TPM unlock.
-- Signing in once for all apps: today each app still has its own first-run admin, and "Sign in with Pocket Core" has not been tested on the box yet.
 - Updates: a binary cache and `system.autoUpgrade` with health-gated rollback. aarch64 images.
 - CI that rebuilds the hashes and the ISO.
 

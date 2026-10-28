@@ -1,16 +1,16 @@
 # Third-party services some Pocket apps sit on top of, from the NixOS modules in nixpkgs:
-#   Jellyfin   → Pocket Watch, Pocket Subtitles     :8096
-#   Navidrome  → Pocket Music                       :4533
-#   Immich     → Pocket Photos                      :2283
-#   OnlyOffice → Pocket Office                      :8166
-# Each is on by default and wired to its app by URL. Accounts and API keys are made in each
+#   Jellyfin   → Pocket Watch, Pocket Subtitles     https://jellyfin.<domain>
+#   Navidrome  → Pocket Music                       https://navidrome.<domain>
+#   Immich     → Pocket Photos                      https://immich.<domain>
+#   OnlyOffice → Pocket Office                      https://onlyoffice.<domain>
+# Each is on by default, listens on loopback behind Caddy and is wired to its app by URL. Accounts and API keys are made in each
 # service's own first-run screen (or by Pocket Core's connectors), not here.
 { config, lib, pkgs, ... }:
 
 let
   box = config.pocket.box;
   cfg = box.services;
-  publicUrl = port: "${box.scheme}://${box.host}:${toString port}";
+  url = import ./urls.nix box;
   localUrl = port: "http://127.0.0.1:${toString port}";
   media = "/srv/media";
   ooSecrets = "/var/lib/onlyoffice-secrets";
@@ -27,11 +27,13 @@ in
 
   config = lib.mkIf box.enable (lib.mkMerge [
     (lib.mkIf cfg.jellyfin.enable {
-      services.jellyfin = { enable = true; openFirewall = true; };
+      # Jellyfin has no listen-address option; it binds every interface, but only 80/443 are open.
+      services.jellyfin.enable = true;
+      pocket.box.sites.jellyfin = 8096;
       users.users.jellyfin.extraGroups = [ "pocket-media" ];
       systemd.services.pocket-watch.environment = lib.mkIf (hasApp "watch") {
         JELLYFIN_URL = localUrl 8096;
-        JELLYFIN_PUBLIC_URL = publicUrl 8096;
+        JELLYFIN_PUBLIC_URL = url.site "jellyfin";
       };
       systemd.services.pocket-subtitles.environment = lib.mkIf (hasApp "subtitles") {
         JELLYFIN_URL = localUrl 8096;
@@ -41,9 +43,8 @@ in
     (lib.mkIf cfg.navidrome.enable {
       services.navidrome = {
         enable = true;
-        openFirewall = true;
         settings = {
-          Address = "0.0.0.0";
+          Address = "127.0.0.1";
           Port = 4533;
           MusicFolder = "${media}/music";
           # nixpkgs points the plugin folder into the read-only store, and with no plugins bundled
@@ -51,34 +52,36 @@ in
           Plugins.Enabled = false;
         };
       };
+      pocket.box.sites.navidrome = 4533;
       systemd.services.pocket-music.environment = lib.mkIf (hasApp "music") {
         NAVIDROME_URL = localUrl 4533;
-        NAVIDROME_PUBLIC_URL = publicUrl 4533;
+        NAVIDROME_PUBLIC_URL = url.site "navidrome";
       };
     })
 
     (lib.mkIf cfg.immich.enable {
-      services.immich = { enable = true; host = "0.0.0.0"; port = 2283; openFirewall = true; };
+      services.immich = { enable = true; host = "127.0.0.1"; port = 2283; };
+      pocket.box.sites.immich = 2283;
       systemd.services.pocket-photos.environment = lib.mkIf (hasApp "photos") {
         IMMICH_URL = localUrl 2283;
-        IMMICH_PUBLIC_URL = publicUrl 2283;
+        IMMICH_PUBLIC_URL = url.site "immich";
       };
     })
 
     (lib.mkIf cfg.onlyoffice.enable {
       services.onlyoffice = {
         enable = true;
-        hostname = box.host;
+        hostname = url.host "onlyoffice";
         # Pocket Office runs on the same box, so the Document Server must be allowed to call it back.
         allowLocalConnections = true;
         jwtSecretFile = "${ooSecrets}/jwt";
         securityNonceFile = "${ooSecrets}/nonce.conf";
       };
-      services.nginx.virtualHosts.${box.host} = {
+      services.nginx.virtualHosts.${url.host "onlyoffice"} = {
         default = true;
-        listen = [ { addr = "0.0.0.0"; port = ooPort; } ];
+        listen = [ { addr = "127.0.0.1"; port = ooPort; } ];
       };
-      networking.firewall.allowedTCPPorts = [ ooPort ];
+      pocket.box.sites.onlyoffice = ooPort;
 
       # The Document Server and Pocket Office share a JWT secret, made on the first boot.
       systemd.services.pocket-box-onlyoffice-secrets = {
@@ -111,7 +114,7 @@ in
         after = [ "pocket-box-onlyoffice-secrets.service" ];
         requires = [ "pocket-box-onlyoffice-secrets.service" ];
         environment = {
-          ONLYOFFICE_URL = publicUrl ooPort;
+          ONLYOFFICE_URL = url.site "onlyoffice";
           ONLYOFFICE_INTERNAL_URL = localUrl ooPort;
           ONLYOFFICE_JWT_HEADER = "Authorization";
           CALLBACK_URL = localUrl 8186;

@@ -44,13 +44,18 @@
     options = "--delete-older-than 30d";
   };
 
-  # Trying it out without a spare PC: `nix run .#vm`, then open http://localhost:8179.
+  # Trying it out without a spare PC: `nix run .#vm`, then open http://pocket.localhost:8080 for the
+  # certificate and https://core.pocket.localhost:8443 (browsers send *.localhost to this machine).
   virtualisation.vmVariant = { config, ... }: {
-    pocket.box.host = "localhost";
+    pocket.box = {
+      domain = "pocket.localhost";
+      httpsPort = 8443;
+      httpPort = 8080;
+    };
     virtualisation = {
-      memorySize = 4096;
+      memorySize = 6144;
       cores = 2;
-      diskSize = 4096;
+      diskSize = 8192;
       graphics = false;
       forwardPorts = map (port: { from = "host"; host.port = port; guest.port = port; })
         config.networking.firewall.allowedTCPPorts;

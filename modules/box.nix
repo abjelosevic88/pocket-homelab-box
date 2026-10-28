@@ -1,6 +1,7 @@
 # The Pocket Box: Pocket Core plus the Pocket apps, each as one hardened systemd service with its
-# data in /var/lib/pocket-<slug>. Apps register with Core on start using a registration key that is
-# generated on the first boot, so no secret is ever baked into an image.
+# data in /var/lib/pocket-<slug>, listening on loopback behind Caddy (modules/proxy.nix), which serves
+# every app at https://<slug>.<domain>. Apps register with Core on start using a registration key that
+# is generated on the first boot, so no secret is ever baked into an image.
 { config, lib, pkgs, ... }:
 
 let
@@ -9,7 +10,8 @@ let
   enabled = lib.filterAttrs (slug: _: slug == "core" || lib.elem slug cfg.apps) catalog;
   apps = lib.filterAttrs (slug: _: slug != "core") enabled;
 
-  publicUrl = app: "${cfg.scheme}://${cfg.host}:${toString app.port}";
+  url = import ./urls.nix cfg;
+  publicUrl = slug: url.site slug;
   localUrl = app: "http://127.0.0.1:${toString app.port}";
   secretsFile = "/var/lib/pocket-box/secrets.env";
 
@@ -24,16 +26,18 @@ let
     {
       description = app.title;
       wantedBy = [ "multi-user.target" ];
-      after = [ "network-online.target" "pocket-box-secrets.service" ];
-      wants = [ "network-online.target" ];
+      after = [ "network-online.target" "pocket-box-secrets.service" "pocket-box-ca.service" ];
+      wants = [ "network-online.target" "pocket-box-ca.service" ];
       requires = [ "pocket-box-secrets.service" ];
       environment = {
         DATA_DIR = "/var/lib/pocket-${slug}";
         HOME = "/var/lib/pocket-${slug}";
-        HOST = cfg.listen;
+        HOST = "127.0.0.1";
         PORT = toString app.port;
-        BASE_URL = publicUrl app;
-        SECURE_COOKIES = lib.boolToString (cfg.scheme == "https");
+        BASE_URL = publicUrl slug;
+        SECURE_COOKIES = "true";
+        # The system CAs plus the box's own, so apps can reach each other (and Core's OIDC) over https.
+        SSL_CERT_FILE = url.caBundle;
         TZ = if config.time.timeZone != null then config.time.timeZone else "UTC";
         LOG_LEVEL = "info";
       } // (app.environment or { });
@@ -71,40 +75,37 @@ let
     };
 in
 {
-  imports = [ ./services.nix ];
+  imports = [ ./services.nix ./proxy.nix ];
 
   options.pocket.box = {
     enable = lib.mkEnableOption "the Pocket Box (Pocket Core and the Pocket apps)";
 
-    host = lib.mkOption {
+    domain = lib.mkOption {
       type = lib.types.str;
       default = "${config.networking.hostName}.local";
       defaultText = lib.literalExpression ''"''${config.networking.hostName}.local"'';
-      description = "Name people use to reach the box. Ends up in every app's BASE_URL and in Core's OIDC issuer.";
+      description = ''
+        The box's own name. Every app is served at https://<slug>.<domain>, the bare domain is the
+        landing page. Names under .local are announced over mDNS.
+      '';
     };
 
-    scheme = lib.mkOption {
-      type = lib.types.enum [ "http" "https" ];
-      default = "http";
-      description = "Scheme of the public URLs. https turns on secure cookies (needs a TLS front, not set up yet).";
+    httpsPort = lib.mkOption {
+      type = lib.types.port;
+      default = 443;
+      description = "Port Caddy serves https on. Anything but 443 ends up in every URL.";
     };
 
-    listen = lib.mkOption {
-      type = lib.types.str;
-      default = "0.0.0.0";
-      description = "Address the apps listen on.";
+    httpPort = lib.mkOption {
+      type = lib.types.port;
+      default = 80;
+      description = "Port of the plain-http landing page (certificate download) and the https redirects.";
     };
 
     apps = lib.mkOption {
       type = lib.types.listOf (lib.types.enum (lib.attrNames catalog));
       default = lib.attrNames catalog;
       description = "Which Pocket apps run on the box. Core always runs.";
-    };
-
-    openFirewall = lib.mkOption {
-      type = lib.types.bool;
-      default = true;
-      description = "Open the app ports on the LAN.";
     };
   };
 
@@ -133,7 +134,7 @@ in
           '';
         };
 
-        pocket-core.environment.OIDC_ISSUER = publicUrl catalog.core;
+        pocket-core.environment.OIDC_ISSUER = publicUrl "core";
       }
 
       (lib.mapAttrs' (slug: app: lib.nameValuePair "pocket-${slug}" (common slug app)) enabled)
@@ -154,23 +155,25 @@ in
       ([ mediaDir ] ++ map (d: "${mediaDir}/${d}") [ "movies" "tv" "music" "books" "audiobooks" ])
       (_: { d = { mode = "2775"; user = "root"; group = "pocket-media"; }; });
 
-    # pocket.local on the LAN, and the box can resolve its own name (apps fetch Core's OIDC discovery).
+    # pocket.local on the LAN (the per-app names are announced by modules/proxy.nix).
     services.avahi = {
       enable = true;
       nssmdns4 = true;
       settings.publish = {
+        # nixpkgs turns all publishing off unless this is set explicitly.
+        disable-publishing = false;
         publish-addresses = true;
         publish-workstation = true;
       };
     };
 
-    networking.firewall.allowedTCPPorts = lib.mkIf cfg.openFirewall
-      (lib.mapAttrsToList (_: app: app.port) enabled);
+    # Caddy serves every app; the apps themselves only listen on loopback.
+    pocket.box.sites = lib.mapAttrs (_: app: app.port) enabled;
 
     services.getty.helpLine = ''
 
-      Pocket Box: open ${publicUrl catalog.core} to set it up.
-      ${lib.concatStringsSep "\n" (lib.mapAttrsToList (_: app: "  ${app.title}: ${publicUrl app}") apps)}
+      Pocket Box: open ${url.landing} on a phone or laptop on the same network.
+      It has the box's certificate and the link to Pocket Core (${publicUrl "core"}).
     '';
   };
 }

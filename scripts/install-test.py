@@ -53,35 +53,50 @@ if not boot_only:
   p.wait(timeout=30)
 
 print("phase 2: boot installed disk", flush=True)
-# Every app in apps.nix, forwarded to host port +20000 (the box's own ports are often taken on a dev machine).
+# The installed box serves https://<slug>.pocket.local on 443 and the landing page on 80; they are
+# forwarded to host ports 28443/28080 and every name is resolved to 127.0.0.1 by curl.
 catalog = open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "apps.nix")).read()
-ports = [int(p) for p in re.findall(r"^    port = (\d+);", catalog, re.M)]
-fwd = ",".join(f"hostfwd=tcp:127.0.0.1:{x+20000}-:{x}" for x in ports)
-p = vm(["-nic", f"user,model=virtio-net-pci,{fwd}"])
-end = time.time() + 300
+slugs = re.findall(r"^  ([a-z]+) = \{\n    title", catalog, re.M)
+sites = [(s, "/healthz") for s in slugs] + [("jellyfin", "/health"), ("navidrome", "/ping"), ("immich", "/api/server/ping"), ("onlyoffice", "/healthcheck")]
+domain, https_port, http_port = "pocket.local", 28443, 28080
+ca = os.path.join(work, "ca.crt")
+p = vm(["-nic", f"user,model=virtio-net-pci,hostfwd=tcp:127.0.0.1:{https_port}-:443,hostfwd=tcp:127.0.0.1:{http_port}-:80"])
+
+
+def drain_log():
+    while select.select([p.stdout], [], [], 0)[0]:
+        c = os.read(p.stdout.fileno(), 65536)
+        log.write(c)
+        if not c:
+            break
+
+
+def curl(*args):
+    return subprocess.run(["curl", "-s", "-m", "8", *args], capture_output=True, text=True)
+
+
+end = time.time() + 400
 while time.time() < end:
-    select.select([p.stdout], [], [], 2)
-    try:
-        while select.select([p.stdout], [], [], 0)[0]:
-            c = os.read(p.stdout.fileno(), 65536); log.write(c); log.flush()
-            if not c: break
-    except OSError: pass
-    try:
-        out = urllib.request.urlopen("http://127.0.0.1:28179/healthz", timeout=2).read().decode()
-        print("core:", out, flush=True); break
-    except Exception: pass
+    drain_log()
+    if curl("-f", "-o", ca, "--resolve", f"{domain}:{http_port}:127.0.0.1", f"http://{domain}:{http_port}/pocket-box-ca.crt").returncode == 0:
+        print("landing page up, certificate downloaded", flush=True)
+        break
+    time.sleep(3)
+else:
+    raise SystemExit("landing page never came up")
+
 failed = []
-for port in [x + 20000 for x in ports]:
-    for _ in range(30):
-        try:
-            urllib.request.urlopen(f"http://127.0.0.1:{port}/healthz", timeout=2); break
-        except Exception:
-            time.sleep(2)
-            while select.select([p.stdout], [], [], 0)[0]:
-                c = os.read(p.stdout.fileno(), 65536); log.write(c)
-                if not c: break
+for name, path in sites:
+    host = f"{name}.{domain}"
+    for _ in range(40):
+        r = curl("--cacert", ca, "--resolve", f"{host}:{https_port}:127.0.0.1", "-o", "/dev/null", "-w", "%{http_code}", f"https://{host}:{https_port}{path}")
+        if r.stdout == "200":
+            break
+        time.sleep(3)
+        drain_log()
     else:
-        failed.append(port - 20000)
-print(f"{len(ports) - len(failed)}/{len(ports)} apps healthy" + (f", failing ports: {failed}" if failed else ""), flush=True)
-p.terminate(); p.wait()
+        failed.append(name)
+print(f"{len(sites) - len(failed)}/{len(sites)} sites healthy over verified https" + (f", failing: {failed}" if failed else ""), flush=True)
+p.terminate()
+p.wait()
 sys.exit(1 if failed else 0)
