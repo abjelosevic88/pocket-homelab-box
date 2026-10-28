@@ -1,0 +1,105 @@
+# Builds the box, installs it in a VM and releases it.
+#
+#   push to main, pull request, by hand  build both systems, install test (encrypted + a second boot)
+#   every night                          first move the apps to their newest release tags; nothing new = done
+#   main or the nightly bump passes      main moves to `stable`, which boxes update from
+#
+# Everything built goes to the Cachix cache named in the repository variable CACHIX_CACHE (token in
+# the secret CACHIX_AUTH_TOKEN), so boxes download releases instead of building them.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      bump:
+        description: Move the apps to their newest release tags first
+        type: boolean
+        default: false
+  schedule:
+    - cron: "30 2 * * *"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: pocket-box-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 350
+    env:
+      BUMP: ${{ github.event_name == 'schedule' || inputs.bump == true }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Make room (the ISO and a 32 GB test disk)
+        run: |
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache /usr/local/share/boost /usr/share/swift
+          df -h /
+
+      - uses: cachix/install-nix-action@v31
+        with:
+          github_access_token: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: cachix/cachix-action@v16
+        if: vars.CACHIX_CACHE != ''
+        with:
+          name: ${{ vars.CACHIX_CACHE }}
+          authToken: ${{ secrets.CACHIX_AUTH_TOKEN }}
+          # Only what boxes download: not the installer ISO and its squashfs (GBs), nor the apps'
+          # build-time dependencies (npm and Go downloads, the UI bundle that gets embedded).
+          pushFilter: "(installer\\.iso|squashfs|isoImage|-npm-deps|-go-modules|-vendor|-web-[0-9]|-source$|\\.drv$)"
+
+      - name: Move the apps to their newest releases
+        id: bump
+        if: env.BUMP == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          python3 scripts/bump-apps.py --summary "$RUNNER_TEMP/bump.md"
+          if git diff --quiet; then echo "changed=false" >> "$GITHUB_OUTPUT"; else echo "changed=true" >> "$GITHUB_OUTPUT"; cat "$RUNNER_TEMP/bump.md" >> "$GITHUB_STEP_SUMMARY"; fi
+
+      - name: Build both systems
+        if: env.BUMP != 'true' || steps.bump.outputs.changed == 'true'
+        run: |
+          nix build --print-build-logs --no-link \
+            .#nixosConfigurations.box.config.system.build.toplevel \
+            .#nixosConfigurations.box-encrypted.config.system.build.toplevel
+
+      - name: Allow the test VM to use KVM
+        if: env.BUMP != 'true' || steps.bump.outputs.changed == 'true'
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      - name: Install test (encrypted with a software TPM), then a second boot
+        if: env.BUMP != 'true' || steps.bump.outputs.changed == 'true'
+        run: |
+          scripts/install-test.sh
+          BOOT_ONLY=1 scripts/install-test.sh
+
+      - name: Keep the VM's console logs
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: install-test-logs
+          path: .installtest/*.log
+          if-no-files-found: ignore
+
+      - name: Commit the new releases
+        if: steps.bump.outputs.changed == 'true'
+        run: |
+          git config user.name "Aleksandar Bjelosevic"
+          git config user.email "abjelosevic88@gmail.com"
+          git commit -am "Apps: newest releases" -m "$(cat "$RUNNER_TEMP/bump.md")"
+          git push origin HEAD:main
+
+      - name: Release to boxes (stable)
+        if: (github.event_name == 'push' && github.ref == 'refs/heads/main') || steps.bump.outputs.changed == 'true'
+        run: git push origin HEAD:refs/heads/stable

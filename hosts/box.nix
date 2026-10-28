@@ -9,6 +9,12 @@
 
   pocket.box.enable = true;
 
+  # Releases come prebuilt from the cache CI fills (.github/workflows/ci.yml).
+  pocket.box.updates.cache = {
+    url = "https://pocket-box.cachix.org";
+    publicKey = "pocket-box.cachix.org-1:O8P8jwbI2OVtlC75SN+sbw3yBU18W3KWIqdgfoGpLYo=";
+  };
+
   networking.hostName = "pocket";
 
   boot.loader.systemd-boot.enable = true;

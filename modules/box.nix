@@ -77,7 +77,7 @@ let
     };
 in
 {
-  imports = [ ./services.nix ./proxy.nix ./system.nix ];
+  imports = [ ./services.nix ./proxy.nix ./system.nix ./updates.nix ];
 
   options.pocket.box = {
     enable = lib.mkEnableOption "the Pocket Box (Pocket Core and the Pocket apps)";

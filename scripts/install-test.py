@@ -94,13 +94,16 @@ if not boot_only:
       print("encrypted; recovery key shown", flush=True)
   expect(p, "Done. Remove the USB stick", 2400)
   print("installed", flush=True)
-  send(p, "sudo poweroff\n")
-  end = time.time() + 120
+  send(p, "sudo sync; sudo poweroff\n")
+  end = time.time() + 180
   while p.poll() is None and time.time() < end:
       if select.select([p.stdout], [], [], 1)[0]:
           c = os.read(p.stdout.fileno(), 65536); log.write(c)
           if not c: break
-  p.wait(timeout=30)
+  if p.poll() is None:
+      # The disk is installed and synced; a slow shutdown is the installer's business.
+      print("installer slow to power off; pressing the power button", flush=True)
+      power_down(p, 60)
 
 print("phase 2: boot installed disk", flush=True)
 # The installed box serves https://<slug>.pocket.local on 443 and the landing page on 80; they are

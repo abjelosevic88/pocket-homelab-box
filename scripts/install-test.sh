@@ -7,8 +7,8 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 iso=$(nix build --no-link --print-out-paths .#iso)/iso/pocket-box-installer.iso
-ovmf=$(nix build --no-link --print-out-paths nixpkgs#OVMF.fd)
-qemu=$(nix build --no-link --print-out-paths nixpkgs#qemu_kvm)
-SWTPM=$(nix build --no-link --print-out-paths "nixpkgs#swtpm^out")/bin/swtpm
+ovmf=$(nix build --no-link --print-out-paths --inputs-from . nixpkgs#OVMF.fd)
+qemu=$(nix build --no-link --print-out-paths --inputs-from . nixpkgs#qemu_kvm)
+SWTPM=$(nix build --no-link --print-out-paths --inputs-from . "nixpkgs#swtpm^out")/bin/swtpm
 export SWTPM
 exec python3 -I scripts/install-test.py "$iso" "$ovmf" "$qemu" "$PWD/.installtest"

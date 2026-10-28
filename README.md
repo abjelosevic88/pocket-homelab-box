@@ -124,6 +124,32 @@ The console account `pocket` has no password until the owner sets one in the set
 
 Core runs unprivileged, so `pocket-box-agent` makes these changes as root (`modules/agent.py`, `modules/system.nix`). It's reachable only through `/run/pocket-box-agent/agent.sock`, which only Core's group can open. NetworkManager runs the network (Ethernet by DHCP, Wi-Fi joined from the wizard) and Tailscale is installed but logged out. The time zone is UTC until the wizard sets it.
 
+## Updates
+
+Boxes follow the `stable` branch of this repository. Only CI moves `stable`, after the install test passed.
+- **Nightly run:** at 04:00 (plus up to an hour) `pocket-box-update` builds the newest release of the box's own variant (`box` or `box-encrypted`). It downloads it from the binary cache when one is set, and builds it itself otherwise.
+- **Health check:** it switches to the new release, then waits up to 10 minutes for every Pocket app to answer `/healthz` and for no Pocket service to fail.
+- **Rollback:** if something doesn't come up, it switches back to the previous system and remembers that release as bad (`/var/lib/pocket-box/update/bad`), so it isn't tried again.
+- **New kernel:** it takes over at the next restart; the nightly run restarts the box itself.
+
+Settings → System → Updates in Core shows:
+- the running release (`/etc/pocket-box/release.json`: the commit's date and time, and its revision)
+- what the last run did
+- *Check now*, an on/off switch, and *Restart now* when a new kernel is waiting
+
+The binary cache is `pocket.box.updates.cache` (`url` and `publicKey`). Writing a release flake reference into `/var/lib/pocket-box/update/flake` makes a box follow another release, for support or tests.
+
+## CI and releases
+
+Apps are pinned to their **release tags** (`github:abjelosevic88/<repo>/vX.Y.Z`), and the tag is the version their pill shows. Tagging an app's repository is how it reaches the boxes.
+
+`.github/workflows/ci.yml`:
+- **Pushes to `main` and pull requests:** build both systems and run the install test (encrypted with a software TPM, then a second boot). When `main` passes, it's pushed to `stable`.
+- **Nightly:** `scripts/bump-apps.py` first moves every app to its newest release tag and fixes the npm and Go hashes. If anything moved, it builds and tests that, commits it to `main` and releases it to `stable`.
+- **Cache:** everything built goes to the Cachix cache named in the repository variable `CACHIX_CACHE`, using the secret `CACHIX_AUTH_TOKEN`.
+
+`scripts/bump-apps.py` also runs locally (`GH_TOKEN` raises GitHub's rate limit).
+
 ## Testing the installer
 
 ```sh
@@ -135,15 +161,18 @@ This builds the ISO and boots it in QEMU (KVM + OVMF). It runs `pocket-install` 
 - requires Watch, Music and Photos to report their service connected after signing in with Pocket Core
 - goes through the wizard via Core's API: time zone, console password, and a disk state that matches the install
 
+`scripts/update-test.sh`, after the install test, boots the installed disk and serves it two releases. In the first, a harmless change must install. In the second, Pocket Habits fails to start, so the box must go back by itself, and then skip that release on the next run.
+
 By default the VM gets a software TPM (swtpm), so the disk is encrypted and the installer must show a recovery key. `TPM=0` tests a PC without a TPM (plain disk). `BOOT_ONLY=1` boots the installed disk again, which also checks the TPM unlock on a second boot. Logs go to `.installtest/`.
 
 ## Adding or updating an app
 
 Apps are listed in [`apps.nix`](apps.nix), and each one's source is a flake input pinned in `flake.lock`. All of them build the same way ([`lib/mkPocketApp.nix`](lib/mkPocketApp.nix)): the React UI with `buildNpmPackage`, then the Go binary with the UI embedded.
 
-1. Add the input to `flake.nix` (`flake = false`) and an entry to `apps.nix` with both hashes set to `lib.fakeHash`.
-2. `nix build .#<slug>`, then paste the `got:` hash from the error. Do this once for `npmDepsHash` and once for `vendorHash`.
-3. To update: `nix flake update <input>`, bump `version`, and redo step 2 for any hash that changed.
+- **Update:** tag a release in the app's repository (`vX.Y.Z`). The nightly CI run, or `python3 scripts/bump-apps.py` locally, moves the input to the tag, sets `version` and fixes the hashes.
+- **Add:**
+  1. Add the input to `flake.nix` as `github:abjelosevic88/<repo>/vX.Y.Z` (`flake = false`), and an entry to `apps.nix` with both hashes set to `lib.fakeHash`.
+  2. `nix build .#<slug>`, then paste the `got:` hash from the error. Do this once for `npmDepsHash` and once for `vendorHash`.
 
 ## Layout
 
@@ -154,19 +183,21 @@ lib/mkPocketApp.nix   UI + Go build for one app
 modules/box.nix       pocket.box.* options: app services, first-boot secrets, Avahi
 modules/proxy.nix     Caddy, local CA, landing page, mDNS names
 modules/system.nix    NetworkManager, Tailscale, console account, the box agent
-modules/agent.py      the box agent (time zone, Wi-Fi, Tailscale, console password, disk status)
+modules/agent.py      the box agent (time zone, Wi-Fi, Tailscale, console password, disk status, updates)
+modules/updates.nix   nightly updates; modules/updater.py does the switch, health check and rollback
 modules/services.nix  Jellyfin, Navidrome, Immich, OnlyOffice; first-boot accounts for Core
 modules/backends-bootstrap.py  the first-boot setup of those services
 hosts/box.nix         the installed system (hardware-agnostic, file systems by label)
 hosts/encrypted.nix   the encrypted variant: LUKS2 root unlocked by the TPM
 hosts/installer.nix   the ISO and pocket-install
-scripts/              install-test
+scripts/              install-test, update-test, bump-apps
+.github/workflows/    ci.yml: build, test, release to stable, nightly app bumps
 ```
 
 ## Not done yet
 
-- Updates: a binary cache and `system.autoUpgrade` with health-gated rollback. aarch64 images.
-- CI that rebuilds the hashes and the ISO.
+- Boxes evaluate the release flake themselves, which downloads every app's source from GitHub. CI could publish each variant's store path, so a box only fetches the finished system from the cache.
+- Boot counting: a release that doesn't boot at all still needs someone to pick the previous one in the boot menu. aarch64 images.
 - The apps on the move: Tailscale gets the box onto your tailnet, but the `https://<app>.pocket.local` names and the local CA only work on the LAN.
 - Installing the CA from the native client during pairing, instead of the landing page.
 - "Sign in with Pocket Core" inside Immich and Jellyfin themselves. The Pocket apps already sign in for you; Jellyfin's needs the SSO plugin.

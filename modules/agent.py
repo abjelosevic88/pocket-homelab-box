@@ -12,6 +12,10 @@ only the pocket-box-agent group (Core) can open, and does nothing but the calls 
   POST /v1/tailscale  {auth_key?}  join the tailnet; without a key the answer has a login URL
   DELETE /v1/tailscale             leave it
   PUT  /v1/password   {password}   the console account "pocket" (locked until set here)
+  GET  /v1/updates                 this release, the last update run, auto on/off, restart needed
+  POST /v1/updates                 look for a release now
+  PUT  /v1/updates    {auto}       nightly updates on or off
+  POST /v1/restart                 restart the box (to finish a kernel update)
   GET  /v1/wizard                  is the setup wizard finished (cheap, for every page load)
   POST /v1/wizard                  the setup wizard is finished
 """
@@ -176,6 +180,48 @@ def set_password(pw):
     set_flag("password-set")
 
 
+# ---- updates (modules/updater.py does the work) ----
+
+UPDATE = CONFIG["update_dir"]
+
+
+def updates():
+    try:
+        st = json.load(open(os.path.join(UPDATE, "status.json")))
+    except (OSError, ValueError):
+        st = {}
+    try:
+        current = json.load(open("/etc/pocket-box/release.json"))
+    except (OSError, ValueError):
+        current = {}
+    running = run(T["systemctl"], "is-active", "pocket-box-update.service", check=False).strip() in ("activating", "active")
+    restart = os.path.realpath("/run/current-system/kernel") != os.path.realpath("/run/booted-system/kernel")
+    return {"release": current, "last": st, "auto": not os.path.exists(os.path.join(UPDATE, "auto-off")),
+            "running": running, "restart_needed": restart}
+
+
+def check_updates():
+    os.makedirs(UPDATE, exist_ok=True)
+    with open(os.path.join(UPDATE, "manual"), "w") as f:
+        f.write("1\n")
+    run(T["systemctl"], "start", "--no-block", "pocket-box-update.service")
+    return updates()
+
+
+def set_auto(on):
+    os.makedirs(UPDATE, exist_ok=True)
+    off = os.path.join(UPDATE, "auto-off")
+    if on and os.path.exists(off):
+        os.remove(off)
+    if not on:
+        open(off, "w").close()
+    return updates()
+
+
+def restart_box():
+    run(T["systemd-run"], "--on-active=3", "--unit", f"pocket-box-reboot-{int(time.time())}", T["systemctl"], "reboot")
+
+
 # ---- disk ----
 
 def encryption():
@@ -198,6 +244,7 @@ def status():
         "password_set": flag("password-set"),
         "encryption": encryption(),
         "wizard_done": flag("wizard-done"),
+        "updates": updates(),
     }
 
 
@@ -224,6 +271,8 @@ class Handler(BaseHTTPRequestHandler):
         m, p = self.command, self.path.split("?")[0]
         if m == "GET" and p == "/v1/status":
             return status()
+        if m == "GET" and p == "/v1/updates":
+            return updates()
         if m == "GET" and p == "/v1/wizard":
             return {"wizard_done": flag("wizard-done")}
         if m == "GET" and p == "/v1/timezones":
@@ -246,6 +295,13 @@ class Handler(BaseHTTPRequestHandler):
             if m == "PUT" and p == "/v1/password":
                 set_password(str(b.get("password", "")))
                 return {"password_set": True}
+            if m == "POST" and p == "/v1/updates":
+                return check_updates()
+            if m == "PUT" and p == "/v1/updates":
+                return set_auto(bool(b.get("auto")))
+            if m == "POST" and p == "/v1/restart":
+                restart_box()
+                return {"restarting": True}
             if m == "POST" and p == "/v1/wizard":
                 set_flag("wizard-done")
                 return {"wizard_done": True}

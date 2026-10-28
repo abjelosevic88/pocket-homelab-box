@@ -10,6 +10,7 @@ let
     inherit socket;
     group = "pocket-box-agent";
     state_dir = "/var/lib/pocket-box/agent";
+    update_dir = "/var/lib/pocket-box/update";
     console_user = "pocket";
     hostname = config.networking.hostName;
     inherit (cfg) domain;
