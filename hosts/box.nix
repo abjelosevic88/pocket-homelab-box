@@ -10,8 +10,6 @@
   pocket.box.enable = true;
 
   networking.hostName = "pocket";
-  networking.useDHCP = lib.mkDefault true;
-  time.timeZone = lib.mkDefault "UTC";
 
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
@@ -32,12 +30,8 @@
     options = [ "fmask=0077" "dmask=0077" ];
   };
 
-  # Console-only maintenance login until the first-boot wizard sets real credentials. SSH stays off.
-  users.users.pocket = {
-    isNormalUser = true;
-    extraGroups = [ "wheel" ];
-    initialPassword = "pocket";
-  };
+  # The console account "pocket" (modules/system.nix) stays locked until the setup wizard sets its
+  # password. SSH stays off.
 
   nix.settings.experimental-features = [ "nix-command" "flakes" ];
   nix.gc = {
@@ -49,6 +43,9 @@
   # Trying it out without a spare PC: `nix run .#vm`, then open http://pocket.localhost:8080 for the
   # certificate and https://core.pocket.localhost:8443 (browsers send *.localhost to this machine).
   virtualisation.vmVariant = { config, ... }: {
+    # A known console password for development.
+    users.users.pocket.initialHashedPassword = lib.mkForce null;
+    users.users.pocket.initialPassword = "pocket";
     pocket.box = {
       domain = "pocket.localhost";
       httpsPort = 8443;

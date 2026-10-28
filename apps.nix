@@ -24,7 +24,7 @@ in
     title = "Pocket Core";
     pname = "pocket-core";
     input = "pocket-core";
-    version = "0.21.1";
+    version = "0.22.0";
     port = 8179;
     vendorHash = "sha256-/QD+e39BeO06DdNx166/FcRLQeA9j8EJSwpkEl/Tbdc=";
     npmDepsHash = "sha256-B6hwAJzFxJG6iSPCb/vrsQrF8lzORM95hK7vslmlGm0=";

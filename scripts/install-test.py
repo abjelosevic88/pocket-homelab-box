@@ -7,6 +7,7 @@ disk = os.path.join(work, "disk.qcow2")
 vars_fd = os.path.join(work, "vars.fd")
 boot_only = os.environ.get("BOOT_ONLY") == "1"
 if not boot_only and os.path.exists(disk): os.remove(disk)
+if not boot_only: shutil.rmtree(os.path.join(work, "tpm"), ignore_errors=True)
 if not boot_only: subprocess.run([f"{qemu}/bin/qemu-img", "create", "-q", "-f", "qcow2", disk, "32G"], check=True)
 if not boot_only: shutil.copy(f"{ovmf}/FV/OVMF_VARS.fd", vars_fd); os.chmod(vars_fd, 0o644)
 log = open(os.path.join(work, "serial-boot.log" if boot_only else "serial.log"), "wb")
@@ -31,12 +32,33 @@ def power_down(p, seconds=180):
         p.wait()
 
 
+use_tpm = os.environ.get("TPM", "1") != "0"
+tpm_dir = os.path.join(work, "tpm")
+tpm_sock = os.path.join(work, "swtpm.sock")
+
+
+def start_tpm():
+    """A software TPM 2.0 for the VM; its state lives in WORK/tpm across boots, like a real chip."""
+    if not use_tpm:
+        return []
+    os.makedirs(tpm_dir, exist_ok=True)
+    if os.path.exists(tpm_sock):
+        os.remove(tpm_sock)
+    subprocess.Popen([os.environ["SWTPM"], "socket", "--tpmstate", f"dir={tpm_dir}", "--ctrl", f"type=unixio,path={tpm_sock}",
+                      "--tpm2", "--flags", "startup-clear"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    for _ in range(50):
+        if os.path.exists(tpm_sock):
+            break
+        time.sleep(0.1)
+    return ["-chardev", f"socket,id=chrtpm,path={tpm_sock}", "-tpmdev", "emulator,id=tpm0,chardev=chrtpm", "-device", "tpm-crb,tpmdev=tpm0"]
+
+
 def vm(extra):
     return subprocess.Popen([f"{qemu}/bin/qemu-system-x86_64", "-enable-kvm", "-m", "6144", "-smp", "4",
         "-drive", f"if=pflash,format=raw,readonly=on,file={ovmf}/FV/OVMF_CODE.fd",
         "-drive", f"if=pflash,format=raw,file={vars_fd}",
         "-drive", f"file={disk},if=virtio", "-display", "none", "-serial", "stdio", "-monitor", "none",
-        "-qmp", f"unix:{qmp},server,nowait", *extra],
+        "-qmp", f"unix:{qmp},server,nowait", *start_tpm(), *extra],
         stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
 
 buf = b""
@@ -50,8 +72,9 @@ def expect(p, needle, timeout):
             if not chunk: break
             buf += chunk; log.write(chunk); log.flush()
             if needle.encode() in buf:
-                buf = buf[buf.index(needle.encode()) + len(needle):]
-                return True
+                cut = buf.index(needle.encode()) + len(needle)
+                seen, buf = buf[:cut], buf[cut:]
+                return seen
     raise SystemExit(f"timeout waiting for {needle!r}")
 
 def send(p, s): p.stdin.write(s.encode()); p.stdin.flush()
@@ -63,6 +86,12 @@ if not boot_only:
   send(p, "sudo pocket-install vda\n")
   expect(p, "Type the disk name again", 60)
   send(p, "vda\n")
+  if use_tpm:
+      seen = expect(p, "Press Enter once", 2400)
+      if not re.search(rb"([cbdefghijklnrtuv]{8}-){7}[cbdefghijklnrtuv]{8}", seen):
+          raise SystemExit("the installer showed no recovery key")
+      send(p, "\n")
+      print("encrypted; recovery key shown", flush=True)
   expect(p, "Done. Remove the USB stick", 2400)
   print("installed", flush=True)
   send(p, "sudo poweroff\n")
@@ -180,6 +209,29 @@ for backend, app in backends.items():
     if conn.get("connected") is not True:
         failed.append(f"{app} → {backend}")
         print(f"{app} connection:", json.dumps(conn)[:300], flush=True)
+# The setup wizard, through Core: time zone and console password, the disk as installed, done.
+def api(method, path, body=None):
+    args = ["-X", method, "-H", "Content-Type: application/json"] + (["-d", json.dumps(body)] if body is not None else [])
+    try:
+        return json.loads(https("core", "/api/v1" + path, *args).stdout or "{}")
+    except ValueError:
+        return {}
+
+
+st = api("GET", "/auth/status")
+if st.get("box_wizard") is not True and not os.environ.get("BOOT_ONLY"):
+    failed.append("wizard not offered")
+if api("PUT", "/box/system/timezone", {"timezone": "Europe/Sarajevo"}).get("timezone") != "Europe/Sarajevo":
+    failed.append("time zone")
+if api("PUT", "/box/system/password", {"password": "console-pass-1"}).get("password_set") is not True:
+    failed.append("console password")
+disk = api("GET", "/box/system/status").get("encryption", {})
+if disk.get("encrypted") is not use_tpm or disk.get("tpm") is not use_tpm or disk.get("recovery_key") is not use_tpm:
+    failed.append(f"disk {disk}")
+api("POST", "/box/system/wizard", {})
+if api("GET", "/auth/status").get("box_wizard") is not False:
+    failed.append("wizard still pending")
+print(f"wizard: time zone, console password, disk {'encrypted with TPM unlock' if disk.get('tpm') else 'plain'}", flush=True)
 print("owner's accounts: " + ", ".join(sorted(accounts)) + "; apps connected: "
       + ", ".join(a for b, a in backends.items() if f"{a} → {b}" not in failed and b in accounts), flush=True)
 power_down(p)

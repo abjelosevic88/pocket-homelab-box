@@ -38,8 +38,10 @@ let
         SECURE_COOKIES = "true";
         # The system CAs plus the box's own, so apps can reach each other (and Core's OIDC) over https.
         SSL_CERT_FILE = url.caBundle;
-        TZ = if config.time.timeZone != null then config.time.timeZone else "UTC";
         LOG_LEVEL = "info";
+      } // lib.optionalAttrs (config.time.timeZone != null) {
+        # Otherwise the apps follow /etc/localtime, which the setup wizard sets.
+        TZ = config.time.timeZone;
       } // (app.environment or { });
       serviceConfig = {
         ExecStart = lib.getExe pkgs.pocket.${slug};
@@ -75,7 +77,7 @@ let
     };
 in
 {
-  imports = [ ./services.nix ./proxy.nix ];
+  imports = [ ./services.nix ./proxy.nix ./system.nix ];
 
   options.pocket.box = {
     enable = lib.mkEnableOption "the Pocket Box (Pocket Core and the Pocket apps)";

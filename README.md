@@ -112,7 +112,17 @@ nix build .#habits    # a single app
 
 Write the ISO to a USB stick (`dd`, Etcher), boot the target PC from it in UEFI mode and run `sudo pocket-install`. It asks for the disk, makes you type the disk name twice, erases it, creates an ESP (`POCKET-BOOT`) and an ext4 root (`pocket-root`), then installs. The installer has a shell on the screen and on the first serial port.
 
-The installed system has a console-only user `pocket` with the password `pocket`. SSH is off.
+On a PC with a TPM 2.0, the installer encrypts the root partition with LUKS2. The TPM unlocks it at every boot, bound to the firmware's Secure Boot state (PCR 7), so updates never lock it. The installer shows a **recovery key** once; the box asks for it on its screen only if the TPM refuses, for example after a motherboard swap or a firmware reset. On a PC without a TPM, or with `pocket-install --no-encrypt`, the disk stays plain, because a headless box couldn't ask anyone for a password at boot. The ISO carries both variants (`nixosConfigurations.box` and `box-encrypted`).
+
+The console account `pocket` has no password until the owner sets one in the setup wizard. SSH is off.
+
+## First run
+
+1. Open `http://pocket.local`, install the certificate, and continue to `https://core.pocket.local`.
+2. Create the first account. It becomes the admin of Core and of every app.
+3. Core opens the **setup wizard** (`/welcome`). It covers the time zone (the apps restart to pick it up), the network and Wi-Fi, Tailscale (a login link or an auth key) and the console password, and shows how the disk is protected. *Do this later* skips it, and everything stays under **Settings → System**.
+
+Core runs unprivileged, so `pocket-box-agent` makes these changes as root (`modules/agent.py`, `modules/system.nix`). It's reachable only through `/run/pocket-box-agent/agent.sock`, which only Core's group can open. NetworkManager runs the network (Ethernet by DHCP, Wi-Fi joined from the wizard) and Tailscale is installed but logged out. The time zone is UTC until the wizard sets it.
 
 ## Testing the installer
 
@@ -120,7 +130,12 @@ The installed system has a console-only user `pocket` with the password `pocket`
 scripts/install-test.sh
 ```
 
-This builds the ISO and boots it in QEMU (KVM + OVMF). It runs `pocket-install` on a blank 32 GB virtual disk over the serial console, then boots that disk. It downloads the CA from the landing page and checks every app and service over https through Caddy, verifying certificates against that CA (host ports 28443/28080). Then it runs the owner's first visit: it creates the account in Core and waits for that person's Jellyfin, Navidrome and Immich accounts. It then requires Watch, Music and Photos to report their service connected after signing in with Pocket Core. Logs go to `.installtest/`.
+This builds the ISO and boots it in QEMU (KVM + OVMF). It runs `pocket-install` on a blank 32 GB virtual disk over the serial console, then boots that disk. It downloads the CA from the landing page and checks every app and service over https through Caddy, verifying certificates against that CA (host ports 28443/28080). Then it runs the owner's first visit:
+- creates the account in Core and waits for that person's Jellyfin, Navidrome and Immich accounts
+- requires Watch, Music and Photos to report their service connected after signing in with Pocket Core
+- goes through the wizard via Core's API: time zone, console password, and a disk state that matches the install
+
+By default the VM gets a software TPM (swtpm), so the disk is encrypted and the installer must show a recovery key. `TPM=0` tests a PC without a TPM (plain disk). `BOOT_ONLY=1` boots the installed disk again, which also checks the TPM unlock on a second boot. Logs go to `.installtest/`.
 
 ## Adding or updating an app
 
@@ -138,22 +153,25 @@ apps.nix              the app catalog: pname, version, port, hashes
 lib/mkPocketApp.nix   UI + Go build for one app
 modules/box.nix       pocket.box.* options: app services, first-boot secrets, Avahi
 modules/proxy.nix     Caddy, local CA, landing page, mDNS names
+modules/system.nix    NetworkManager, Tailscale, console account, the box agent
+modules/agent.py      the box agent (time zone, Wi-Fi, Tailscale, console password, disk status)
 modules/services.nix  Jellyfin, Navidrome, Immich, OnlyOffice; first-boot accounts for Core
 modules/backends-bootstrap.py  the first-boot setup of those services
 hosts/box.nix         the installed system (hardware-agnostic, file systems by label)
+hosts/encrypted.nix   the encrypted variant: LUKS2 root unlocked by the TPM
 hosts/installer.nix   the ISO and pocket-install
 scripts/              install-test
 ```
 
 ## Not done yet
 
-- "Sign in with Pocket Core" inside Immich and Jellyfin themselves. The Pocket apps already sign in for you; Jellyfin's needs the SSO plugin.
-- Collabora as a second Office engine, and Bazarr plus the arr apps for Subtitles and Watch.
-- Remote access: Tailscale (the `.local` names and the local CA only work on the LAN).
-- Installing the CA from the native client during pairing, instead of the landing page.
-- A first-boot wizard that also sets the system password, Wi-Fi and Tailscale. Disk encryption with TPM unlock.
 - Updates: a binary cache and `system.autoUpgrade` with health-gated rollback. aarch64 images.
 - CI that rebuilds the hashes and the ISO.
+- The apps on the move: Tailscale gets the box onto your tailnet, but the `https://<app>.pocket.local` names and the local CA only work on the LAN.
+- Installing the CA from the native client during pairing, instead of the landing page.
+- "Sign in with Pocket Core" inside Immich and Jellyfin themselves. The Pocket apps already sign in for you; Jellyfin's needs the SSO plugin.
+- Collabora as a second Office engine, and Bazarr plus the arr apps for Subtitles and Watch.
+- Secure Boot (lanzaboote), which would make the TPM binding mean more.
 
 ## License
 

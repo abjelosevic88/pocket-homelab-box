@@ -77,9 +77,15 @@
           modules = [ self.nixosModules.default ./hosts/box.nix ];
         };
 
+        # The same system on an encrypted disk (pocket-install picks it when the PC has a TPM).
+        box-encrypted = self.nixosConfigurations.box.extendModules { modules = [ ./hosts/encrypted.nix ]; };
+
         installer = lib.nixosSystem {
           inherit system;
-          specialArgs.boxSystem = self.nixosConfigurations.box.config.system.build.toplevel;
+          specialArgs = {
+            boxSystem = self.nixosConfigurations.box.config.system.build.toplevel;
+            boxSystemEncrypted = self.nixosConfigurations.box-encrypted.config.system.build.toplevel;
+          };
           modules = [ ./hosts/installer.nix ];
         };
       };
