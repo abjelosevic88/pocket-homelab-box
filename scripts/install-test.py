@@ -1,5 +1,5 @@
 """Installs the Pocket Box ISO onto a blank virtual disk over the serial console, then boots the disk. Run via install-test.sh."""
-import os, re, subprocess, sys, time, select, shutil, urllib.request
+import json, os, re, subprocess, sys, time, select, shutil, urllib.request
 
 iso, ovmf, qemu, work = sys.argv[1:5]
 os.makedirs(work, exist_ok=True)
@@ -85,18 +85,73 @@ while time.time() < end:
 else:
     raise SystemExit("landing page never came up")
 
-failed = []
-for name, path in sites:
-    host = f"{name}.{domain}"
-    for _ in range(40):
+pending = dict(sites)
+end = time.time() + 600
+while pending and time.time() < end:
+    for name, path in list(pending.items()):
+        host = f"{name}.{domain}"
         r = curl("--cacert", ca, "--resolve", f"{host}:{https_port}:127.0.0.1", "-o", "/dev/null", "-w", "%{http_code}", f"https://{host}:{https_port}{path}")
         if r.stdout == "200":
-            break
-        time.sleep(3)
-        drain_log()
-    else:
-        failed.append(name)
+            del pending[name]
+    drain_log()
+    if pending:
+        time.sleep(5)
+failed = list(pending)
 print(f"{len(sites) - len(failed)}/{len(sites)} sites healthy over verified https" + (f", failing: {failed}" if failed else ""), flush=True)
+
+# The owner's first run: an account in Core, their own accounts in the media services, and the
+# apps on top of those services connected as them through "Sign in with Pocket Core".
+jar = os.path.join(work, "owner.jar")
+if os.path.exists(jar):
+    os.remove(jar)
+
+
+def https(name, path, *args):
+    # The box's own URLs carry no port (sign-in redirects between apps and Core): send every
+    # name and port to the forwarded https port.
+    return curl("-m", "30", "--cacert", ca, "--connect-to", f"::127.0.0.1:{https_port}",
+                "-b", jar, "-c", jar, *args, f"https://{name}.{domain}{path}")
+
+
+owner = {"email": "owner@example.com", "password": "install-test-1", "name": "Owner"}
+r = https("core", "/api/v1/auth/setup", "-H", "Content-Type: application/json", "-d", json.dumps(owner))
+if "setup already completed" in r.stdout:  # BOOT_ONLY=1 on a box whose owner exists
+    r = https("core", "/api/v1/auth/login", "-H", "Content-Type: application/json", "-d", json.dumps(owner))
+if '"owner@example.com"' not in r.stdout:
+    failed.append("core setup")
+    print("core setup:", r.stdout[:200], flush=True)
+backends = {"jellyfin": "watch", "navidrome": "music", "immich": "photos"}
+accounts = {}
+end = time.time() + 300
+while time.time() < end and len(accounts) < len(backends):
+    drain_log()
+    try:
+        services = json.loads(https("core", "/api/v1/services").stdout or "[]")
+    except ValueError:
+        services = []
+    for sv in services:
+        if sv.get("type") in backends and sv["type"] not in accounts:
+            try:
+                rows = json.loads(https("core", f"/api/v1/services/{sv['id']}/connector/accounts").stdout or "[]")
+            except ValueError:
+                rows = []
+            if any(a.get("status") == "ok" for a in rows):
+                accounts[sv["type"]] = True
+    time.sleep(5)
+for backend, app in backends.items():
+    if backend not in accounts:
+        failed.append(f"{backend} account")
+        continue
+    https(app, "/api/v1/auth/oidc/start", "-L", "-o", "/dev/null")
+    try:
+        conn = json.loads(https(app, "/api/v1/connection").stdout or "{}")
+    except ValueError:
+        conn = {}
+    if conn.get("connected") is not True:
+        failed.append(f"{app} → {backend}")
+        print(f"{app} connection:", json.dumps(conn)[:300], flush=True)
+print("owner's accounts: " + ", ".join(sorted(accounts)) + "; apps connected: "
+      + ", ".join(a for b, a in backends.items() if f"{a} → {b}" not in failed and b in accounts), flush=True)
 p.terminate()
 p.wait()
 sys.exit(1 if failed else 0)

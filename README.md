@@ -61,7 +61,12 @@ And the third-party services some of them sit on top of, from the NixOS modules 
 | Immich | `immich.pocket.local` | Pocket Photos |
 | OnlyOffice Document Server | `onlyoffice.pocket.local` | Pocket Office |
 
-The apps get these services' URLs automatically. Accounts and API keys are created in each service's own first-run screen. Pocket Office and OnlyOffice share a JWT secret that is generated on the first boot.
+Nobody has to open these services' setup screens:
+- **First boot:** `pocket-box-backends` creates a box administrator (`pocket-box`) and an API key in Jellyfin, Navidrome and Immich. It also adds Jellyfin's Movies and Shows libraries. The credentials stay in `/var/lib/pocket-box/backends/`, readable by root only.
+- **Handing them to Core:** it writes the services and their admin keys to `core-services.json`. Core reads that file at start (`SERVICES_FILE`, as a systemd credential) and turns on the connectors that make accounts.
+- **Each person's own account:** the owner's first-run account in Core, and everyone added later, gets an account and key in each service. Watch, Music and Photos use those keys, so each person has their own resume points, playlists and photos.
+
+Pocket Office and OnlyOffice share a JWT secret that is generated on the first boot.
 
 Every app runs as its own systemd service (`pocket-<slug>`) under a dynamic user, with its data in `/var/lib/pocket-<slug>`. The exceptions:
 - **Backups and Database run as root.** They need to read the whole disk and every app's database.
@@ -115,7 +120,7 @@ The installed system has a console-only user `pocket` with the password `pocket`
 scripts/install-test.sh
 ```
 
-This builds the ISO and boots it in QEMU (KVM + OVMF). It runs `pocket-install` on a blank 32 GB virtual disk over the serial console, then boots that disk. It downloads the CA from the landing page and checks every app and service over https through Caddy, verifying certificates against that CA (host ports 28443/28080). Logs go to `.installtest/`.
+This builds the ISO and boots it in QEMU (KVM + OVMF). It runs `pocket-install` on a blank 32 GB virtual disk over the serial console, then boots that disk. It downloads the CA from the landing page and checks every app and service over https through Caddy, verifying certificates against that CA (host ports 28443/28080). Then it runs the owner's first visit: it creates the account in Core and waits for that person's Jellyfin, Navidrome and Immich accounts. It then requires Watch, Music and Photos to report their service connected after signing in with Pocket Core. Logs go to `.installtest/`.
 
 ## Adding or updating an app
 
@@ -133,7 +138,8 @@ apps.nix              the app catalog: pname, version, port, hashes
 lib/mkPocketApp.nix   UI + Go build for one app
 modules/box.nix       pocket.box.* options: app services, first-boot secrets, Avahi
 modules/proxy.nix     Caddy, local CA, landing page, mDNS names
-modules/services.nix  Jellyfin, Navidrome, Immich, OnlyOffice
+modules/services.nix  Jellyfin, Navidrome, Immich, OnlyOffice; first-boot accounts for Core
+modules/backends-bootstrap.py  the first-boot setup of those services
 hosts/box.nix         the installed system (hardware-agnostic, file systems by label)
 hosts/installer.nix   the ISO and pocket-install
 scripts/              install-test
@@ -141,7 +147,7 @@ scripts/              install-test
 
 ## Not done yet
 
-- Setting up the third-party services from Core: making the Jellyfin/Navidrome/Immich accounts and handing their keys to the apps (Core's connectors already do this for Immich and Jellyfin on the home server).
+- "Sign in with Pocket Core" inside Immich and Jellyfin themselves. The Pocket apps already sign in for you; Jellyfin's needs the SSO plugin.
 - Collabora as a second Office engine, and Bazarr plus the arr apps for Subtitles and Watch.
 - Remote access: Tailscale (the `.local` names and the local CA only work on the LAN).
 - Installing the CA from the native client during pairing, instead of the landing page.

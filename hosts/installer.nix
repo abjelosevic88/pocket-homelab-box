@@ -52,7 +52,7 @@ let
       nixos-install --system ${boxSystem} --no-root-passwd --no-channel-copy
 
       echo
-      echo "Done. Remove the USB stick and reboot; then open http://pocket.local:8179 from a phone or laptop on the same network."
+      echo "Done. Remove the USB stick and reboot; then open http://pocket.local from a phone or laptop on the same network."
     '';
   };
 in

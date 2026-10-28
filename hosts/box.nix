@@ -19,6 +19,8 @@
     "nvme" "xhci_pci" "ahci" "usb_storage" "uas" "sd_mod" "sdhci_pci" "virtio_pci" "virtio_blk" "virtio_scsi"
   ];
   hardware.enableRedistributableFirmware = true;
+  # A console on the screen and on the first serial port, for boxes without a screen.
+  boot.kernelParams = [ "console=ttyS0,115200n8" "console=tty0" ];
 
   fileSystems."/" = {
     device = "/dev/disk/by-label/pocket-root";
