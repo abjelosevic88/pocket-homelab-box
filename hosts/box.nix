@@ -48,7 +48,7 @@
   virtualisation.vmVariant = { config, ... }: {
     pocket.box.host = "localhost";
     virtualisation = {
-      memorySize = 2048;
+      memorySize = 4096;
       cores = 2;
       diskSize = 4096;
       graphics = false;

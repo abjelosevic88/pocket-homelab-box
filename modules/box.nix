@@ -13,45 +13,66 @@ let
   localUrl = app: "http://127.0.0.1:${toString app.port}";
   secretsFile = "/var/lib/pocket-box/secrets.env";
 
-  common = slug: app: {
-    description = app.title;
-    wantedBy = [ "multi-user.target" ];
-    after = [ "network-online.target" "pocket-box-secrets.service" ];
-    wants = [ "network-online.target" ];
-    requires = [ "pocket-box-secrets.service" ];
-    environment = {
-      DATA_DIR = "/var/lib/pocket-${slug}";
-      HOST = cfg.listen;
-      PORT = toString app.port;
-      BASE_URL = publicUrl app;
-      SECURE_COOKIES = lib.boolToString (cfg.scheme == "https");
-      TZ = if config.time.timeZone != null then config.time.timeZone else "UTC";
-      LOG_LEVEL = "info";
+  mediaDir = "/srv/media";
+
+  common = slug: app:
+    let
+      root = app.root or false;
+      caps = app.capabilities or [ ];
+      media = app.media or null;
+    in
+    {
+      description = app.title;
+      wantedBy = [ "multi-user.target" ];
+      after = [ "network-online.target" "pocket-box-secrets.service" ];
+      wants = [ "network-online.target" ];
+      requires = [ "pocket-box-secrets.service" ];
+      environment = {
+        DATA_DIR = "/var/lib/pocket-${slug}";
+        HOME = "/var/lib/pocket-${slug}";
+        HOST = cfg.listen;
+        PORT = toString app.port;
+        BASE_URL = publicUrl app;
+        SECURE_COOKIES = lib.boolToString (cfg.scheme == "https");
+        TZ = if config.time.timeZone != null then config.time.timeZone else "UTC";
+        LOG_LEVEL = "info";
+      } // (app.environment or { });
+      serviceConfig = {
+        ExecStart = lib.getExe pkgs.pocket.${slug};
+        EnvironmentFile = [ secretsFile ];
+        DynamicUser = !root;
+        StateDirectory = "pocket-${slug}";
+        StateDirectoryMode = "0750";
+        WorkingDirectory = "/var/lib/pocket-${slug}";
+        Restart = "on-failure";
+        RestartSec = 3;
+        NoNewPrivileges = true;
+        # Apps that run as root (Backups, Database) need the disks and the other apps' data.
+        ProtectSystem = if root then "full" else "strict";
+        ProtectHome = !root;
+        PrivateDevices = !root;
+        PrivateTmp = true;
+        ProtectKernelTunables = true;
+        ProtectKernelModules = true;
+        ProtectControlGroups = true;
+        RestrictSUIDSGID = true;
+        LockPersonality = true;
+        RestrictAddressFamilies = [ "AF_INET" "AF_INET6" "AF_UNIX" "AF_NETLINK" ]
+          ++ lib.optional (lib.elem "CAP_NET_RAW" caps) "AF_PACKET";
+      } // lib.optionalAttrs (caps != [ ]) {
+        AmbientCapabilities = caps;
+        CapabilityBoundingSet = caps;
+      } // lib.optionalAttrs (media != null) {
+        SupplementaryGroups = [ "pocket-media" ];
+        UMask = "0002";
+      } // lib.optionalAttrs (media == "rw") {
+        ReadWritePaths = [ mediaDir ];
+      };
     };
-    serviceConfig = {
-      ExecStart = lib.getExe pkgs.pocket.${slug};
-      EnvironmentFile = secretsFile;
-      DynamicUser = true;
-      StateDirectory = "pocket-${slug}";
-      StateDirectoryMode = "0750";
-      WorkingDirectory = "/var/lib/pocket-${slug}";
-      Restart = "on-failure";
-      RestartSec = 3;
-      NoNewPrivileges = true;
-      ProtectSystem = "strict";
-      ProtectHome = true;
-      PrivateTmp = true;
-      PrivateDevices = true;
-      ProtectKernelTunables = true;
-      ProtectKernelModules = true;
-      ProtectControlGroups = true;
-      RestrictSUIDSGID = true;
-      LockPersonality = true;
-      RestrictAddressFamilies = [ "AF_INET" "AF_INET6" "AF_UNIX" ];
-    };
-  };
 in
 {
+  imports = [ ./services.nix ];
+
   options.pocket.box = {
     enable = lib.mkEnableOption "the Pocket Box (Pocket Core and the Pocket apps)";
 
@@ -126,6 +147,12 @@ in
         };
       }) apps)
     ];
+
+    # Shared media (films, series, music, books, audiobooks) for the apps and services that use it.
+    users.groups.pocket-media = { };
+    systemd.tmpfiles.settings."10-pocket-media" = lib.genAttrs
+      ([ mediaDir ] ++ map (d: "${mediaDir}/${d}") [ "movies" "tv" "music" "books" "audiobooks" ])
+      (_: { d = { mode = "2775"; user = "root"; group = "pocket-media"; }; });
 
     # pocket.local on the LAN, and the box can resolve its own name (apps fetch Core's OIDC discovery).
     services.avahi = {
