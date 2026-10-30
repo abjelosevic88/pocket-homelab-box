@@ -45,7 +45,8 @@ def latest_tag(repo):
 
 
 def block(text, slug):
-    a = text.index(f"\n  {slug} = {{")
+    key = f'"{slug}"' if "-" in slug else slug
+    a = text.index(f"\n  {key} = {{")
     return a, text.index("\n  };", a)
 
 
@@ -62,8 +63,8 @@ def nix(*args, check=False):
 def main():
     summary_file = sys.argv[sys.argv.index("--summary") + 1] if "--summary" in sys.argv else None
     apps_txt, flake_txt = open(APPS).read(), open(FLAKE).read()
-    catalog = re.findall(r'\n  ([a-z]+) = \{\n    title = "([^"]+)";\n    pname = "([^"]+)";\n    input = "([^"]+)";\n    version = "([^"]+)";', apps_txt)
-    inputs = dict(re.findall(r'\n    (pocket-[a-z]+) = \{ url = "github:([^"]+)"; flake = false; \};', flake_txt))
+    catalog = re.findall(r'\n  "?([a-z][a-z0-9-]*)"? = \{\n    title = "([^"]+)";\n    pname = "([^"]+)";\n    input = "([^"]+)";\n    version = "([^"]+)";', apps_txt)
+    inputs = dict(re.findall(r'\n    (pocket-[a-z0-9-]+) = \{ url = "github:([^"]+)"; flake = false; \};', flake_txt))
 
     moved = []  # (slug, title, pname, input, old, new)
     for slug, title, pname, inp, version in catalog:

@@ -3,14 +3,14 @@
 { lib, buildGo126Module, buildNpmPackage, makeWrapper }:
 
 { pname, version, src, vendorHash, npmDepsHash, title ? pname
-, runtime ? [ ], wrap ? [ ], postInstall ? "" }:
+, runtime ? [ ], wrap ? [ ], postInstall ? "", npmFlags ? [ ] }:
 
 let
   web = buildNpmPackage {
     pname = "${pname}-web";
     inherit version npmDepsHash;
     src = "${src}/web";
-    npmFlags = [ "--no-audit" "--no-fund" ];
+    npmFlags = [ "--no-audit" "--no-fund" ] ++ npmFlags;
     installPhase = ''
       runHook preInstall
       mkdir -p $out

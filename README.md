@@ -1,21 +1,37 @@
-# Pocket Box
+<p align="center">
+  <img src="docs/icon.svg" width="72" alt="">
+</p>
+<h1 align="center">Pocket Box</h1>
+<p align="center">
+  A NixOS appliance that turns a spare PC into a home server running <a href="https://github.com/abjelosevic88/pocket-homelab-core">Pocket Core</a> and all 50 Pocket apps: HTTPS on every app, one sign-in, Jellyfin, Navidrome, Immich and ONLYOFFICE set up on first boot, TPM disk encryption, and nightly updates that roll themselves back.<br>
+  <b>Boot the USB stick · pick a disk · open pocket.local.</b>
+</p>
+<p align="center">
+  <a href="https://github.com/abjelosevic88/pocket-homelab-box/actions"><img src="https://github.com/abjelosevic88/pocket-homelab-box/actions/workflows/ci.yml/badge.svg?branch=main" alt="CI"></a>
+  <img src="https://img.shields.io/badge/NixOS-unstable-5277C3?logo=nixos&logoColor=white" alt="NixOS">
+  <img src="https://img.shields.io/badge/platform-x86__64%20UEFI-blue" alt="x86_64 UEFI">
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-green" alt="MIT"></a>
+  <a href="https://pockethomelab.com/box"><img src="https://img.shields.io/badge/website-pockethomelab.com%2Fbox-0e7490" alt="Website"></a>
+</p>
 
-[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+---
 
-A NixOS appliance that runs [Pocket Core](https://github.com/abjelosevic88/pocket-homelab-core) and the Pocket apps on one machine. Boot the installer from a USB stick, pick a disk, reboot. Then open `http://pocket.local` from a phone or laptop on the same network: install the box's certificate there once, and continue to Pocket Core at `https://core.pocket.local`.
+Boot the installer from a USB stick, pick a disk, reboot. Then open `http://pocket.local` from a phone or laptop on the same network: install the box's certificate there once, and continue to Pocket Core at `https://core.pocket.local`.
 
 The whole system is declared in this flake. The installer ISO already contains the finished system, so installing needs no network.
 
 ## What's on the box
 
-All 39 Pocket apps, each at `https://<slug>.pocket.local` (the port is where it listens on loopback):
+All 50 Pocket apps and Pocket Core, each at `https://<slug>.pocket.local` (the port is where it listens on loopback). [pockethomelab.com/apps](https://pockethomelab.com/apps) has a page for every one of them.
 
 | App | Port |
 |---|---|
 | Pocket Core (setup, sign-in, launcher, pairing) | 8179 |
 | Pocket AI | 8195 |
+| Pocket Alerts | 8217 |
 | Pocket Audiobooks | 8202 |
 | Pocket Backups | 8203 |
+| Pocket Blueprint | 8222 |
 | Pocket Bookshelf | 8171 |
 | Pocket Calendar | 8190 |
 | Pocket Clips | 8173 |
@@ -23,14 +39,19 @@ All 39 Pocket apps, each at `https://<slug>.pocket.local` (the port is where it 
 | Pocket Database | 8209 |
 | Pocket Day | 8177 |
 | Pocket Documents | 8183 |
+| Pocket Draw | 8213 |
 | Pocket Files | 8187 |
+| Pocket Flows | 8212 |
 | Pocket Garage | 8175 |
+| Pocket Guitar | 8214 |
 | Pocket Habits | 8169 |
 | Pocket Health | 8199 |
+| Pocket Horoscope | 8215 |
 | Pocket Hub | 8185 |
 | Pocket Inventory | 8170 |
 | Pocket Invoicing | 8168 |
 | Pocket Kitchen | 8176 |
+| Pocket Learn | 8218 |
 | Pocket Library | 8204 |
 | Pocket Mail | 8208 |
 | Pocket Money | 8178 |
@@ -40,14 +61,19 @@ All 39 Pocket apps, each at `https://<slug>.pocket.local` (the port is where it 
 | Pocket Network | 8207 |
 | Pocket Notes | 8182 |
 | Pocket Office | 8186 |
+| Pocket PR Review | 8220 |
 | Pocket Photos | 8194 |
 | Pocket Podcasts | 8181 |
 | Pocket Projects | 8196 |
+| Pocket Radio | 8216 |
+| Pocket Reader | 8211 |
+| Pocket Requests | 8210 |
 | Pocket Review | 8180 |
 | Pocket Split | 8172 |
 | Pocket Still | 8206 |
 | Pocket Subtitles | 8150 |
 | Pocket Tasks | 8184 |
+| Pocket Time | 8219 |
 | Pocket Travel | 8174 |
 | Pocket Watch | 8201 |
 | Pocket Wishlist | 8198 |
@@ -90,13 +116,13 @@ Caddy is the only thing listening on the network (ports 80 and 443). The apps an
 - **`http://pocket.local`:** stays plain http on purpose. It's a landing page where each phone or computer downloads that CA once, with steps for iPhone, Mac, Android and Windows. It then links to Core.
 - **`https://pocket.local`:** redirects to Core.
 
-`pocket.local` and all 43 names are announced over mDNS. `pocket-box-mdns-aliases` follows address changes and spreads the records over several Avahi groups, because Avahi allows 32 entries per group.
+`pocket.local` and all 55 names are announced over mDNS. `pocket-box-mdns-aliases` follows address changes and spreads the records over several Avahi groups, because Avahi allows 32 entries per group.
 - **Apple devices and Linux with Avahi:** resolve these multi-label `.local` names.
 - **Android and some Windows versions:** may not.
 
 The box resolves its own names through `/etc/hosts`. The apps trust the CA through `SSL_CERT_FILE`, so they reach each other and Core by their public names.
 
-Core's first-run screen creates the admin account. Every app has "Sign in with Pocket Core", and the first person to sign in becomes that app's admin. In the VM, the Core account signed in to all 38 apps this way and was admin in each.
+Core's first-run screen creates the admin account. Every app has "Sign in with Pocket Core", and the first person to sign in becomes that app's admin. In the VM, the Core account signed in to every app this way and was admin in each (checked with the first 38 apps).
 
 Options: `pocket.box.domain` (default `<hostname>.local`), `pocket.box.httpsPort` and `pocket.box.httpPort`.
 
@@ -201,7 +227,7 @@ scripts/              install-test, update-test, bump-apps
 - The apps on the move: Tailscale gets the box onto your tailnet, but the `https://<app>.pocket.local` names and the local CA only work on the LAN.
 - Installing the CA from the native client during pairing, instead of the landing page.
 - "Sign in with Pocket Core" inside Immich and Jellyfin themselves. The Pocket apps already sign in for you; Jellyfin's needs the SSO plugin.
-- Collabora as a second Office engine, and Bazarr plus the arr apps for Subtitles and Watch.
+- Collabora as a second Office engine, and Bazarr plus the arr apps (Radarr, Sonarr, Lidarr) for Subtitles, Watch and Requests. Pocket Requests is on the box, but needs arr apps you run yourself until then.
 - Secure Boot (lanzaboote), which would make the TPM binding mean more.
 
 ## License
