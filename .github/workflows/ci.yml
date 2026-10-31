@@ -36,6 +36,10 @@ jobs:
       BUMP: ${{ github.event_name == 'schedule' || inputs.bump == true }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          # Full history: pushing HEAD to stable must see that it only moves stable forward.
+          # A shallow clone cannot, and the push is rejected ("fetch first").
+          fetch-depth: 0
 
       - name: Make room (the ISO and a 32 GB test disk)
         run: |
