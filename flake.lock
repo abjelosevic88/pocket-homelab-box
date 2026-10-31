@@ -19,16 +19,16 @@
     "pocket-ai": {
       "flake": false,
       "locked": {
-        "lastModified": 1793394679,
-        "narHash": "sha256-X+zIttdI6hfDZjadnDhFdXjc9M8p56VAbULch8+yeEw=",
+        "lastModified": 1793398605,
+        "narHash": "sha256-r7gau3CmmWYOTRYZSeAqQamUOnnOSITyy4NP9xslX1A=",
         "owner": "abjelosevic88",
         "repo": "pocket-homelab-ai",
-        "rev": "c1effe82a86f9529e9f1740a04b52810317d0f43",
+        "rev": "80e5d3b568e6364e157bb4b9136a3b364268af3f",
         "type": "github"
       },
       "original": {
         "owner": "abjelosevic88",
-        "ref": "v0.42.2",
+        "ref": "v0.42.3",
         "repo": "pocket-homelab-ai",
         "type": "github"
       }
@@ -257,16 +257,16 @@
     "pocket-files": {
       "flake": false,
       "locked": {
-        "lastModified": 1793267060,
-        "narHash": "sha256-eozQGmsZzwPzg1pDUVFzoxk6OOiYA4pJA6iWEpQNKxE=",
+        "lastModified": 1793433975,
+        "narHash": "sha256-DxO/qo1pzYV5Em0rNJ6yPbRfyU6/Q6+Y/mzkiWqU9M0=",
         "owner": "abjelosevic88",
         "repo": "pocket-homelab-files",
-        "rev": "5132c2e39c5d9eb5395615d2268d4cfdf0a4853e",
+        "rev": "d4fcce264995f5cf264c5692369fe025585d319c",
         "type": "github"
       },
       "original": {
         "owner": "abjelosevic88",
-        "ref": "v0.4.4",
+        "ref": "v0.9.1",
         "repo": "pocket-homelab-files",
         "type": "github"
       }
@@ -597,16 +597,16 @@
     "pocket-office": {
       "flake": false,
       "locked": {
-        "lastModified": 1793267804,
-        "narHash": "sha256-CSLYtE+cOUgWa+ze05E/CLdt1/oofsnG2uJmqYqvB6g=",
+        "lastModified": 1793432694,
+        "narHash": "sha256-Gzf9pxHRT1KvA90jLRNUYwYGU4BlYzCOOA1+kr4rXxY=",
         "owner": "abjelosevic88",
         "repo": "pocket-homelab-office",
-        "rev": "f91a7036240571d9bbe7d6e5e142f23daa1a6d67",
+        "rev": "87d964efedcad9003d4f4c37c3680d4900f9ec51",
         "type": "github"
       },
       "original": {
         "owner": "abjelosevic88",
-        "ref": "v0.6.4",
+        "ref": "v0.7.0",
         "repo": "pocket-homelab-office",
         "type": "github"
       }

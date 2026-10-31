@@ -35,7 +35,7 @@ in
     title = "Pocket AI";
     pname = "pocket-ai";
     input = "pocket-ai";
-    version = "0.42.2";
+    version = "0.42.3";
     port = 8195;
     vendorHash = "sha256-st3Jp8Qh9ZGI32Tsg1EVT0bZBu6tDtYHnLhAhvI/aMM=";
     npmDepsHash = "sha256-Ec6TFzNOyDaPrpcaUpLi5OMusbth/qK3LLDEE+V92jw=";
@@ -187,7 +187,7 @@ in
     title = "Pocket Files";
     pname = "pocket-files";
     input = "pocket-files";
-    version = "0.4.4";
+    version = "0.9.1";
     port = 8187;
     vendorHash = "sha256-lXzRylGWMVyqHRwPnELyaj0H0Fi4lT067M+TJCg5UuI=";
     npmDepsHash = "sha256-3X9Vyi6iZSLpDVksIdv2YEZBP4hzRGW53eTY+jQdtvY=";
@@ -394,7 +394,7 @@ in
     title = "Pocket Office";
     pname = "pocket-office";
     input = "pocket-office";
-    version = "0.6.4";
+    version = "0.7.0";
     port = 8186;
     vendorHash = "sha256-orX8b2RbbV3XoLZ4WAfqSgQF/AYRinb4n6V4okSMbCk=";
     npmDepsHash = "sha256-v0tDTefOAPNSPoLor4IbNyZ/ysTJC//4v+PHne1tjoI=";
