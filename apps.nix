@@ -93,6 +93,16 @@ in
     npmDepsHash = "sha256-xddyerXbIl/9namq/mwAMmc59hu79Bq5/Iw3Rl3YdYI=";
   };
 
+  boards = {
+    title = "Pocket Boards";
+    pname = "pocket-boards";
+    input = "pocket-boards";
+    version = "0.1.2";
+    port = 8223;
+    vendorHash = "sha256-orX8b2RbbV3XoLZ4WAfqSgQF/AYRinb4n6V4okSMbCk=";
+    npmDepsHash = "sha256-FGjpcDpJH73C5O7i85sSuLfwvhq6kE7U16vrJiF2XJM=";
+  };
+
   bookshelf = {
     title = "Pocket Bookshelf";
     pname = "pocket-bookshelf";
@@ -315,6 +325,18 @@ in
     media = "rw";
   };
 
+  lookout = {
+    title = "Pocket Lookout";
+    pname = "pocket-lookout";
+    input = "pocket-lookout";
+    version = "0.2.0";
+    port = 8224;
+    vendorHash = "sha256-I+1cF7f2lxcJRqZiXfwFQvMcFPNXVQVaLIBTDDqNYCc=";
+    npmDepsHash = "sha256-0pu2PDc9/2oMTSa6fb4Uv+p4ROlXwGh/KoN1DDB7Jms=";
+    # Pages that need JavaScript open in the box's headless Chromium (modules/services.nix).
+    environment = { BROWSER_URL = "http://127.0.0.1:9222"; };
+  };
+
   mail = {
     title = "Pocket Mail";
     pname = "pocket-mail";
@@ -481,6 +503,18 @@ in
     port = 8180;
     vendorHash = "sha256-fTd/wIwUt/17EZsOvQ6eur1HaEF4hsrsiav0tsX3a/k=";
     npmDepsHash = "sha256-R4VBjT/PtdtzLzOrxaY63Fg3qlIMO2qbjbxWTibAaY8=";
+  };
+
+  search = {
+    title = "Pocket Search";
+    pname = "pocket-search";
+    input = "pocket-search";
+    version = "0.3.0";
+    port = 8225;
+    vendorHash = "sha256-gzWT5q/Hy4LInKVGQxBkNQCNaipGA9Jk7MbANyBVKJ0=";
+    npmDepsHash = "sha256-P92MslwmlPt8N95dSjIZitFvWpSn8FTaNxltAMAEcEg=";
+    # Results come from the box's own SearXNG on loopback (modules/services.nix).
+    environment = { SEARXNG_URL = "http://127.0.0.1:8888"; };
   };
 
   split = {

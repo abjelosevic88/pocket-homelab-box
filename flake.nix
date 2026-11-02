@@ -11,6 +11,7 @@
     pocket-audiobooks = { url = "github:abjelosevic88/pocket-homelab-audiobooks/v1.4.3"; flake = false; };
     pocket-backups = { url = "github:abjelosevic88/pocket-homelab-backups/v0.3.0"; flake = false; };
     pocket-blueprint = { url = "github:abjelosevic88/pocket-homelab-blueprint/v0.1.1"; flake = false; };
+    pocket-boards = { url = "github:abjelosevic88/pocket-homelab-boards/v0.1.2"; flake = false; };
     pocket-bookshelf = { url = "github:abjelosevic88/pocket-homelab-bookshelf/v0.16.6"; flake = false; };
     pocket-calendar = { url = "github:abjelosevic88/pocket-homelab-calendar/v0.7.1"; flake = false; };
     pocket-clips = { url = "github:abjelosevic88/pocket-homelab-clips/v0.2.3"; flake = false; };
@@ -32,6 +33,7 @@
     pocket-kitchen = { url = "github:abjelosevic88/pocket-homelab-kitchen/v0.5.3"; flake = false; };
     pocket-learn = { url = "github:abjelosevic88/pocket-homelab-learn/v0.2.1"; flake = false; };
     pocket-library = { url = "github:abjelosevic88/pocket-homelab-library/v0.2.3"; flake = false; };
+    pocket-lookout = { url = "github:abjelosevic88/pocket-homelab-lookout/v0.2.0"; flake = false; };
     pocket-mail = { url = "github:abjelosevic88/pocket-homelab-email/v0.1.2"; flake = false; };
     pocket-money = { url = "github:abjelosevic88/pocket-homelab-money/v0.18.0"; flake = false; };
     pocket-monitoring = { url = "github:abjelosevic88/pocket-homelab-monitoring/v0.5.1"; flake = false; };
@@ -48,6 +50,7 @@
     pocket-reader = { url = "github:abjelosevic88/pocket-homelab-reader/v0.1.1"; flake = false; };
     pocket-requests = { url = "github:abjelosevic88/pocket-homelab-requests/v0.7.1"; flake = false; };
     pocket-review = { url = "github:abjelosevic88/pocket-homelab-review/v0.6.0"; flake = false; };
+    pocket-search = { url = "github:abjelosevic88/pocket-homelab-search/v0.3.0"; flake = false; };
     pocket-split = { url = "github:abjelosevic88/pocket-homelab-cost-split/v0.7.1"; flake = false; };
     pocket-still = { url = "github:abjelosevic88/pocket-homelab-still/v0.1.2"; flake = false; };
     pocket-subtitles = { url = "github:abjelosevic88/pocket-homelab-subtitles/v0.5.2"; flake = false; };
@@ -117,6 +120,8 @@
         iso = self.nixosConfigurations.installer.config.system.build.isoImage;
         default = self.packages.${system}.iso;
       };
+
+      checks.${system}.engines = import ./tests/engines.nix { inherit self pkgs; };
 
       apps.${system}.vm = {
         type = "app";

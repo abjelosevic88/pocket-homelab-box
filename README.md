@@ -3,7 +3,7 @@
 </p>
 <h1 align="center">Pocket Box</h1>
 <p align="center">
-  A NixOS appliance that turns a spare PC into a home server running <a href="https://github.com/abjelosevic88/pocket-homelab-core">Pocket Core</a> and all 50 Pocket apps: HTTPS on every app, one sign-in, Jellyfin, Navidrome, Immich and ONLYOFFICE set up on first boot, TPM disk encryption, and nightly updates that roll themselves back.<br>
+  A NixOS appliance that turns a spare PC into a home server running <a href="https://github.com/abjelosevic88/pocket-homelab-core">Pocket Core</a> and all 53 Pocket apps: HTTPS on every app, one sign-in, Jellyfin, Navidrome, Immich and ONLYOFFICE set up on first boot, TPM disk encryption, and nightly updates that roll themselves back.<br>
   <b>Boot the USB stick · pick a disk · open pocket.local.</b>
 </p>
 <p align="center">
@@ -22,7 +22,7 @@ The whole system is declared in this flake. The installer ISO already contains t
 
 ## What's on the box
 
-All 50 Pocket apps and Pocket Core, each at `https://<slug>.pocket.local` (the port is where it listens on loopback). [pockethomelab.com/apps](https://pockethomelab.com/apps) has a page for every one of them.
+All 53 Pocket apps and Pocket Core, each at `https://<slug>.pocket.local` (the port is where it listens on loopback). [pockethomelab.com/apps](https://pockethomelab.com/apps) has a page for every one of them.
 
 | App | Port |
 |---|---|
@@ -32,6 +32,7 @@ All 50 Pocket apps and Pocket Core, each at `https://<slug>.pocket.local` (the p
 | Pocket Audiobooks | 8202 |
 | Pocket Backups | 8203 |
 | Pocket Blueprint | 8222 |
+| Pocket Boards | 8223 |
 | Pocket Bookshelf | 8171 |
 | Pocket Calendar | 8190 |
 | Pocket Clips | 8173 |
@@ -53,6 +54,7 @@ All 50 Pocket apps and Pocket Core, each at `https://<slug>.pocket.local` (the p
 | Pocket Kitchen | 8176 |
 | Pocket Learn | 8218 |
 | Pocket Library | 8204 |
+| Pocket Lookout | 8224 |
 | Pocket Mail | 8208 |
 | Pocket Money | 8178 |
 | Pocket Monitoring | 8192 |
@@ -69,6 +71,7 @@ All 50 Pocket apps and Pocket Core, each at `https://<slug>.pocket.local` (the p
 | Pocket Reader | 8211 |
 | Pocket Requests | 8210 |
 | Pocket Review | 8180 |
+| Pocket Search | 8225 |
 | Pocket Split | 8172 |
 | Pocket Still | 8206 |
 | Pocket Subtitles | 8150 |
@@ -86,13 +89,15 @@ And the third-party services some of them sit on top of, from the NixOS modules 
 | Navidrome | `navidrome.pocket.local` | Pocket Music |
 | Immich | `immich.pocket.local` | Pocket Photos |
 | OnlyOffice Document Server | `onlyoffice.pocket.local` | Pocket Office |
+| SearXNG | loopback only (`127.0.0.1:8888`) | Pocket Search |
+| Headless Chromium | loopback only (`127.0.0.1:9222`) | Pocket Lookout (pages that need JavaScript) |
 
 Nobody has to open these services' setup screens:
 - **First boot:** `pocket-box-backends` creates a box administrator (`pocket-box`) and an API key in Jellyfin, Navidrome and Immich. It also adds Jellyfin's Movies and Shows libraries. The credentials stay in `/var/lib/pocket-box/backends/`, readable by root only.
 - **Handing them to Core:** it writes the services and their admin keys to `core-services.json`. Core reads that file at start (`SERVICES_FILE`, as a systemd credential) and turns on the connectors that make accounts.
 - **Each person's own account:** the owner's first-run account in Core, and everyone added later, gets an account and key in each service. Watch, Music and Photos use those keys, so each person has their own resume points, playlists and photos.
 
-Pocket Office and OnlyOffice share a JWT secret that is generated on the first boot.
+Pocket Office and OnlyOffice share a JWT secret that is generated on the first boot, and so is SearXNG's secret key.
 
 Every app runs as its own systemd service (`pocket-<slug>`) under a dynamic user, with its data in `/var/lib/pocket-<slug>`. The exceptions:
 - **Backups and Database run as root.** They need to read the whole disk and every app's database.
@@ -125,6 +130,17 @@ The box resolves its own names through `/etc/hosts`. The apps trust the CA throu
 Core's first-run screen creates the admin account. Every app has "Sign in with Pocket Core", and the first person to sign in becomes that app's admin. In the VM, the Core account signed in to every app this way and was admin in each (checked with the first 38 apps).
 
 Options: `pocket.box.domain` (default `<hostname>.local`), `pocket.box.httpsPort` and `pocket.box.httpPort`.
+
+## Download
+
+Each [release](https://github.com/abjelosevic88/pocket-homelab-box/releases) has the installer ISO. It's bigger than GitHub's 2 GB limit per file, so it comes in parts; join them and check the result (the release notes have the exact commands, Windows too):
+
+```sh
+cat pocket-box-installer-<release>.iso.part* > pocket-box-installer-<release>.iso
+sha256sum -c pocket-box-installer-<release>.iso.sha256
+```
+
+Then write it to a USB stick (8 GB or more) with `dd`, Etcher or Rufus (DD mode) and follow [Install](#build) below. A box installed from any release updates itself from `stable` afterwards.
 
 ## Build
 
@@ -173,6 +189,7 @@ Apps are pinned to their **release tags** (`github:abjelosevic88/<repo>/vX.Y.Z`)
 - **Pushes to `main` and pull requests:** build both systems and run the install test (encrypted with a software TPM, then a second boot). When `main` passes, it's pushed to `stable`.
 - **Nightly:** `scripts/bump-apps.py` first moves every app to its newest release tag and fixes the npm and Go hashes. If anything moved, it builds and tests that, commits it to `main` and releases it to `stable`.
 - **Cache:** everything built goes to the Cachix cache named in the repository variable `CACHIX_CACHE`, using the secret `CACHIX_AUTH_TOKEN`.
+- **Releases:** pushing a tag `vYYYY.MM.DD` runs `.github/workflows/release.yml`. It builds the installer ISO from that commit (from the cache, so after CI passed it's mostly downloads), splits it into parts under 2 GB and publishes a GitHub release with the parts, their checksums and the app versions.
 
 `scripts/bump-apps.py` also runs locally (`GH_TOKEN` raises GitHub's rate limit).
 
@@ -211,13 +228,14 @@ modules/proxy.nix     Caddy, local CA, landing page, mDNS names
 modules/system.nix    NetworkManager, Tailscale, console account, the box agent
 modules/agent.py      the box agent (time zone, Wi-Fi, Tailscale, console password, disk status, updates)
 modules/updates.nix   nightly updates; modules/updater.py does the switch, health check and rollback
-modules/services.nix  Jellyfin, Navidrome, Immich, OnlyOffice; first-boot accounts for Core
+modules/services.nix  Jellyfin, Navidrome, Immich, OnlyOffice, SearXNG, Chromium; first-boot accounts for Core
 modules/backends-bootstrap.py  the first-boot setup of those services
 hosts/box.nix         the installed system (hardware-agnostic, file systems by label)
 hosts/encrypted.nix   the encrypted variant: LUKS2 root unlocked by the TPM
 hosts/installer.nix   the ISO and pocket-install
-scripts/              install-test, update-test, bump-apps
-.github/workflows/    ci.yml: build, test, release to stable, nightly app bumps
+scripts/              install-test, update-test, bump-apps, release-notes
+tests/                NixOS VM tests: Pocket AI's jail, SearXNG and Chromium (nix build .#checks.x86_64-linux.engines)
+.github/workflows/    ci.yml: build, test, release to stable, nightly app bumps; release.yml: the ISO on GitHub
 ```
 
 ## Not done yet

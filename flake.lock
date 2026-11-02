@@ -101,6 +101,23 @@
         "type": "github"
       }
     },
+    "pocket-boards": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1793471039,
+        "narHash": "sha256-FuAM6lwX5QTOqfULO4fNLWxbefpqccncId0e3v8W86U=",
+        "owner": "abjelosevic88",
+        "repo": "pocket-homelab-boards",
+        "rev": "75236494fcfff6909d4a775a4ca74b88ddcb860a",
+        "type": "github"
+      },
+      "original": {
+        "owner": "abjelosevic88",
+        "ref": "v0.1.2",
+        "repo": "pocket-homelab-boards",
+        "type": "github"
+      }
+    },
     "pocket-bookshelf": {
       "flake": false,
       "locked": {
@@ -475,6 +492,23 @@
         "type": "github"
       }
     },
+    "pocket-lookout": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1793523792,
+        "narHash": "sha256-aleENCEUhk3dJoF60CtRYm1kufuvx1mjxE82FfJf/eU=",
+        "owner": "abjelosevic88",
+        "repo": "pocket-homelab-lookout",
+        "rev": "a0ce8924b9949c73367fcb069a1695054634f3cc",
+        "type": "github"
+      },
+      "original": {
+        "owner": "abjelosevic88",
+        "ref": "v0.2.0",
+        "repo": "pocket-homelab-lookout",
+        "type": "github"
+      }
+    },
     "pocket-mail": {
       "flake": false,
       "locked": {
@@ -747,6 +781,23 @@
         "type": "github"
       }
     },
+    "pocket-search": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1793573496,
+        "narHash": "sha256-6Z6M+7nAMUp/H90GaYp9CdHR5ACGaAov+8tj+IH3ACA=",
+        "owner": "abjelosevic88",
+        "repo": "pocket-homelab-search",
+        "rev": "5adfd3e77e0d60632ad1a66bd1088b6c9f53eb6d",
+        "type": "github"
+      },
+      "original": {
+        "owner": "abjelosevic88",
+        "ref": "v0.3.0",
+        "repo": "pocket-homelab-search",
+        "type": "github"
+      }
+    },
     "pocket-split": {
       "flake": false,
       "locked": {
@@ -891,6 +942,7 @@
         "pocket-audiobooks": "pocket-audiobooks",
         "pocket-backups": "pocket-backups",
         "pocket-blueprint": "pocket-blueprint",
+        "pocket-boards": "pocket-boards",
         "pocket-bookshelf": "pocket-bookshelf",
         "pocket-calendar": "pocket-calendar",
         "pocket-clips": "pocket-clips",
@@ -913,6 +965,7 @@
         "pocket-kitchen": "pocket-kitchen",
         "pocket-learn": "pocket-learn",
         "pocket-library": "pocket-library",
+        "pocket-lookout": "pocket-lookout",
         "pocket-mail": "pocket-mail",
         "pocket-money": "pocket-money",
         "pocket-monitoring": "pocket-monitoring",
@@ -929,6 +982,7 @@
         "pocket-reader": "pocket-reader",
         "pocket-requests": "pocket-requests",
         "pocket-review": "pocket-review",
+        "pocket-search": "pocket-search",
         "pocket-split": "pocket-split",
         "pocket-still": "pocket-still",
         "pocket-subtitles": "pocket-subtitles",

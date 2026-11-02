@@ -4,6 +4,9 @@
 #   Immich     → Pocket Photos                      https://immich.<domain>
 #   OnlyOffice → Pocket Office                      https://onlyoffice.<domain>
 # Each is on by default, listens on loopback behind Caddy and is wired to its app by URL.
+# Two more only their app talks to, on loopback with no site of their own:
+#   SearXNG    → Pocket Search  (its search engine)          127.0.0.1:8888
+#   Chromium   → Pocket Lookout (pages that need JavaScript)  127.0.0.1:9222
 # On first boot pocket-box-backends makes a box administrator and key in Jellyfin, Navidrome and
 # Immich and hands them to Pocket Core (SERVICES_FILE), whose connectors then give every person
 # their own account and key there, which Pocket Watch, Music and Photos use.
@@ -17,6 +20,7 @@ let
   media = "/srv/media";
   ooSecrets = "/var/lib/onlyoffice-secrets";
   ooPort = 8166;
+  searxEnv = "/var/lib/pocket-box/searx.env";
   hasApp = slug: lib.elem slug box.apps;
 
   servicesFile = "/var/lib/pocket-box/core-services.json";
@@ -41,6 +45,8 @@ in
     navidrome.enable = lib.mkOption { type = lib.types.bool; default = true; description = "Navidrome, for Pocket Music."; };
     immich.enable = lib.mkOption { type = lib.types.bool; default = true; description = "Immich, for Pocket Photos."; };
     onlyoffice.enable = lib.mkOption { type = lib.types.bool; default = true; description = "OnlyOffice Document Server, for Pocket Office."; };
+    searxng.enable = lib.mkOption { type = lib.types.bool; default = hasApp "search"; defaultText = lib.literalExpression ''lib.elem "search" config.pocket.box.apps''; description = "SearXNG, the search engine behind Pocket Search."; };
+    browser.enable = lib.mkOption { type = lib.types.bool; default = hasApp "lookout"; defaultText = lib.literalExpression ''lib.elem "lookout" config.pocket.box.apps''; description = "A headless Chromium for Pocket Lookout."; };
   };
 
   config = lib.mkIf box.enable (lib.mkMerge [
@@ -168,6 +174,112 @@ in
         };
         serviceConfig.EnvironmentFile = [ "${ooSecrets}/office.env" ];
       };
+    })
+
+    (lib.mkIf cfg.searxng.enable {
+      services.searx = {
+        enable = true;
+        environmentFile = searxEnv;
+        # Only what differs from SearXNG's defaults (the same as Pocket Search's own compose file).
+        settings = {
+          general = {
+            instance_name = "Pocket Search engine";
+            donation_url = false;
+            contact_url = false;
+            privacypolicy_url = false;
+            enable_metrics = false;
+          };
+          server = {
+            bind_address = "127.0.0.1";
+            port = 8888;
+            secret_key = "$SEARX_SECRET_KEY";
+            limiter = false; # only Pocket Search asks it
+            public_instance = false;
+            image_proxy = false; # Pocket Search proxies pictures itself
+            method = "GET";
+          };
+          search = {
+            safe_search = 1;
+            autocomplete = "duckduckgo";
+            default_lang = "auto";
+            formats = [ "html" "json" ];
+          };
+          outgoing = {
+            # A page waits for its slowest engine: none may hold it longer than this.
+            request_timeout = 3.0;
+            max_request_timeout = 10.0;
+            pool_connections = 100;
+            pool_maxsize = 20;
+          };
+          # Answers in 3-5 s and holds every video search up; people can switch it on in Settings → Engines.
+          engines = [ { name = "vimeo"; disabled = true; } ];
+        };
+      };
+
+      # SearXNG's secret key, made on the first boot.
+      systemd.services.pocket-box-searx-secret = {
+        description = "SearXNG secret for the Pocket Box";
+        wantedBy = [ "multi-user.target" ];
+        before = [ "searx-init.service" "searx.service" ];
+        requiredBy = [ "searx-init.service" ];
+        serviceConfig = { Type = "oneshot"; RemainAfterExit = true; UMask = "0077"; StateDirectory = "pocket-box"; StateDirectoryMode = "0700"; };
+        path = [ pkgs.coreutils ];
+        script = ''
+          if [ ! -s ${searxEnv} ]; then
+            printf 'SEARX_SECRET_KEY=%s\n' "$(head -c 32 /dev/urandom | base64 | tr -dc 'A-Za-z0-9' | head -c 40)" > ${searxEnv}.tmp
+            mv ${searxEnv}.tmp ${searxEnv}
+          fi
+        '';
+      };
+      systemd.services.pocket-search = lib.mkIf (hasApp "search") { after = [ "searx.service" ]; wants = [ "searx.service" ]; };
+    })
+
+    (lib.mkIf cfg.browser.enable {
+      # One long-running headless Chromium; Lookout opens a tab per check and closes it.
+      systemd.services.pocket-box-browser = {
+        description = "Headless Chromium for Pocket Lookout";
+        wantedBy = [ "multi-user.target" ];
+        after = [ "network-online.target" ];
+        wants = [ "network-online.target" ];
+        before = lib.optional (hasApp "lookout") "pocket-lookout.service";
+        environment.HOME = "/var/lib/pocket-box-browser";
+        serviceConfig = {
+          # Chromium's own sandbox needs user namespaces; systemd's hardening below takes its place.
+          ExecStart = lib.concatStringsSep " " [
+            (lib.getExe pkgs.chromium)
+            "--headless=new"
+            "--no-sandbox"
+            "--disable-gpu"
+            "--disable-dev-shm-usage"
+            "--no-first-run"
+            "--no-default-browser-check"
+            "--mute-audio"
+            "--remote-debugging-address=127.0.0.1"
+            "--remote-debugging-port=9222"
+            "--user-data-dir=/var/lib/pocket-box-browser/profile"
+            "about:blank"
+          ];
+          DynamicUser = true;
+          StateDirectory = "pocket-box-browser";
+          StateDirectoryMode = "0700";
+          WorkingDirectory = "/var/lib/pocket-box-browser";
+          Restart = "always";
+          RestartSec = 3;
+          MemoryMax = "1G";
+          NoNewPrivileges = true;
+          ProtectSystem = "strict";
+          ProtectHome = true;
+          PrivateDevices = true;
+          PrivateTmp = true;
+          ProtectKernelTunables = true;
+          ProtectKernelModules = true;
+          ProtectControlGroups = true;
+          RestrictSUIDSGID = true;
+          LockPersonality = true;
+          RestrictAddressFamilies = [ "AF_INET" "AF_INET6" "AF_UNIX" "AF_NETLINK" ];
+        };
+      };
+      systemd.services.pocket-lookout = lib.mkIf (hasApp "lookout") { after = [ "pocket-box-browser.service" ]; wants = [ "pocket-box-browser.service" ]; };
     })
   ]);
 }

@@ -1,0 +1,83 @@
+# Publishes the installer ISO as a GitHub release.
+#
+#   push a tag vYYYY.MM.DD (on a commit CI already passed), or run it by hand with that tag
+#
+# The ISO is built from the Cachix cache where it can be, split into parts under GitHub's 2 GB
+# limit per file, and released with its checksum and the app versions (scripts/release-notes.py).
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: The tag to release (it must exist)
+        required: true
+
+permissions:
+  contents: write
+
+concurrency:
+  group: pocket-box-release-${{ inputs.tag || github.ref_name }}
+  cancel-in-progress: false
+
+jobs:
+  iso:
+    runs-on: ubuntu-latest
+    timeout-minutes: 300
+    env:
+      TAG: ${{ inputs.tag || github.ref_name }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.tag || github.ref }}
+
+      - name: Make room (the ISO, its parts and the store)
+        run: |
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache /usr/local/share/boost /usr/share/swift
+          df -h /
+
+      - uses: cachix/install-nix-action@v31
+        with:
+          github_access_token: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: cachix/cachix-action@v16
+        if: vars.CACHIX_CACHE != ''
+        with:
+          name: ${{ vars.CACHIX_CACHE }}
+          authToken: ${{ secrets.CACHIX_AUTH_TOKEN }}
+          # Pull only: the release is the same system CI already pushed.
+          skipPush: true
+
+      - name: Build the installer ISO
+        run: nix build --print-build-logs .#iso
+
+      - name: Split it and write the checksums
+        run: |
+          mkdir dist
+          iso="pocket-box-installer-$TAG.iso"
+          src=$(echo result/iso/*.iso)
+          ls -l "$src"
+          (cd dist && sha256sum "$OLDPWD/$src" | awk -v n="$iso" '{print $1 "  " n}' > "$iso.sha256")
+          split --bytes=1900M --numeric-suffixes --suffix-length=2 "$src" "dist/$iso.part"
+          (cd dist && sha256sum "$iso".part* > "$iso.parts.sha256")
+          ls -l dist
+          cat dist/*.sha256
+          echo "ISO=$iso" >> "$GITHUB_ENV"
+
+      - name: Release notes
+        run: |
+          python3 scripts/release-notes.py "$TAG" "$ISO" $(cd dist && ls "$ISO".part* | sort) > "$RUNNER_TEMP/notes.md"
+          cat "$RUNNER_TEMP/notes.md" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Publish the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release upload "$TAG" dist/* --clobber
+            gh release edit "$TAG" --notes-file "$RUNNER_TEMP/notes.md"
+          else
+            gh release create "$TAG" dist/* --verify-tag --title "Pocket Box $TAG" --notes-file "$RUNNER_TEMP/notes.md" --latest
+          fi

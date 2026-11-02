@@ -109,7 +109,7 @@ print("phase 2: boot installed disk", flush=True)
 # The installed box serves https://<slug>.pocket.local on 443 and the landing page on 80; they are
 # forwarded to host ports 28443/28080 and every name is resolved to 127.0.0.1 by curl.
 catalog = open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "apps.nix")).read()
-slugs = re.findall(r"^  ([a-z]+) = \{\n    title", catalog, re.M)
+slugs = re.findall(r'^  "?([a-z][a-z0-9-]*)"? = \{\n    title', catalog, re.M)
 sites = [(s, "/healthz") for s in slugs] + [("jellyfin", "/health"), ("navidrome", "/ping"), ("immich", "/api/server/ping"), ("onlyoffice", "/healthcheck")]
 domain, https_port, http_port = "pocket.local", 28443, 28080
 ca = os.path.join(work, "ca.crt")
