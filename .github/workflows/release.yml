@@ -61,7 +61,7 @@ jobs:
           ls -l "$src"
           (cd dist && sha256sum "$OLDPWD/$src" | awk -v n="$iso" '{print $1 "  " n}' > "$iso.sha256")
           split --bytes=1900M --numeric-suffixes --suffix-length=2 "$src" "dist/$iso.part"
-          (cd dist && sha256sum "$iso".part* > "$iso.parts.sha256")
+          (cd dist && sha256sum "$iso".part* > "pocket-box-installer-$TAG-parts.sha256")
           ls -l dist
           cat dist/*.sha256
           echo "ISO=$iso" >> "$GITHUB_ENV"

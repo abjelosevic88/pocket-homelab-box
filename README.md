@@ -136,7 +136,7 @@ Options: `pocket.box.domain` (default `<hostname>.local`), `pocket.box.httpsPort
 Each [release](https://github.com/abjelosevic88/pocket-homelab-box/releases) has the installer ISO. It's bigger than GitHub's 2 GB limit per file, so it comes in parts; join them and check the result (the release notes have the exact commands, Windows too):
 
 ```sh
-cat pocket-box-installer-<release>.iso.part* > pocket-box-installer-<release>.iso
+cat pocket-box-installer-<release>.iso.part[0-9]* > pocket-box-installer-<release>.iso
 sha256sum -c pocket-box-installer-<release>.iso.sha256
 ```
 
