@@ -5,8 +5,8 @@
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
 
     # App sources, pinned in flake.lock. Each has its own entry in apps.nix.
-    pocket-core = { url = "github:abjelosevic88/pocket-homelab-core/v0.30.2"; flake = false; };
-    pocket-ai = { url = "github:abjelosevic88/pocket-homelab-ai/v0.55.3"; flake = false; };
+    pocket-core = { url = "github:abjelosevic88/pocket-homelab-core/v0.30.5"; flake = false; };
+    pocket-ai = { url = "github:abjelosevic88/pocket-homelab-ai/v0.62.1"; flake = false; };
     pocket-alerts = { url = "github:abjelosevic88/pocket-homelab-alerts/v0.2.0"; flake = false; };
     pocket-audiobooks = { url = "github:abjelosevic88/pocket-homelab-audiobooks/v1.4.3"; flake = false; };
     pocket-backups = { url = "github:abjelosevic88/pocket-homelab-backups/v0.3.0"; flake = false; };
@@ -20,14 +20,14 @@
     pocket-day = { url = "github:abjelosevic88/pocket-homelab-day/v0.20.0"; flake = false; };
     pocket-documents = { url = "github:abjelosevic88/pocket-homelab-documents/v0.6.1"; flake = false; };
     pocket-draw = { url = "github:abjelosevic88/pocket-homelab-draw/v0.2.4"; flake = false; };
-    pocket-files = { url = "github:abjelosevic88/pocket-homelab-files/v0.10.13"; flake = false; };
+    pocket-files = { url = "github:abjelosevic88/pocket-homelab-files/v0.12.0"; flake = false; };
     pocket-flows = { url = "github:abjelosevic88/pocket-homelab-flows/v0.1.1"; flake = false; };
     pocket-garage = { url = "github:abjelosevic88/pocket-homelab-garage/v0.11.2"; flake = false; };
     pocket-guitar = { url = "github:abjelosevic88/pocket-homelab-guitar/v0.6.1"; flake = false; };
-    pocket-habits = { url = "github:abjelosevic88/pocket-homelab-habit-tracker/v0.4.5"; flake = false; };
+    pocket-habits = { url = "github:abjelosevic88/pocket-homelab-habit-tracker/v0.4.6"; flake = false; };
     pocket-health = { url = "github:abjelosevic88/pocket-homelab-health/v0.2.3"; flake = false; };
     pocket-horoscope = { url = "github:abjelosevic88/pocket-homelab-horoscope/v0.3.3"; flake = false; };
-    pocket-hub = { url = "github:abjelosevic88/pocket-homelab-hub/v0.6.1"; flake = false; };
+    pocket-hub = { url = "github:abjelosevic88/pocket-homelab-hub/v0.6.4"; flake = false; };
     pocket-inventory = { url = "github:abjelosevic88/pocket-homelab-inventory/v0.5.3"; flake = false; };
     pocket-invoicing = { url = "github:abjelosevic88/pocket-homelab-invoicing/v0.12.1"; flake = false; };
     pocket-kitchen = { url = "github:abjelosevic88/pocket-homelab-kitchen/v0.5.3"; flake = false; };
@@ -35,7 +35,7 @@
     pocket-library = { url = "github:abjelosevic88/pocket-homelab-library/v0.2.3"; flake = false; };
     pocket-lookout = { url = "github:abjelosevic88/pocket-homelab-lookout/v0.2.0"; flake = false; };
     pocket-mail = { url = "github:abjelosevic88/pocket-homelab-email/v0.1.2"; flake = false; };
-    pocket-money = { url = "github:abjelosevic88/pocket-homelab-money/v0.18.0"; flake = false; };
+    pocket-money = { url = "github:abjelosevic88/pocket-homelab-money/v0.21.0"; flake = false; };
     pocket-monitoring = { url = "github:abjelosevic88/pocket-homelab-monitoring/v0.5.1"; flake = false; };
     pocket-movement = { url = "github:abjelosevic88/pcket-homelab-movent/v0.3.3"; flake = false; };
     pocket-music = { url = "github:abjelosevic88/pocket-homelab-music/v0.4.2"; flake = false; };
@@ -45,7 +45,7 @@
     pocket-photos = { url = "github:abjelosevic88/pocket-homelab-photos/v0.4.1"; flake = false; };
     pocket-podcasts = { url = "github:abjelosevic88/pocket-homelab-podcasts/v0.4.3"; flake = false; };
     pocket-pr-review = { url = "github:abjelosevic88/pocket-homelab-pr-review/v0.2.0"; flake = false; };
-    pocket-projects = { url = "github:abjelosevic88/pocket-homelab-projects/v0.33.1"; flake = false; };
+    pocket-projects = { url = "github:abjelosevic88/pocket-homelab-projects/v0.33.4"; flake = false; };
     pocket-radio = { url = "github:abjelosevic88/pocket-homelab-radio/v0.1.0"; flake = false; };
     pocket-reader = { url = "github:abjelosevic88/pocket-homelab-reader/v0.1.1"; flake = false; };
     pocket-requests = { url = "github:abjelosevic88/pocket-homelab-requests/v0.7.1"; flake = false; };
@@ -54,7 +54,7 @@
     pocket-split = { url = "github:abjelosevic88/pocket-homelab-cost-split/v0.7.1"; flake = false; };
     pocket-still = { url = "github:abjelosevic88/pocket-homelab-still/v0.1.2"; flake = false; };
     pocket-subtitles = { url = "github:abjelosevic88/pocket-homelab-subtitles/v0.5.2"; flake = false; };
-    pocket-tasks = { url = "github:abjelosevic88/pocket-homelab-tasks/v0.3.3"; flake = false; };
+    pocket-tasks = { url = "github:abjelosevic88/pocket-homelab-tasks/v0.4.0"; flake = false; };
     pocket-time = { url = "github:abjelosevic88/pocket-homelab-time/v0.1.2"; flake = false; };
     pocket-travel = { url = "github:abjelosevic88/pocket-homelab-travel/v0.10.2"; flake = false; };
     pocket-watch = { url = "github:abjelosevic88/pocket-homelab-watch/v0.4.3"; flake = false; };
