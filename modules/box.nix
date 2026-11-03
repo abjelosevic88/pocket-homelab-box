@@ -151,10 +151,10 @@ in
       }) apps)
     ];
 
-    # Shared media (films, series, music, books, audiobooks) for the apps and services that use it.
+    # Shared media (films, series, music, books, audiobooks, games) for the apps and services that use it.
     users.groups.pocket-media = { };
     systemd.tmpfiles.settings."10-pocket-media" = lib.genAttrs
-      ([ mediaDir ] ++ map (d: "${mediaDir}/${d}") [ "movies" "tv" "music" "books" "audiobooks" ])
+      ([ mediaDir ] ++ map (d: "${mediaDir}/${d}") [ "movies" "tv" "music" "books" "audiobooks" "games" ])
       (_: { d = { mode = "2775"; user = "root"; group = "pocket-media"; }; });
 
     # pocket.local on the LAN (the per-app names are announced by modules/proxy.nix).

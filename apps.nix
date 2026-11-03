@@ -213,6 +213,19 @@ in
     npmDepsHash = "sha256-EF7X8qk+fReog1pzFKCgFN56Ud0bDVmN8DlH0Z73gso=";
   };
 
+  games = {
+    title = "Pocket Games";
+    pname = "pocket-games";
+    input = "pocket-games";
+    version = "0.2.3";
+    port = 8226;
+    vendorHash = "sha256-osghr94gAaBc0o6pemWSupx9eHVaOjDoX4ZRCQWu8AI=";
+    npmDepsHash = "sha256-IAotK8CnIjMw7rGvI+KXq7hp4G+y2m6yOeWKgmqq7b0=";
+    # The games live with the rest of the media (RomM's roms/<system> layout works as is).
+    environment = { LIBRARY_DIR = "/srv/media/games"; };
+    media = "rw";
+  };
+
   garage = {
     title = "Pocket Garage";
     pname = "pocket-garage";
@@ -525,6 +538,20 @@ in
     port = 8172;
     vendorHash = "sha256-NAkS3wnN14V7t5vyEAyFrdfxcZROSHOEWZBlkq4h10I=";
     npmDepsHash = "sha256-xPq4EltB1pyx8Lm9g0/PRsVqqwriA6IKNZ7ce4jkD/w=";
+  };
+
+  sphere = {
+    title = "Pocket Sphere";
+    pname = "pocket-sphere";
+    input = "pocket-sphere";
+    version = "0.4.0";
+    port = 8227;
+    vendorHash = "sha256-H7gAZUfexe/MnzCPRXoTKc8vPwQGq1egA47mp00j44E=";
+    npmDepsHash = "sha256-IAotK8CnIjMw7rGvI+KXq7hp4G+y2m6yOeWKgmqq7b0=";
+    # python3 runs the yt-dlp the app keeps (and updates) in its data folder; deno solves YouTube's JS.
+    runtime = pkgs: with pkgs; [ ffmpeg-headless python3 deno ];
+    # Videos stay in the app's own folder (/var/lib/pocket-sphere/library), not in /srv/media where
+    # the other media apps could see them.
   };
 
   still = {

@@ -3,7 +3,7 @@
 </p>
 <h1 align="center">Pocket Box</h1>
 <p align="center">
-  A NixOS appliance that turns a spare PC into a home server running <a href="https://github.com/abjelosevic88/pocket-homelab-core">Pocket Core</a> and all 53 Pocket apps: HTTPS on every app, one sign-in, Jellyfin, Navidrome, Immich and ONLYOFFICE set up on first boot, TPM disk encryption, and nightly updates that roll themselves back.<br>
+  A NixOS appliance that turns a spare PC into a home server running <a href="https://github.com/abjelosevic88/pocket-homelab-core">Pocket Core</a> and all 55 Pocket apps: HTTPS on every app, one sign-in, Jellyfin, Navidrome, Immich and ONLYOFFICE set up on first boot, TPM disk encryption, and nightly updates that roll themselves back.<br>
   <b>Boot the USB stick · pick a disk · open pocket.local.</b>
 </p>
 <p align="center">
@@ -22,7 +22,7 @@ The whole system is declared in this flake. The installer ISO already contains t
 
 ## What's on the box
 
-All 53 Pocket apps and Pocket Core, each at `https://<slug>.pocket.local` (the port is where it listens on loopback). [pockethomelab.com/apps](https://pockethomelab.com/apps) has a page for every one of them.
+All 55 Pocket apps and Pocket Core, each at `https://<slug>.pocket.local` (the port is where it listens on loopback). [pockethomelab.com/apps](https://pockethomelab.com/apps) has a page for every one of them.
 
 | App | Port |
 |---|---|
@@ -43,6 +43,7 @@ All 53 Pocket apps and Pocket Core, each at `https://<slug>.pocket.local` (the p
 | Pocket Draw | 8213 |
 | Pocket Files | 8187 |
 | Pocket Flows | 8212 |
+| Pocket Games | 8226 |
 | Pocket Garage | 8175 |
 | Pocket Guitar | 8214 |
 | Pocket Habits | 8169 |
@@ -73,6 +74,7 @@ All 53 Pocket apps and Pocket Core, each at `https://<slug>.pocket.local` (the p
 | Pocket Review | 8180 |
 | Pocket Search | 8225 |
 | Pocket Split | 8172 |
+| Pocket Sphere | 8227 |
 | Pocket Still | 8206 |
 | Pocket Subtitles | 8150 |
 | Pocket Tasks | 8184 |
@@ -105,7 +107,7 @@ Every app runs as its own systemd service (`pocket-<slug>`) under a dynamic user
 
 On the first boot, `pocket-box-secrets` creates a registration key in `/var/lib/pocket-box/secrets.env`. Core and the apps share it, so each app registers with Core when it starts. No secret is built into the image.
 
-Media lives in `/srv/media` (`movies`, `tv`, `music`, `books`, `audiobooks`), owned by the `pocket-media` group. Navidrome reads `/srv/media/music`. Music, Audiobooks, Library and Subtitles can write there.
+Media lives in `/srv/media` (`movies`, `tv`, `music`, `books`, `audiobooks`, `games`), owned by the `pocket-media` group. Navidrome reads `/srv/media/music`. Music, Audiobooks, Library, Games and Subtitles can write there. Pocket Sphere keeps its videos in its own `/var/lib/pocket-sphere/library` instead, so no other app sees them.
 
 Tools the apps shell out to are put on their PATH:
 - **Documents:** ocrmypdf, plus Tesseract with 16 languages
@@ -121,7 +123,7 @@ Caddy is the only thing listening on the network (ports 80 and 443). The apps an
 - **`http://pocket.local`:** stays plain http on purpose. It's a landing page where each phone or computer downloads that CA once, with steps for iPhone, Mac, Android and Windows. It then links to Core.
 - **`https://pocket.local`:** redirects to Core.
 
-`pocket.local` and all 55 names are announced over mDNS. `pocket-box-mdns-aliases` follows address changes and spreads the records over several Avahi groups, because Avahi allows 32 entries per group.
+`pocket.local` and all 60 names are announced over mDNS. `pocket-box-mdns-aliases` follows address changes and spreads the records over several Avahi groups, because Avahi allows 32 entries per group.
 - **Apple devices and Linux with Avahi:** resolve these multi-label `.local` names.
 - **Android and some Windows versions:** may not.
 

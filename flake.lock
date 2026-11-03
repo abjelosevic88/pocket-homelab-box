@@ -305,6 +305,23 @@
         "type": "github"
       }
     },
+    "pocket-games": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1793653261,
+        "narHash": "sha256-M1+lhLi/Lsd1xygDMIsqlQHFrzD54v+Ny/XgF7RyKx4=",
+        "owner": "abjelosevic88",
+        "repo": "pocket-homelab-games",
+        "rev": "9921726b67e21d581245c1250a95655a79766d51",
+        "type": "github"
+      },
+      "original": {
+        "owner": "abjelosevic88",
+        "ref": "v0.2.3",
+        "repo": "pocket-homelab-games",
+        "type": "github"
+      }
+    },
     "pocket-garage": {
       "flake": false,
       "locked": {
@@ -798,6 +815,23 @@
         "type": "github"
       }
     },
+    "pocket-sphere": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1793701801,
+        "narHash": "sha256-9/TlcyZMFFCRYXzxcpjK9IRUR14ggXsMHfdHrRmfGGw=",
+        "owner": "abjelosevic88",
+        "repo": "pocket-homelab-sphere",
+        "rev": "3781adc4c719591401dcc831f4ae4414179531b5",
+        "type": "github"
+      },
+      "original": {
+        "owner": "abjelosevic88",
+        "ref": "v0.4.0",
+        "repo": "pocket-homelab-sphere",
+        "type": "github"
+      }
+    },
     "pocket-split": {
       "flake": false,
       "locked": {
@@ -954,6 +988,7 @@
         "pocket-draw": "pocket-draw",
         "pocket-files": "pocket-files",
         "pocket-flows": "pocket-flows",
+        "pocket-games": "pocket-games",
         "pocket-garage": "pocket-garage",
         "pocket-guitar": "pocket-guitar",
         "pocket-habits": "pocket-habits",
@@ -983,6 +1018,7 @@
         "pocket-requests": "pocket-requests",
         "pocket-review": "pocket-review",
         "pocket-search": "pocket-search",
+        "pocket-sphere": "pocket-sphere",
         "pocket-split": "pocket-split",
         "pocket-still": "pocket-still",
         "pocket-subtitles": "pocket-subtitles",
