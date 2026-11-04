@@ -25,7 +25,7 @@ in
     title = "Pocket Core";
     pname = "pocket-core";
     input = "pocket-core";
-    version = "0.30.5";
+    version = "0.31.4";
     port = 8179;
     vendorHash = "sha256-58wMRsXy5QJOlLcXwN30EsYq+OBu13tyXE/wyrSIRxk=";
     npmDepsHash = "sha256-B6hwAJzFxJG6iSPCb/vrsQrF8lzORM95hK7vslmlGm0=";
@@ -35,7 +35,7 @@ in
     title = "Pocket AI";
     pname = "pocket-ai";
     input = "pocket-ai";
-    version = "0.62.1";
+    version = "0.68.5";
     port = 8195;
     vendorHash = "sha256-st3Jp8Qh9ZGI32Tsg1EVT0bZBu6tDtYHnLhAhvI/aMM=";
     npmDepsHash = "sha256-Ec6TFzNOyDaPrpcaUpLi5OMusbth/qK3LLDEE+V92jw=";
@@ -59,10 +59,10 @@ in
     title = "Pocket Audiobooks";
     pname = "pocket-audiobooks";
     input = "pocket-audiobooks";
-    version = "1.4.3";
+    version = "1.6.0";
     port = 8202;
     vendorHash = "sha256-AxiIlCSMUVHGBYsnEKp35DyUBbrjOmt/EgEY6K05IEU=";
-    npmDepsHash = "sha256-FWB5O5jpbIRRn3J+CfeaWItBczYDU1SjNuKMebO9/jg=";
+    npmDepsHash = "sha256-4ZkfBQ/FoyLt13Z1DSzSE3gi5L1wzC/rKh755CrJSag=";
     runtime = pkgs: [ pkgs.ffmpeg-headless ];
     media = "rw";
   };
@@ -107,7 +107,7 @@ in
     title = "Pocket Bookshelf";
     pname = "pocket-bookshelf";
     input = "pocket-bookshelf";
-    version = "0.16.6";
+    version = "0.18.0";
     port = 8171;
     vendorHash = "sha256-orX8b2RbbV3XoLZ4WAfqSgQF/AYRinb4n6V4okSMbCk=";
     npmDepsHash = "sha256-nyncRXsUGd/hCH8BZiwtuZW96JkbPUSIfcqUosMx/sI=";
@@ -170,7 +170,7 @@ in
     title = "Pocket Documents";
     pname = "pocket-documents";
     input = "pocket-documents";
-    version = "0.6.1";
+    version = "0.8.1";
     port = 8183;
     vendorHash = "sha256-euD5qQVU7yKaEsZNa4YMFJZ/h5Bnl4x08lTq57A6zso=";
     npmDepsHash = "sha256-bAN4gWs7NUhmkC9leL3IqSIHxMIEORJnftivZ+g/8rk=";
@@ -185,11 +185,11 @@ in
     title = "Pocket Draw";
     pname = "pocket-draw";
     input = "pocket-draw";
-    version = "0.2.4";
+    version = "0.3.1";
     port = 8213;
     # Excalidraw still declares React 18 as its peer.
     npmFlags = [ "--legacy-peer-deps" ];
-    vendorHash = "sha256-5t6xTN2Ck2RHfOV4+otOwXkR11Rzj7mhNcig+mLAJmM=";
+    vendorHash = "sha256-P/IRX3mquABF7e7rZZg4T4hJ02ezl0BdLODKAhukUlA=";
     npmDepsHash = "sha256-9G2vGGFN7zg0I9pTYH9qdkJHuzZZf9E6B2MitkiWq18=";
   };
 
@@ -330,7 +330,7 @@ in
     title = "Pocket Library";
     pname = "pocket-library";
     input = "pocket-library";
-    version = "0.2.3";
+    version = "0.3.0";
     port = 8204;
     vendorHash = "sha256-lWyJoSwFe/tai0GsxUMyUDVZjxk5zB+fhZFpr8aySE4=";
     npmDepsHash = "sha256-k/2TkoQOojzn2iKlZ+Fw/4fzq3TxAnmZ2HLhPyjH7ns=";
@@ -364,7 +364,7 @@ in
     title = "Pocket Money";
     pname = "pocket-money";
     input = "pocket-money";
-    version = "0.21.0";
+    version = "0.22.0";
     port = 8178;
     vendorHash = "sha256-orX8b2RbbV3XoLZ4WAfqSgQF/AYRinb4n6V4okSMbCk=";
     npmDepsHash = "sha256-awNiiTvNpyDytlZ4g+VNpztQhCgtgElyoNui1QrLMXk=";
@@ -395,7 +395,7 @@ in
     title = "Pocket Music";
     pname = "pocket-music";
     input = "pocket-music";
-    version = "0.4.2";
+    version = "0.7.0";
     port = 8200;
     vendorHash = "sha256-3ewpn5k2ClrFX52OAjtwisnof4fzjTOQHapPYBz6OlI=";
     npmDepsHash = "sha256-ZRQ75xHYUhYmBsS6/mR635qNTdXgdpDMKQiHuzOy3nU=";
@@ -419,7 +419,7 @@ in
     title = "Pocket Notes";
     pname = "pocket-notes";
     input = "pocket-notes";
-    version = "0.10.0";
+    version = "0.11.0";
     port = 8182;
     vendorHash = "sha256-UM7ZCv25k1FfOl04WsQnyY47YZQVIjJIXGAYWcj5RZM=";
     npmDepsHash = "sha256-/5yuEn1YUPoCpoqPQO6hr967U6I7PhjDU4QXEu+IH6Y=";
@@ -471,7 +471,7 @@ in
     title = "Pocket Projects";
     pname = "pocket-projects";
     input = "pocket-projects";
-    version = "0.33.4";
+    version = "0.34.0";
     port = 8196;
     vendorHash = "sha256-vgbrGDE4zwZV5EdR6LjQIWtyXGd/CQbjAlEAiSM/3tc=";
     npmDepsHash = "sha256-Jd1WgUWEe7ZLmRLzrBVrHSvbqFDnZiLSOqVvA7v5/1w=";
@@ -501,7 +501,7 @@ in
     title = "Pocket Requests";
     pname = "pocket-requests";
     input = "pocket-requests";
-    version = "0.7.1";
+    version = "0.9.0";
     port = 8210;
     # Requests go to Radarr, Sonarr and Lidarr, which are not on the box yet: connect your own.
     vendorHash = "sha256-orX8b2RbbV3XoLZ4WAfqSgQF/AYRinb4n6V4okSMbCk=";
