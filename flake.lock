@@ -781,6 +781,23 @@
         "type": "github"
       }
     },
+    "pocket-renewals": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1793832446,
+        "narHash": "sha256-3a5ewDptVEndb3ljuDt0YuW9T8sx1GkBnNOWdcVoK1A=",
+        "owner": "abjelosevic88",
+        "repo": "pocket-homelab-renewals",
+        "rev": "712b053920fcad50e4ecec95328a5ab666b19cf9",
+        "type": "github"
+      },
+      "original": {
+        "owner": "abjelosevic88",
+        "ref": "v0.2.0",
+        "repo": "pocket-homelab-renewals",
+        "type": "github"
+      }
+    },
     "pocket-requests": {
       "flake": false,
       "locked": {
@@ -1033,6 +1050,7 @@
         "pocket-projects": "pocket-projects",
         "pocket-radio": "pocket-radio",
         "pocket-reader": "pocket-reader",
+        "pocket-renewals": "pocket-renewals",
         "pocket-requests": "pocket-requests",
         "pocket-review": "pocket-review",
         "pocket-search": "pocket-search",

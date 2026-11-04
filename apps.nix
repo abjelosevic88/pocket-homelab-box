@@ -507,6 +507,16 @@ in
     npmDepsHash = "sha256-EF7X8qk+fReog1pzFKCgFN56Ud0bDVmN8DlH0Z73gso=";
   };
 
+  renewals = {
+    title = "Pocket Renewals";
+    pname = "pocket-renewals";
+    input = "pocket-renewals";
+    version = "0.2.0";
+    port = 8230;
+    vendorHash = "sha256-czmaak0Anph/bKzWuexQBN0XPRuQK7otZx6KZOB77Fw=";
+    npmDepsHash = "sha256-guJjvt4I1xxbF73/lHy2qIv3VTS3mrZwhrzKixJoGW4=";
+  };
+
   requests = {
     title = "Pocket Requests";
     pname = "pocket-requests";

@@ -50,6 +50,7 @@
     pocket-projects = { url = "github:abjelosevic88/pocket-homelab-projects/v0.34.0"; flake = false; };
     pocket-radio = { url = "github:abjelosevic88/pocket-homelab-radio/v0.1.0"; flake = false; };
     pocket-reader = { url = "github:abjelosevic88/pocket-homelab-reader/v0.1.1"; flake = false; };
+    pocket-renewals = { url = "github:abjelosevic88/pocket-homelab-renewals/v0.2.0"; flake = false; };
     pocket-requests = { url = "github:abjelosevic88/pocket-homelab-requests/v0.9.0"; flake = false; };
     pocket-review = { url = "github:abjelosevic88/pocket-homelab-review/v0.6.0"; flake = false; };
     pocket-search = { url = "github:abjelosevic88/pocket-homelab-search/v0.3.0"; flake = false; };
