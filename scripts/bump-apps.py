@@ -2,8 +2,12 @@
 
   python3 scripts/bump-apps.py [--summary FILE]
 
-For each app in apps.nix it asks GitHub for the repository's tags (GH_TOKEN or GITHUB_TOKEN raises
-the rate limit). When the newest one is newer than the app's version, or the input is not pinned
+For each app in apps.nix it looks up the newest release in the Pocket app catalog (the list Pocket
+Core's installer reads; CATALOG_URL overrides it, CATALOG_URL=none skips it), so the box moves to the
+same releases people install with one click. Apps the catalog doesn't list (Pocket AI runs natively)
+are looked up in the repository's tags on GitHub (GH_TOKEN or GITHUB_TOKEN raises the rate limit).
+The catalog's signature is not checked here: it only picks the tag, the source still comes from
+GitHub and Nix pins it by hash. When the newest one is newer than the app's version, or the input is not pinned
 to a tag yet, the flake input moves to github:owner/repo/vX.Y.Z and the version follows. Then
 `nix flake update` locks the moved inputs and the moved apps are built; the hashes Nix reports as
 wrong (npm and Go dependencies) are written into apps.nix and the build repeated until it passes.
@@ -38,7 +42,30 @@ def semver(s):
     return tuple(map(int, m.groups())) if m else None
 
 
+CATALOG_URL = os.environ.get("CATALOG_URL", "https://github.com/abjelosevic88/pocket-homelab-core/releases/download/catalog/apps.json")
+_catalog = None
+
+
+def catalog_tags():
+    """repo ("owner/name") -> newest tag, from the app catalog; {} when unreachable."""
+    global _catalog
+    if _catalog is None:
+        _catalog = {}
+        if CATALOG_URL != "none":
+            try:
+                req = urllib.request.Request(CATALOG_URL, headers={"User-Agent": "pocket-box-bump"})
+                with urllib.request.urlopen(req, timeout=30) as r:
+                    doc = json.load(r)
+                owner = doc["catalog"]["source"].removeprefix("github.com/")
+                _catalog = {f"{owner}/{a['repo']}": a["tag"] for a in doc["catalog"]["apps"]}
+            except Exception as e:  # noqa: BLE001 — fall back to GitHub tags
+                print(f"app catalog unavailable ({e}); reading tags from GitHub", file=sys.stderr)
+    return _catalog
+
+
 def latest_tag(repo):
+    if repo in catalog_tags():
+        return catalog_tags()[repo]
     tags = [t["name"] for t in gh(f"repos/{repo}/tags?per_page=100")]
     vers = sorted((semver(t), t) for t in tags if semver(t))
     return vers[-1][1] if vers else None
