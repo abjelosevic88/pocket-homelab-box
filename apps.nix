@@ -270,7 +270,7 @@ in
     title = "Pocket Home";
     pname = "pocket-home";
     input = "pocket-home";
-    version = "0.1.1";
+    version = "0.1.2";
     port = 8229;
     vendorHash = "sha256-czmaak0Anph/bKzWuexQBN0XPRuQK7otZx6KZOB77Fw=";
     npmDepsHash = "sha256-aGAl5wN6reOZxLLL9c2IRCaPLlh40i47pvyAT0/xlG0=";
