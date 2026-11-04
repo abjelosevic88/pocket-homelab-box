@@ -390,6 +390,23 @@
         "type": "github"
       }
     },
+    "pocket-home": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1793828007,
+        "narHash": "sha256-bQugaiJ59zMiccv61KrPlPMLQiud1Tp9ln1B1tI/A0U=",
+        "owner": "abjelosevic88",
+        "repo": "pocket-homelab-home",
+        "rev": "b19aa67cab84f4737fea7d1b2e1e7fa92fcdb83e",
+        "type": "github"
+      },
+      "original": {
+        "owner": "abjelosevic88",
+        "ref": "v0.1.1",
+        "repo": "pocket-homelab-home",
+        "type": "github"
+      }
+    },
     "pocket-horoscope": {
       "flake": false,
       "locked": {
@@ -993,6 +1010,7 @@
         "pocket-guitar": "pocket-guitar",
         "pocket-habits": "pocket-habits",
         "pocket-health": "pocket-health",
+        "pocket-home": "pocket-home",
         "pocket-horoscope": "pocket-horoscope",
         "pocket-hub": "pocket-hub",
         "pocket-inventory": "pocket-inventory",

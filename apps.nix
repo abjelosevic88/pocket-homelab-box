@@ -266,6 +266,16 @@ in
     npmDepsHash = "sha256-3PqYDUqWiVuCtIewmMp/Zhx3aK1d+Sn+hkoPgkLY1fA=";
   };
 
+  home = {
+    title = "Pocket Home";
+    pname = "pocket-home";
+    input = "pocket-home";
+    version = "0.1.1";
+    port = 8229;
+    vendorHash = "sha256-czmaak0Anph/bKzWuexQBN0XPRuQK7otZx6KZOB77Fw=";
+    npmDepsHash = "sha256-aGAl5wN6reOZxLLL9c2IRCaPLlh40i47pvyAT0/xlG0=";
+  };
+
   horoscope = {
     title = "Pocket Horoscope";
     pname = "pocket-horoscope";

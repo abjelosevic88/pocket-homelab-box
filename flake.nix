@@ -27,6 +27,7 @@
     pocket-guitar = { url = "github:abjelosevic88/pocket-homelab-guitar/v0.6.1"; flake = false; };
     pocket-habits = { url = "github:abjelosevic88/pocket-homelab-habit-tracker/v0.4.6"; flake = false; };
     pocket-health = { url = "github:abjelosevic88/pocket-homelab-health/v0.2.3"; flake = false; };
+    pocket-home = { url = "github:abjelosevic88/pocket-homelab-home/v0.1.1"; flake = false; };
     pocket-horoscope = { url = "github:abjelosevic88/pocket-homelab-horoscope/v0.3.3"; flake = false; };
     pocket-hub = { url = "github:abjelosevic88/pocket-homelab-hub/v0.6.4"; flake = false; };
     pocket-inventory = { url = "github:abjelosevic88/pocket-homelab-inventory/v0.5.3"; flake = false; };
