@@ -679,6 +679,23 @@
         "type": "github"
       }
     },
+    "pocket-parcels": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1793871441,
+        "narHash": "sha256-DjXv3GYp997FGztcJpNiQvQ/Qy1CZV54Y0ws8dKJtw0=",
+        "owner": "abjelosevic88",
+        "repo": "pocket-homelab-parcels",
+        "rev": "f99cdfa394f92241900e6765a288ea7f36864362",
+        "type": "github"
+      },
+      "original": {
+        "owner": "abjelosevic88",
+        "ref": "v0.1.1",
+        "repo": "pocket-homelab-parcels",
+        "type": "github"
+      }
+    },
     "pocket-photos": {
       "flake": false,
       "locked": {
@@ -1044,6 +1061,7 @@
         "pocket-network": "pocket-network",
         "pocket-notes": "pocket-notes",
         "pocket-office": "pocket-office",
+        "pocket-parcels": "pocket-parcels",
         "pocket-photos": "pocket-photos",
         "pocket-podcasts": "pocket-podcasts",
         "pocket-pr-review": "pocket-pr-review",

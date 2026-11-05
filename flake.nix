@@ -44,6 +44,7 @@
     pocket-network = { url = "github:abjelosevic88/pocket-homelab-network/v0.1.2"; flake = false; };
     pocket-notes = { url = "github:abjelosevic88/pocket-homelab-notes/v0.11.0"; flake = false; };
     pocket-office = { url = "github:abjelosevic88/pocket-homelab-office/v0.7.1"; flake = false; };
+    pocket-parcels = { url = "github:abjelosevic88/pocket-homelab-parcels/v0.1.1"; flake = false; };
     pocket-photos = { url = "github:abjelosevic88/pocket-homelab-photos/v0.4.1"; flake = false; };
     pocket-podcasts = { url = "github:abjelosevic88/pocket-homelab-podcasts/v0.4.3"; flake = false; };
     pocket-pr-review = { url = "github:abjelosevic88/pocket-homelab-pr-review/v0.2.0"; flake = false; };

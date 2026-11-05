@@ -445,6 +445,16 @@ in
     npmDepsHash = "sha256-v0tDTefOAPNSPoLor4IbNyZ/ysTJC//4v+PHne1tjoI=";
   };
 
+  parcels = {
+    title = "Pocket Parcels";
+    pname = "pocket-parcels";
+    input = "pocket-parcels";
+    version = "0.1.1";
+    port = 8233;
+    vendorHash = "sha256-czmaak0Anph/bKzWuexQBN0XPRuQK7otZx6KZOB77Fw=";
+    npmDepsHash = "sha256-nqlnAqSvsrPUsyzIGXBtsZWodsseTR+Wyidmt+mMyxo=";
+  };
+
   photos = {
     title = "Pocket Photos";
     pname = "pocket-photos";
