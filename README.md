@@ -3,7 +3,7 @@
 </p>
 <h1 align="center">Pocket Box</h1>
 <p align="center">
-  A NixOS appliance that turns a spare PC into a home server running <a href="https://github.com/abjelosevic88/pocket-homelab-core">Pocket Core</a> and all 58 Pocket apps: HTTPS on every app, one sign-in, Jellyfin, Navidrome, Immich and ONLYOFFICE set up on first boot, TPM disk encryption, and nightly updates that roll themselves back.<br>
+  A NixOS appliance that turns a spare PC into a home server running <a href="https://github.com/abjelosevic88/pocket-homelab-core">Pocket Core</a> and all 68 Pocket apps: HTTPS on every app, one sign-in, Jellyfin, Navidrome, Immich and ONLYOFFICE set up on first boot, TPM disk encryption, and nightly updates that roll themselves back.<br>
   <b>Boot the USB stick · pick a disk · open pocket.local.</b>
 </p>
 <p align="center">
@@ -22,7 +22,7 @@ The whole system is declared in this flake. The installer ISO already contains t
 
 ## What's on the box
 
-All 58 Pocket apps and Pocket Core, each at `https://<slug>.pocket.local` (the port is where it listens on loopback). [pockethomelab.com/apps](https://pockethomelab.com/apps) has a page for every one of them.
+All 68 Pocket apps and Pocket Core, each at `https://<slug>.pocket.local` (the port is where it listens on loopback). [pockethomelab.com/apps](https://pockethomelab.com/apps) has a page for every one of them.
 
 | App | Port |
 |---|---|
@@ -31,6 +31,7 @@ All 58 Pocket apps and Pocket Core, each at `https://<slug>.pocket.local` (the p
 | Pocket Alerts | 8217 |
 | Pocket Audiobooks | 8202 |
 | Pocket Backups | 8203 |
+| Pocket Blog | 8246 |
 | Pocket Blueprint | 8222 |
 | Pocket Boards | 8223 |
 | Pocket Bookshelf | 8171 |
@@ -42,6 +43,7 @@ All 58 Pocket apps and Pocket Core, each at `https://<slug>.pocket.local` (the p
 | Pocket Documents | 8183 |
 | Pocket Draw | 8213 |
 | Pocket Files | 8187 |
+| Pocket Fitness | 8240 |
 | Pocket Flows | 8212 |
 | Pocket Games | 8226 |
 | Pocket Garage | 8175 |
@@ -64,10 +66,13 @@ All 58 Pocket apps and Pocket Core, each at `https://<slug>.pocket.local` (the p
 | Pocket Music | 8200 |
 | Pocket Network | 8207 |
 | Pocket Notes | 8182 |
+| Pocket Nutrition | 8241 |
 | Pocket Office | 8186 |
 | Pocket Parcels | 8233 |
 | Pocket PR Review | 8220 |
+| Pocket Pets | 8232 |
 | Pocket Photos | 8194 |
+| Pocket Places | 8236 |
 | Pocket Podcasts | 8181 |
 | Pocket Projects | 8196 |
 | Pocket Radio | 8216 |
@@ -76,6 +81,7 @@ All 58 Pocket apps and Pocket Core, each at `https://<slug>.pocket.local` (the p
 | Pocket Requests | 8210 |
 | Pocket Review | 8180 |
 | Pocket Search | 8225 |
+| Pocket Sign | 8234 |
 | Pocket Split | 8172 |
 | Pocket Sphere | 8227 |
 | Pocket Still | 8206 |
@@ -83,7 +89,11 @@ All 58 Pocket apps and Pocket Core, each at `https://<slug>.pocket.local` (the p
 | Pocket Tasks | 8184 |
 | Pocket Time | 8219 |
 | Pocket Travel | 8174 |
+| Pocket Voice | 8237 |
+| Pocket Wallet | 8238 |
 | Pocket Watch | 8201 |
+| Pocket Wealth | 8231 |
+| Pocket Weather | 8239 |
 | Pocket Wishlist | 8198 |
 
 And the third-party services some of them sit on top of, from the NixOS modules in nixpkgs (each one can be switched off under `pocket.box.services`):
@@ -126,7 +136,7 @@ Caddy is the only thing listening on the network (ports 80 and 443). The apps an
 - **`http://pocket.local`:** stays plain http on purpose. It's a landing page where each phone or computer downloads that CA once, with steps for iPhone, Mac, Android and Windows. It then links to Core.
 - **`https://pocket.local`:** redirects to Core.
 
-`pocket.local` and all 63 names are announced over mDNS. `pocket-box-mdns-aliases` follows address changes and spreads the records over several Avahi groups, because Avahi allows 32 entries per group.
+`pocket.local` and all 73 names are announced over mDNS. `pocket-box-mdns-aliases` follows address changes and spreads the records over several Avahi groups, because Avahi allows 32 entries per group.
 - **Apple devices and Linux with Avahi:** resolve these multi-label `.local` names.
 - **Android and some Windows versions:** may not.
 
