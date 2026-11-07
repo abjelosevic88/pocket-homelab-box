@@ -25,7 +25,7 @@ in
     title = "Pocket Core";
     pname = "pocket-core";
     input = "pocket-core";
-    version = "0.35.0";
+    version = "0.35.2";
     port = 8179;
     vendorHash = "sha256-AmQl4eumT1+KUEk3jsBDJpAV1h2efmwUL+gcfg4IrIE=";
     npmDepsHash = "sha256-B6hwAJzFxJG6iSPCb/vrsQrF8lzORM95hK7vslmlGm0=";
@@ -35,7 +35,7 @@ in
     title = "Pocket AI";
     pname = "pocket-ai";
     input = "pocket-ai";
-    version = "0.78.0";
+    version = "0.83.0";
     port = 8195;
     vendorHash = "sha256-st3Jp8Qh9ZGI32Tsg1EVT0bZBu6tDtYHnLhAhvI/aMM=";
     npmDepsHash = "sha256-Ec6TFzNOyDaPrpcaUpLi5OMusbth/qK3LLDEE+V92jw=";
@@ -117,7 +117,7 @@ in
     title = "Pocket Bookshelf";
     pname = "pocket-bookshelf";
     input = "pocket-bookshelf";
-    version = "0.19.2";
+    version = "0.22.0";
     port = 8171;
     vendorHash = "sha256-orX8b2RbbV3XoLZ4WAfqSgQF/AYRinb4n6V4okSMbCk=";
     npmDepsHash = "sha256-nyncRXsUGd/hCH8BZiwtuZW96JkbPUSIfcqUosMx/sI=";
@@ -127,7 +127,7 @@ in
     title = "Pocket Calendar";
     pname = "pocket-calendar";
     input = "pocket-calendar";
-    version = "0.7.2";
+    version = "0.7.4";
     port = 8190;
     vendorHash = "sha256-1wpEEUBtUVTVyjYHga9x4N0A+uRfz3RcOPIaYhP0ap4=";
     npmDepsHash = "sha256-1z9sg27zun7MmuqajpA5zCRCgh++G/vjIC+cLvU4an4=";
@@ -147,7 +147,7 @@ in
     title = "Pocket Contacts";
     pname = "pocket-contacts";
     input = "pocket-contacts";
-    version = "0.2.3";
+    version = "0.3.0";
     port = 8191;
     vendorHash = "sha256-Yyl3Ok8RserzSVw7NC7Sa8MpjKBSk13Ptl3b3BzvPRs=";
     npmDepsHash = "sha256-ftYKsNBA4mWf3tCEYocLfSQ3vnJUH2C5kgtJ/yiLMcw=";
@@ -170,7 +170,7 @@ in
     title = "Pocket Day";
     pname = "pocket-day";
     input = "pocket-day";
-    version = "0.32.0";
+    version = "0.35.0";
     port = 8177;
     vendorHash = "sha256-orX8b2RbbV3XoLZ4WAfqSgQF/AYRinb4n6V4okSMbCk=";
     npmDepsHash = "sha256-07TBbsJyyXCVTdl+037o3Uop2Be/yswTrRL/PDF92v8=";
@@ -227,7 +227,7 @@ in
     title = "Pocket Flows";
     pname = "pocket-flows";
     input = "pocket-flows";
-    version = "0.1.2";
+    version = "0.2.0";
     port = 8212;
     vendorHash = "sha256-orX8b2RbbV3XoLZ4WAfqSgQF/AYRinb4n6V4okSMbCk=";
     npmDepsHash = "sha256-EF7X8qk+fReog1pzFKCgFN56Ud0bDVmN8DlH0Z73gso=";
@@ -394,7 +394,7 @@ in
     title = "Pocket Money";
     pname = "pocket-money";
     input = "pocket-money";
-    version = "0.22.5";
+    version = "0.22.7";
     port = 8178;
     vendorHash = "sha256-orX8b2RbbV3XoLZ4WAfqSgQF/AYRinb4n6V4okSMbCk=";
     npmDepsHash = "sha256-awNiiTvNpyDytlZ4g+VNpztQhCgtgElyoNui1QrLMXk=";
@@ -541,10 +541,10 @@ in
     title = "Pocket Projects";
     pname = "pocket-projects";
     input = "pocket-projects";
-    version = "0.39.0";
+    version = "0.40.2";
     port = 8196;
     vendorHash = "sha256-vgbrGDE4zwZV5EdR6LjQIWtyXGd/CQbjAlEAiSM/3tc=";
-    npmDepsHash = "sha256-Jd1WgUWEe7ZLmRLzrBVrHSvbqFDnZiLSOqVvA7v5/1w=";
+    npmDepsHash = "sha256-4BkXWQ/ye82pdmw9IfumQ+jWT3CTXysxOpA6cI8hLRM=";
   };
 
   radio = {
@@ -602,7 +602,7 @@ in
     title = "Pocket Search";
     pname = "pocket-search";
     input = "pocket-search";
-    version = "0.3.1";
+    version = "0.6.0";
     port = 8225;
     vendorHash = "sha256-gzWT5q/Hy4LInKVGQxBkNQCNaipGA9Jk7MbANyBVKJ0=";
     npmDepsHash = "sha256-P92MslwmlPt8N95dSjIZitFvWpSn8FTaNxltAMAEcEg=";
@@ -707,7 +707,7 @@ in
     title = "Pocket Voice";
     pname = "pocket-voice";
     input = "pocket-voice";
-    version = "0.4.0";
+    version = "0.7.5";
     port = 8237;
     # ffmpeg reads any recording; whisper.cpp (whisper-cli and parakeet-cli) writes it out on the box.
     # The speech models are downloaded into /var/lib/pocket-voice/models when first chosen.
