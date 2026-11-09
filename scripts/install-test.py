@@ -58,7 +58,9 @@ def vm(extra):
         "-drive", f"if=pflash,format=raw,readonly=on,file={ovmf}/FV/OVMF_CODE.fd",
         "-drive", f"if=pflash,format=raw,file={vars_fd}",
         "-drive", f"file={disk},if=virtio", "-display", "none", "-serial", "stdio", "-monitor", "none",
-        "-qmp", f"unix:{qmp},server,nowait", *start_tpm(), *extra],
+        "-qmp", f"unix:{qmp},server,nowait", *start_tpm(),
+        # No public name for test boxes (modules/names.nix): they would register one on every run.
+        "-fw_cfg", "name=opt/pocket/names,string=off", *extra],
         stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
 
 buf = b""

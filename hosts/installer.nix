@@ -2,14 +2,14 @@
 # boot it, run `sudo pocket-install`, pick the disk, reboot.
 #
 # On a PC with a TPM 2.0 the root partition is encrypted (LUKS2), unlocked at boot by the TPM; the
-# installer shows a recovery key once. Without a TPM, or with --no-encrypt, the disk is plain: a
-# headless box could not ask anyone for a password at boot.
+# installer shows a recovery key once, with a QR code. Without a TPM, or with --no-encrypt, the disk
+# is plain: a headless box could not ask anyone for a password at boot.
 { config, lib, pkgs, modulesPath, boxSystem, boxSystemEncrypted, ... }:
 
 let
   pocket-install = pkgs.writeShellApplication {
     name = "pocket-install";
-    runtimeInputs = with pkgs; [ util-linux parted dosfstools e2fsprogs coreutils gnugrep gnused cryptsetup systemd config.system.build.nixos-install ];
+    runtimeInputs = with pkgs; [ util-linux parted dosfstools e2fsprogs coreutils gnugrep gnused cryptsetup systemd qrencode config.system.build.nixos-install ];
     text = ''
       if [ "$(id -u)" -ne 0 ]; then
         echo "Run it as root: sudo pocket-install" >&2
@@ -61,7 +61,14 @@ let
         mkpart "$rootname" ext4 1GiB 100%
       udevadm settle
 
-      part() { lsblk -lnpo NAME "$disk" | sed -n "$(( $1 + 1 ))p"; }
+      # Partition N by the kernel's naming (nvme0n1p2, mmcblk0p2, sda2), not by lsblk's order: once
+      # the encrypted volume is open, lsblk can list it before the partitions and shift them.
+      part() {
+        case "$disk" in
+          *[0-9]) echo "''${disk}p$1" ;;
+          *) echo "$disk$1" ;;
+        esac
+      }
       mkfs.fat -F 32 -n POCKET-BOOT "$(part 1)"
       system=${boxSystem}
       recovery=""
@@ -103,9 +110,12 @@ let
       fi
       udevadm settle
 
-      mount /dev/disk/by-label/pocket-root /mnt
+      # The new partitions themselves: another disk in the PC may carry the same labels.
+      root=$(part 2)
+      if [ "$tpm" = yes ]; then root=/dev/mapper/pocket-root; fi
+      mount "$root" /mnt
       mkdir -p /mnt/boot
-      mount -o umask=077 /dev/disk/by-label/POCKET-BOOT /mnt/boot
+      mount -o umask=077 "$(part 1)" /mnt/boot
 
       nixos-install --system "$system" --no-root-passwd --no-channel-copy
 
@@ -114,9 +124,12 @@ let
         cryptsetup close pocket-root
         echo
         echo "=================================================================================="
-        echo " Recovery key for this box's disk. Write it down and keep it away from the box:"
+        echo " Recovery key for this box's disk. Write it down (or scan the QR code) and keep it"
+        echo " away from the box:"
         echo
         echo "   $recovery"
+        echo
+        qrencode -t ANSIUTF8 -m 2 "$recovery" || true
         echo
         echo " You only need it if the TPM ever refuses to unlock the disk (a new motherboard,"
         echo " a firmware reset): the box then asks for it on its screen."

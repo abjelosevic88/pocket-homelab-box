@@ -56,6 +56,8 @@
       domain = "pocket.localhost";
       httpsPort = 8443;
       httpPort = 8080;
+      # A development VM must not take a public name (and a Let's Encrypt certificate) each run.
+      names.enable = false;
     };
     virtualisation = {
       memorySize = 6144;

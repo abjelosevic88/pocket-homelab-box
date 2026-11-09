@@ -20,6 +20,15 @@ import urllib.request
 
 CONFIG = json.load(open(sys.argv[1]))
 STATE = CONFIG["state_dir"]
+
+# Once the box has its public name (modules/names.nix), Core shows the services under it.
+try:
+    PUBLIC_NAME = open("/var/lib/pocket-box-name/domain").read().strip()
+except FileNotFoundError:
+    PUBLIC_NAME = ""
+if PUBLIC_NAME:
+    for _svc in CONFIG["services"]:
+        _svc["public_url"] = _svc["public_url"].replace("." + CONFIG["domain"], "." + PUBLIC_NAME)
 ADMIN = "pocket-box"
 JF_AUTH = 'MediaBrowser Client="Pocket Box", Device="pocket-box", DeviceId="pocket-box", Version="1"'
 

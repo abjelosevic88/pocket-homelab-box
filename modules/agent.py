@@ -235,10 +235,19 @@ def encryption():
     return {"encrypted": True, "tpm": "systemd-tpm2" in dump, "recovery_key": "systemd-recovery" in dump}
 
 
+def public_name():
+    """The box's name under box.pockethomelab.com (modules/names.nix), once it has its certificate."""
+    try:
+        return open("/var/lib/pocket-box-name/domain").read().strip()
+    except FileNotFoundError:
+        return ""
+
+
 def status():
     return {
         "hostname": CONFIG["hostname"],
         "domain": CONFIG["domain"],
+        "public_name": public_name(),
         "timezone": timezone(),
         "network": {"addresses": addresses(), "wifi": wifi_status()},
         "tailscale": tailscale_status(),

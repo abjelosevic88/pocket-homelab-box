@@ -17,6 +17,26 @@ let
 
   mediaDir = "/srv/media";
 
+  # In front of every app: once the box has its public name (modules/names.nix), the app's public URLs
+  # use it instead of <domain>. Without the name it changes nothing.
+  envWrap = pkgs.writeShellScript "pocket-box-env" ''
+    name=$(cat /var/lib/pocket-box-name/domain 2>/dev/null || true)
+    if [ -n "$name" ]; then
+      # env -0, not compgen: the system's bash is built without programmable completion.
+      while IFS= read -r -d "" kv; do
+        k=''${kv%%=*}
+        v=''${kv#*=}
+        case "$v" in
+          *.${cfg.domain}*|*//${cfg.domain}*)
+            v=''${v//.${cfg.domain}/.$name}
+            v=''${v//\/\/${cfg.domain}/\/\/$name}
+            export "$k=$v" ;;
+        esac
+      done < <(env -0)
+    fi
+    exec "$@"
+  '';
+
   common = slug: app:
     let
       root = app.root or false;
@@ -44,7 +64,7 @@ let
         TZ = config.time.timeZone;
       } // (app.environment or { });
       serviceConfig = {
-        ExecStart = lib.getExe pkgs.pocket.${slug};
+        ExecStart = "${envWrap} ${lib.getExe pkgs.pocket.${slug}}";
         EnvironmentFile = [ secretsFile ];
         DynamicUser = !root;
         StateDirectory = "pocket-${slug}";
@@ -77,7 +97,7 @@ let
     };
 in
 {
-  imports = [ ./services.nix ./proxy.nix ./system.nix ./updates.nix ];
+  imports = [ ./services.nix ./proxy.nix ./system.nix ./updates.nix ./names.nix ];
 
   options.pocket.box = {
     enable = lib.mkEnableOption "the Pocket Box (Pocket Core and the Pocket apps)";

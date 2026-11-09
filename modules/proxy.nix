@@ -25,6 +25,8 @@ let
       main { max-width: 560px; margin: 0 auto; padding: 40px 20px; }
       h1 { font-size: 28px; margin: 0 0 4px; }
       p.lead { color: var(--muted); margin: 0 0 28px; }
+      p.note { color: var(--muted); font-size: 14px; margin: 0 0 8px; }
+      #blocked { margin-bottom: 20px; }
       section { background: var(--card); border-radius: 16px; padding: 20px; margin-bottom: 16px; }
       h2 { font-size: 18px; margin: 0 0 8px; }
       a.button { display: inline-block; background: var(--accent); color: #fff; text-decoration: none; padding: 10px 18px; border-radius: 10px; font-weight: 600; margin: 6px 0 12px; }
@@ -36,11 +38,19 @@ let
     <body>
     <main>
       <h1>Pocket Box</h1>
+      <section id="opening" hidden>
+        <h2>Opening Pocket Box…</h2>
+        <p>If nothing happens, <a id="opening-link" href="#">open it here</a>.</p>
+      </section>
+      <div id="steps">
       <p class="lead">Two steps on each phone or computer you use with the box.</p>
+      <p class="note" id="blocked" hidden>This network can't reach the box's own address (<span id="blocked-name"></span>);
+        some routers block names that point into the home network. Until the router allows it, use the steps below.</p>
       <section>
         <h2>1. Trust the box's certificate</h2>
         <p>The box encrypts everything with its own certificate. Install it once so your browser trusts it.</p>
         <a class="button" href="/pocket-box-ca.crt">Download certificate</a>
+        <p class="note">If the browser says “Insecure download blocked”, choose Keep: this page can't use https until the certificate is installed.</p>
         <details><summary>iPhone and iPad</summary><ol>
           <li>Open the download, then Settings → Profile Downloaded → Install.</li>
           <li>Settings → General → About → Certificate Trust Settings → turn on “Pocket Box”.</li></ol></details>
@@ -59,7 +69,34 @@ let
         <p>Create your account there; it lists every app on the box.</p>
         <a class="button" href="${url.site "core"}">Open Pocket Core</a>
       </section>
+      </div>
     </main>
+    <script>
+      // Once the box has its public name (a certificate every browser trusts), go there instead,
+      // if this network can reach it.
+      (async () => {
+        let name;
+        try {
+          const r = await fetch("/name.json", { cache: "no-store" });
+          if (!r.ok) return;
+          name = await r.json();
+        } catch (e) { return; }
+        document.getElementById("opening").hidden = false;
+        document.getElementById("steps").hidden = true;
+        document.getElementById("opening-link").href = name.core + "/";
+        const stop = new AbortController();
+        setTimeout(() => stop.abort(), 5000);
+        try {
+          await fetch(name.core + "/healthz", { mode: "no-cors", cache: "no-store", signal: stop.signal });
+          location.replace(name.core + "/");
+        } catch (e) {
+          document.getElementById("opening").hidden = true;
+          document.getElementById("steps").hidden = false;
+          document.getElementById("blocked-name").textContent = name.domain;
+          document.getElementById("blocked").hidden = false;
+        }
+      })();
+    </script>
     </body>
     </html>
   '';
