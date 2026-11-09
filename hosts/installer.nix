@@ -9,7 +9,7 @@
 let
   pocket-install = pkgs.writeShellApplication {
     name = "pocket-install";
-    runtimeInputs = with pkgs; [ util-linux parted dosfstools e2fsprogs coreutils gnugrep cryptsetup systemd config.system.build.nixos-install ];
+    runtimeInputs = with pkgs; [ util-linux parted dosfstools e2fsprogs coreutils gnugrep gnused cryptsetup systemd config.system.build.nixos-install ];
     text = ''
       if [ "$(id -u)" -ne 0 ]; then
         echo "Run it as root: sudo pocket-install" >&2
@@ -72,11 +72,27 @@ let
         head -c 64 /dev/urandom > "$key"
         cryptsetup luksFormat --type luks2 --batch-mode --key-file "$key" "$(part 2)"
         cryptsetup open --key-file "$key" --allow-discards "$(part 2)" pocket-root
-        recovery=$(systemd-cryptenroll --unlock-key-file="$key" --recovery-key "$(part 2)" 2>&1 \
-          | grep -oE '([cbdefghijklnrtuv]{8}-){7}[cbdefghijklnrtuv]{8}' | head -n1 || true)
+        udevadm settle
+        enroll=$(systemd-cryptenroll --unlock-key-file="$key" --recovery-key "$(part 2)" 2>&1 || true)
+        recovery=$(printf '%s\n' "$enroll" | grep -oE '([cbdefghijklnrtuv]{8}-){7}[cbdefghijklnrtuv]{8}' | head -n1 || true)
         if [ -z "$recovery" ]; then
-          echo "Making the recovery key failed." >&2
-          exit 1
+          # systemd-cryptenroll refused on some PCs: make the same kind of key (64 modhex characters)
+          # with cryptsetup and tag its slot as systemd's recovery key, so the box and the TPM step
+          # treat it the same.
+          echo "systemd-cryptenroll said:" >&2
+          printf '%s\n' "$enroll" >&2
+          echo "Making the recovery key with cryptsetup instead." >&2
+          recovery=$(head -c 32 /dev/urandom | od -An -tx1 -v | tr -d ' \n' | tr 0123456789abcdef cbdefghijklnrtuv \
+            | sed -E 's/.{8}/&-/g; s/-$//')
+          rk=$(mktemp)
+          printf '%s' "$recovery" > "$rk"
+          if ! cryptsetup luksAddKey --batch-mode --key-file "$key" --key-slot 1 "$(part 2)" "$rk" \
+            || ! printf '{"type":"systemd-recovery","keyslots":["1"]}' | cryptsetup token import "$(part 2)"; then
+            shred -u "$rk" "$key"
+            echo "Making the recovery key failed." >&2
+            exit 1
+          fi
+          shred -u "$rk"
         fi
         systemd-cryptenroll --unlock-key-file="$key" --tpm2-device=auto --tpm2-pcrs=7 --wipe-slot=password "$(part 2)"
         shred -u "$key"
