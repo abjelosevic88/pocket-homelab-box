@@ -33,6 +33,10 @@ let
       details { margin-top: 6px; } summary { cursor: pointer; font-weight: 600; }
       details p, li { color: var(--muted); font-size: 15px; }
       ol { padding-left: 20px; margin: 6px 0; }
+      .spin { display: inline-block; width: 18px; height: 18px; border: 2.5px solid var(--muted); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.9s linear infinite; vertical-align: -3px; margin-right: 8px; }
+      @keyframes spin { to { transform: rotate(360deg); } }
+      @media (prefers-reduced-motion: reduce) { .spin { animation: none; } }
+      button.link { background: none; border: 0; padding: 0; color: var(--accent); font: inherit; cursor: pointer; text-decoration: underline; }
     </style>
     </head>
     <body>
@@ -42,8 +46,14 @@ let
         <h2>Opening Pocket Box…</h2>
         <p>If nothing happens, <a id="opening-link" href="#">open it here</a>.</p>
       </section>
+      <section id="getting" hidden>
+        <h2><span class="spin" aria-hidden="true"></span>Getting your box's secure address…</h2>
+        <p id="getting-what">This takes a minute or two. The page moves on by itself; nothing to install.</p>
+        <p class="note">Can't wait? <button type="button" class="link" id="now">Use the box now</button> by installing its certificate instead.</p>
+      </section>
       <div id="steps">
       <p class="lead">Two steps on each phone or computer you use with the box.</p>
+      <p class="note" id="why" hidden></p>
       <p class="note" id="blocked" hidden>This network can't reach the box's own address (<span id="blocked-name"></span>);
         some routers block names that point into the home network. Until the router allows it, use the steps below.</p>
       <section>
@@ -72,30 +82,62 @@ let
       </div>
     </main>
     <script>
-      // Once the box has its public name (a certificate every browser trusts), go there instead,
-      // if this network can reach it.
-      (async () => {
-        let name;
+      // Once the box has its public name (a certificate every browser trusts), go there instead, if this
+      // network can reach it. While the box is still getting the name (its first minutes), wait for it
+      // rather than offer the certificate steps.
+      const $ = (id) => document.getElementById(id);
+      const show = (view) => { for (const v of ["opening", "getting", "steps"]) $(v).hidden = v !== view; };
+      const get = async (path) => {
         try {
-          const r = await fetch("/name.json", { cache: "no-store" });
-          if (!r.ok) return;
-          name = await r.json();
-        } catch (e) { return; }
-        document.getElementById("opening").hidden = false;
-        document.getElementById("steps").hidden = true;
-        document.getElementById("opening-link").href = name.core + "/";
+          const r = await fetch(path, { cache: "no-store" });
+          return r.ok ? await r.json() : null;
+        } catch (e) { return null; }
+      };
+      const WHAT = {
+        asking: "Asking for its address. This takes a minute or two; the page moves on by itself.",
+        certificate: "Almost there: getting its certificate. The page moves on by itself.",
+        waiting: "Waiting for its address; the box asks again every few minutes and the page moves on by itself.",
+      };
+      let gaveUp = false;
+      const opened = Date.now();
+      $("now").onclick = () => { gaveUp = true; show("steps"); };
+
+      async function open(name) {
+        show("opening");
+        $("opening-link").href = name.core + "/";
         const stop = new AbortController();
         setTimeout(() => stop.abort(), 5000);
         try {
           await fetch(name.core + "/healthz", { mode: "no-cors", cache: "no-store", signal: stop.signal });
           location.replace(name.core + "/");
         } catch (e) {
-          document.getElementById("opening").hidden = true;
-          document.getElementById("steps").hidden = false;
-          document.getElementById("blocked-name").textContent = name.domain;
-          document.getElementById("blocked").hidden = false;
+          show("steps");
+          $("blocked-name").textContent = name.domain;
+          $("blocked").hidden = false;
         }
-      })();
+      }
+
+      async function check() {
+        const name = await get("/name.json");
+        if (name) return open(name);
+        const st = await get("/name-status.json");
+        const fresh = st && Date.now() / 1000 - st.at < 45 * 60;
+        $("why").hidden = true;
+        const tooLong = st && st.state === "waiting" && Date.now() - opened > 10 * 60 * 1000;
+        if (!gaveUp && fresh && WHAT[st.state] && !tooLong) {
+          $("getting-what").textContent = WHAT[st.state];
+          show("getting");
+        } else if (!gaveUp) {
+          show("steps");
+          if (st && fresh && st.message && (st.state === "offline" || st.state === "failed" || tooLong)) {
+            $("why").textContent = st.message + " Until then, use the steps below; the page moves on by itself once the box has its address.";
+            $("why").hidden = false;
+          }
+        }
+        // Keep looking while the box may still get its name (no status yet: it has only just started).
+        if (!st || ["asking", "certificate", "waiting", "offline", "failed"].includes(st.state)) setTimeout(check, 4000);
+      }
+      check();
     </script>
     </body>
     </html>

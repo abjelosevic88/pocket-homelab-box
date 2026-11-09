@@ -60,7 +60,8 @@ in
 
     # The landing page asks for this to send a browser on to the public name.
     services.caddy.virtualHosts."http://${box.domain}".extraConfig = lib.mkBefore ''
-      handle /name.json {
+      @name path /name.json /name-status.json
+      handle @name {
         header Cache-Control no-store
         root * ${stateDir}/public
         file_server
@@ -94,13 +95,35 @@ in
       };
     };
 
+    # Until the box has its name: try every 3 minutes, so a new box (or one that was offline at first)
+    # gets it within minutes. The same program; its lock keeps the two from running at once.
+    systemd.services.pocket-box-name-soon = {
+      description = "Pocket Box public name, until it has one";
+      after = [ "network-online.target" "caddy.service" ];
+      wants = [ "network-online.target" ];
+      unitConfig.ConditionPathExists = "!${stateDir}/domain";
+      serviceConfig = {
+        Type = "oneshot";
+        ExecStart = "${names} ${namesConfig}";
+        TimeoutStartSec = "20min";
+      };
+    };
+    systemd.timers.pocket-box-name-soon = {
+      description = "Pocket Box public name, until it has one";
+      wantedBy = [ "timers.target" ];
+      timerConfig = {
+        OnBootSec = "3min";
+        OnUnitInactiveSec = "3min";
+      };
+    };
+
     systemd.timers.pocket-box-name = {
       description = "Pocket Box public name and certificate";
       wantedBy = [ "timers.target" ];
       timerConfig = {
-        OnBootSec = "30s";
+        # Soon after boot, without the usual random delay: a new box should have its name in minutes.
+        OnBootSec = "15s";
         OnUnitActiveSec = "30min";
-        RandomizedDelaySec = "2min";
       };
     };
   };

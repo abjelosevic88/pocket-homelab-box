@@ -12,8 +12,13 @@ Run by a timer. Each run:
      public URLs (rewritten by pocket-box-env from the domain file) use it.
 
 Until all of that worked once, nothing changes: the box keeps https://<app>.pocket.local and its own CA.
+Meanwhile public/name-status.json tells the landing page (http://pocket.local) how far it got, so a
+phone opened in the first minutes waits for the name instead of offering the certificate steps.
+Two timers run this: the regular one, and a quick one every 3 minutes until the box has its name; a
+lock keeps them from running at once.
 """
 import base64
+import fcntl
 import ipaddress
 import json
 import os
@@ -76,6 +81,20 @@ class Rejected(Exception):
     pass
 
 
+class Waiting(Exception):
+    """Pocket Names knows the box but holds it back for now (approval, or a limit); it asks again."""
+
+
+def status(state, message=""):
+    """How far getting the name got, for the landing page: asking | certificate | waiting | offline |
+    failed | ready | off. Only until the box has its name; renewals later don't show here."""
+    if state != "ready" and os.path.exists(DOMAIN_FILE):
+        return
+    os.makedirs(os.path.join(STATE, "public"), exist_ok=True)
+    write(os.path.join(STATE, "public", "name-status.json"),
+          json.dumps({"state": state, "message": message, "at": int(time.time())}))
+
+
 def api(method, path, body=None, account=None):
     req = urllib.request.Request(CONFIG["server"] + path, method=method,
                                  data=json.dumps(body).encode() if body is not None else None,
@@ -91,6 +110,8 @@ def api(method, path, body=None, account=None):
         detail = e.read().decode(errors="replace")[:300]
         if e.code == 401:
             raise Rejected(detail)
+        if e.code in (403, 429, 503):
+            raise Waiting(f"Pocket Names {method} {path}: HTTP {e.code} {detail}")
         raise RuntimeError(f"Pocket Names {method} {path}: HTTP {e.code} {detail}")
 
 
@@ -218,11 +239,20 @@ def switch_apps():
 def main():
     if read(FW_CFG).strip() == "off":
         log("public name turned off for this machine (fw_cfg)")
+        status("off")
         return
     os.makedirs(PRIVATE, exist_ok=True)
     os.chmod(PRIVATE, 0o700)
     os.chmod(STATE, 0o755)
+    lock = open(os.path.join(PRIVATE, "lock"), "w")
     try:
+        fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+    except BlockingIOError:
+        log("already running")
+        return
+    try:
+        if not os.path.exists(os.path.join(STATE, "public", "name-status.json")):
+            status("asking")  # only the first time: later runs keep the last outcome until they have a new one
         acct = account()
         try:
             send_address(acct)
@@ -236,15 +266,23 @@ def main():
             acct = account()
             send_address(acct)
         if not cert_ok(acct["domain"]):
+            status("certificate")
             get_cert(acct)
         if cert_ok(acct["domain"], days=0):
             if install(acct):
                 switch_apps()
+            status("ready")
         write_etc_hosts()
-    except (RuntimeError, urllib.error.URLError, OSError, subprocess.TimeoutExpired, Rejected) as e:
-        # No internet, Pocket Names down, Let's Encrypt busy: the box keeps working on pocket.local and
-        # the timer tries again.
+    except (RuntimeError, urllib.error.URLError, OSError, subprocess.TimeoutExpired, Rejected, Waiting) as e:
+        # No internet, Pocket Names down or holding the box back, Let's Encrypt busy: the box keeps
+        # working on pocket.local and a timer tries again.
         log("not this time:", e)
+        if isinstance(e, Waiting):
+            status("waiting", "Pocket Names will give this box its name shortly; it asks again every few minutes.")
+        elif isinstance(e, urllib.error.URLError) and not isinstance(e, urllib.error.HTTPError):
+            status("offline", "The box can't reach the internet yet.")
+        else:
+            status("failed", "Getting the name didn't work this time; the box tries again in a few minutes.")
         if os.path.exists(DOMAIN_FILE):
             write_etc_hosts()
 
