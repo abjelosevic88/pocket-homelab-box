@@ -7,6 +7,8 @@
 # Two more only their app talks to, on loopback with no site of their own:
 #   SearXNG    → Pocket Search  (its search engine)          127.0.0.1:8888
 #   Chromium   → Pocket Lookout (pages that need JavaScript)  127.0.0.1:9222
+#   guacd      → Pocket Remote  (VNC, RDP and SSH)            127.0.0.1:4822
+#   LibreTranslate → Pocket Translate (offline engine, off by default) 127.0.0.1:5000
 # On first boot pocket-box-backends makes a box administrator and key in Jellyfin, Navidrome and
 # Immich and hands them to Pocket Core (SERVICES_FILE), whose connectors then give every person
 # their own account and key there, which Pocket Watch, Music and Photos use.
@@ -47,6 +49,10 @@ in
     onlyoffice.enable = lib.mkOption { type = lib.types.bool; default = true; description = "OnlyOffice Document Server, for Pocket Office."; };
     searxng.enable = lib.mkOption { type = lib.types.bool; default = hasApp "search"; defaultText = lib.literalExpression ''lib.elem "search" config.pocket.box.apps''; description = "SearXNG, the search engine behind Pocket Search."; };
     browser.enable = lib.mkOption { type = lib.types.bool; default = hasApp "lookout"; defaultText = lib.literalExpression ''lib.elem "lookout" config.pocket.box.apps''; description = "A headless Chromium for Pocket Lookout."; };
+    guacd.enable = lib.mkOption { type = lib.types.bool; default = hasApp "remote"; defaultText = lib.literalExpression ''lib.elem "remote" config.pocket.box.apps''; description = "guacd, the remote desktop engine behind Pocket Remote."; };
+    # Off by default: it brings PyTorch (about 3.5 GiB) into the system and downloads its language models
+    # on the first start. Without it Pocket Translate translates with Pocket AI.
+    libretranslate.enable = lib.mkOption { type = lib.types.bool; default = false; description = "LibreTranslate, the offline engine for Pocket Translate."; };
   };
 
   config = lib.mkIf box.enable (lib.mkMerge [
@@ -280,6 +286,27 @@ in
         };
       };
       systemd.services.pocket-lookout = lib.mkIf (hasApp "lookout") { after = [ "pocket-box-browser.service" ]; wants = [ "pocket-box-browser.service" ]; };
+    })
+
+    (lib.mkIf cfg.guacd.enable {
+      services.guacamole-server = { enable = true; host = "127.0.0.1"; port = 4822; };
+      systemd.services.pocket-remote = lib.mkIf (hasApp "remote") { after = [ "guacamole-server.service" ]; wants = [ "guacamole-server.service" ]; };
+    })
+
+    (lib.mkIf cfg.libretranslate.enable {
+      services.libretranslate = {
+        enable = true;
+        host = "127.0.0.1";
+        port = 5000;
+        disableWebUI = true;
+        # Fewer languages start quicker and use less memory; the same list as the app's compose file.
+        extraArgs.load-only = "en,de,fr,es,it,pt,nl,pl,cs,sk,sl,bg,ru,uk,tr,sv,da,nb,fi,el,hu,ro,sq,ar,zh,ja,ko";
+      };
+      systemd.services.pocket-translate = lib.mkIf (hasApp "translate") {
+        after = [ "libretranslate.service" ];
+        wants = [ "libretranslate.service" ];
+        environment.ARGOS_URL = localUrl 5000;
+      };
     })
   ]);
 }

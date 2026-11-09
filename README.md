@@ -3,7 +3,7 @@
 </p>
 <h1 align="center">Pocket Box</h1>
 <p align="center">
-  A NixOS appliance that turns a spare PC into a home server running <a href="https://github.com/abjelosevic88/pocket-homelab-core">Pocket Core</a> and all 68 Pocket apps: HTTPS on every app, one sign-in, Jellyfin, Navidrome, Immich and ONLYOFFICE set up on first boot, TPM disk encryption, and nightly updates that roll themselves back.<br>
+  A NixOS appliance that turns a spare PC into a home server running <a href="https://github.com/abjelosevic88/pocket-homelab-core">Pocket Core</a> and all 82 Pocket apps: HTTPS on every app, one sign-in, Jellyfin, Navidrome, Immich and ONLYOFFICE set up on first boot, TPM disk encryption, and nightly updates that roll themselves back.<br>
   <b>Boot the USB stick · pick a disk · open pocket.local.</b>
 </p>
 <p align="center">
@@ -22,7 +22,7 @@ The whole system is declared in this flake. The installer ISO already contains t
 
 ## What's on the box
 
-All 68 Pocket apps and Pocket Core, each at `https://<slug>.pocket.local` (the port is where it listens on loopback). [pockethomelab.com/apps](https://pockethomelab.com/apps) has a page for every one of them.
+All 82 Pocket apps and Pocket Core, each at `https://<slug>.pocket.local` (the port is where it listens on loopback). [pockethomelab.com/apps](https://pockethomelab.com/apps) has a page for every one of them.
 
 | App | Port |
 |---|---|
@@ -36,15 +36,20 @@ All 68 Pocket apps and Pocket Core, each at `https://<slug>.pocket.local` (the p
 | Pocket Boards | 8223 |
 | Pocket Bookshelf | 8171 |
 | Pocket Calendar | 8190 |
+| Pocket Chat | 8247 |
 | Pocket Clips | 8173 |
 | Pocket Contacts | 8191 |
+| Pocket CRM | 8249 |
 | Pocket Database | 8209 |
 | Pocket Day | 8177 |
 | Pocket Documents | 8183 |
 | Pocket Draw | 8213 |
+| Pocket Errors | 8256 |
+| Pocket Family | 8257 |
 | Pocket Files | 8187 |
 | Pocket Fitness | 8240 |
 | Pocket Flows | 8212 |
+| Pocket Forms | 8248 |
 | Pocket Games | 8226 |
 | Pocket Garage | 8175 |
 | Pocket Guitar | 8214 |
@@ -55,11 +60,14 @@ All 68 Pocket apps and Pocket Core, each at `https://<slug>.pocket.local` (the p
 | Pocket Hub | 8185 |
 | Pocket Inventory | 8170 |
 | Pocket Invoicing | 8168 |
+| Pocket Jobs | 8261 |
 | Pocket Kitchen | 8176 |
+| Pocket League | 8250 |
 | Pocket Learn | 8218 |
 | Pocket Library | 8204 |
 | Pocket Lookout | 8224 |
 | Pocket Mail | 8208 |
+| Pocket Map | 8255 |
 | Pocket Money | 8178 |
 | Pocket Monitoring | 8192 |
 | Pocket Movement | 8197 |
@@ -69,28 +77,34 @@ All 68 Pocket apps and Pocket Core, each at `https://<slug>.pocket.local` (the p
 | Pocket Nutrition | 8241 |
 | Pocket Office | 8186 |
 | Pocket Parcels | 8233 |
-| Pocket PR Review | 8220 |
 | Pocket Pets | 8232 |
 | Pocket Photos | 8194 |
 | Pocket Places | 8236 |
 | Pocket Podcasts | 8181 |
+| Pocket PR Review | 8220 |
 | Pocket Projects | 8196 |
 | Pocket Radio | 8216 |
 | Pocket Reader | 8211 |
+| Pocket Remote | 8259 |
 | Pocket Renewals | 8230 |
+| Pocket Rentals | 8253 |
 | Pocket Requests | 8210 |
 | Pocket Review | 8180 |
 | Pocket Search | 8225 |
 | Pocket Sign | 8234 |
-| Pocket Split | 8172 |
 | Pocket Sphere | 8227 |
+| Pocket Split | 8172 |
 | Pocket Still | 8206 |
 | Pocket Subtitles | 8150 |
+| Pocket Tables | 8252 |
 | Pocket Tasks | 8184 |
 | Pocket Time | 8219 |
+| Pocket Trails | 8254 |
+| Pocket Translate | 8251 |
 | Pocket Travel | 8174 |
 | Pocket Voice | 8237 |
 | Pocket Wallet | 8238 |
+| Pocket Wardrobe | 8258 |
 | Pocket Watch | 8201 |
 | Pocket Wealth | 8231 |
 | Pocket Weather | 8239 |
@@ -106,6 +120,10 @@ And the third-party services some of them sit on top of, from the NixOS modules 
 | OnlyOffice Document Server | `onlyoffice.pocket.local` | Pocket Office |
 | SearXNG | loopback only (`127.0.0.1:8888`) | Pocket Search |
 | Headless Chromium | loopback only (`127.0.0.1:9222`) | Pocket Lookout (pages that need JavaScript) |
+| guacd (Apache Guacamole) | loopback only (`127.0.0.1:4822`) | Pocket Remote (VNC, RDP and SSH) |
+| LibreTranslate | loopback only (`127.0.0.1:5000`), **off by default** | Pocket Translate (offline translation) |
+
+LibreTranslate brings PyTorch (about 3.5 GiB) and downloads its language models on the first start, so it's off unless you set `pocket.box.services.libretranslate.enable = true`. Without it Pocket Translate translates with Pocket AI.
 
 Nobody has to open these services' setup screens:
 - **First boot:** `pocket-box-backends` creates a box administrator (`pocket-box`) and an API key in Jellyfin, Navidrome and Immich. It also adds Jellyfin's Movies and Shows libraries. The credentials stay in `/var/lib/pocket-box/backends/`, readable by root only.
@@ -124,6 +142,7 @@ Media lives in `/srv/media` (`movies`, `tv`, `music`, `books`, `audiobooks`, `ga
 
 Tools the apps shell out to are put on their PATH:
 - **Documents:** ocrmypdf, plus Tesseract with 16 languages
+- **Translate:** poppler and the same Tesseract
 - **Podcasts:** yt-dlp, deno and ffmpeg
 - **Subtitles:** ffsubsync and alass
 - **Backups:** restic and rclone
@@ -136,7 +155,7 @@ Caddy is the only thing listening on the network (ports 80 and 443). The apps an
 - **`http://pocket.local`:** stays plain http on purpose. It's a landing page where each phone or computer downloads that CA once, with steps for iPhone, Mac, Android and Windows. It then links to Core.
 - **`https://pocket.local`:** redirects to Core.
 
-`pocket.local` and all 73 names are announced over mDNS. `pocket-box-mdns-aliases` follows address changes and spreads the records over several Avahi groups, because Avahi allows 32 entries per group.
+`pocket.local` and all 87 names are announced over mDNS. `pocket-box-mdns-aliases` follows address changes and spreads the records over several Avahi groups, because Avahi allows 32 entries per group.
 - **Apple devices and Linux with Avahi:** resolve these multi-label `.local` names.
 - **Android and some Windows versions:** may not.
 

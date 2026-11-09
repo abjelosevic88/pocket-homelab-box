@@ -17,7 +17,7 @@
 { lib }:
 
 let
-  # Tesseract languages for Pocket Documents.
+  # Tesseract languages for Pocket Documents and Pocket Translate.
   ocrLanguages = [ "eng" "deu" "fra" "ita" "spa" "nld" "por" "hrv" "srp" "srp_latn" "slv" "pol" "ces" "hun" "ron" "osd" ];
 in
 {
@@ -25,7 +25,7 @@ in
     title = "Pocket Core";
     pname = "pocket-core";
     input = "pocket-core";
-    version = "0.36.9";
+    version = "0.36.12";
     port = 8179;
     vendorHash = "sha256-AmQl4eumT1+KUEk3jsBDJpAV1h2efmwUL+gcfg4IrIE=";
     npmDepsHash = "sha256-B6hwAJzFxJG6iSPCb/vrsQrF8lzORM95hK7vslmlGm0=";
@@ -35,7 +35,7 @@ in
     title = "Pocket AI";
     pname = "pocket-ai";
     input = "pocket-ai";
-    version = "0.86.5";
+    version = "0.87.2";
     port = 8195;
     vendorHash = "sha256-st3Jp8Qh9ZGI32Tsg1EVT0bZBu6tDtYHnLhAhvI/aMM=";
     npmDepsHash = "sha256-Ec6TFzNOyDaPrpcaUpLi5OMusbth/qK3LLDEE+V92jw=";
@@ -133,6 +133,16 @@ in
     npmDepsHash = "sha256-1z9sg27zun7MmuqajpA5zCRCgh++G/vjIC+cLvU4an4=";
   };
 
+  chat = {
+    title = "Pocket Chat";
+    pname = "pocket-chat";
+    input = "pocket-chat";
+    version = "0.2.0";
+    port = 8247;
+    vendorHash = "sha256-jMiRPKdD3sfPqAj89+Q/hlEnUIYI34GurXx9PCTVejw=";
+    npmDepsHash = "sha256-lhQVPTara24AIhlihqRp3RlYgxhsG956+gDqI7QUbx0=";
+  };
+
   clips = {
     title = "Pocket Clips";
     pname = "pocket-clips";
@@ -151,6 +161,16 @@ in
     port = 8191;
     vendorHash = "sha256-Yyl3Ok8RserzSVw7NC7Sa8MpjKBSk13Ptl3b3BzvPRs=";
     npmDepsHash = "sha256-ftYKsNBA4mWf3tCEYocLfSQ3vnJUH2C5kgtJ/yiLMcw=";
+  };
+
+  crm = {
+    title = "Pocket CRM";
+    pname = "pocket-crm";
+    input = "pocket-crm";
+    version = "0.1.1";
+    port = 8249;
+    vendorHash = "sha256-czmaak0Anph/bKzWuexQBN0XPRuQK7otZx6KZOB77Fw=";
+    npmDepsHash = "sha256-zOJtN1I9lfQlX8+5f8iFk0EvzJlwMU495u2bTj+A390=";
   };
 
   database = {
@@ -203,6 +223,26 @@ in
     npmDepsHash = "sha256-9G2vGGFN7zg0I9pTYH9qdkJHuzZZf9E6B2MitkiWq18=";
   };
 
+  errors = {
+    title = "Pocket Errors";
+    pname = "pocket-errors";
+    input = "pocket-errors";
+    version = "0.1.1";
+    port = 8256;
+    vendorHash = "sha256-czmaak0Anph/bKzWuexQBN0XPRuQK7otZx6KZOB77Fw=";
+    npmDepsHash = "sha256-BoNk2rN98hUjXdy1xpEjtiwIYhHBvTUBYt7QpG4WAOQ=";
+  };
+
+  family = {
+    title = "Pocket Family";
+    pname = "pocket-family";
+    input = "pocket-family";
+    version = "0.1.1";
+    port = 8257;
+    vendorHash = "sha256-tnrkDLrbQOLM+MgSoYZM/hGJj5KzfQWwDGCWLLg104s=";
+    npmDepsHash = "sha256-lhQVPTara24AIhlihqRp3RlYgxhsG956+gDqI7QUbx0=";
+  };
+
   files = {
     title = "Pocket Files";
     pname = "pocket-files";
@@ -231,6 +271,16 @@ in
     port = 8212;
     vendorHash = "sha256-orX8b2RbbV3XoLZ4WAfqSgQF/AYRinb4n6V4okSMbCk=";
     npmDepsHash = "sha256-EF7X8qk+fReog1pzFKCgFN56Ud0bDVmN8DlH0Z73gso=";
+  };
+
+  forms = {
+    title = "Pocket Forms";
+    pname = "pocket-forms";
+    input = "pocket-forms";
+    version = "0.2.0";
+    port = 8248;
+    vendorHash = "sha256-czmaak0Anph/bKzWuexQBN0XPRuQK7otZx6KZOB77Fw=";
+    npmDepsHash = "sha256-i8h+RPefc0yUf45rVvyQczKMa3dnBWx1gX/NY1ukheU=";
   };
 
   games = {
@@ -336,6 +386,16 @@ in
     npmDepsHash = "sha256-B6jZTFFZUl2SQQpGHEXkm0Fk4L2LlnyS1DZ56XRaU+Y=";
   };
 
+  jobs = {
+    title = "Pocket Jobs";
+    pname = "pocket-jobs";
+    input = "pocket-jobs";
+    version = "0.1.0";
+    port = 8261;
+    vendorHash = "sha256-czmaak0Anph/bKzWuexQBN0XPRuQK7otZx6KZOB77Fw=";
+    npmDepsHash = "sha256-Bx7xgEFK6E71G0qtrjVg1FQOcEjPGzefOxlti069n68=";
+  };
+
   kitchen = {
     title = "Pocket Kitchen";
     pname = "pocket-kitchen";
@@ -344,6 +404,16 @@ in
     port = 8176;
     vendorHash = "sha256-orX8b2RbbV3XoLZ4WAfqSgQF/AYRinb4n6V4okSMbCk=";
     npmDepsHash = "sha256-V/EgsjDw9Ljmn1icnZmpjn/9WeSDzmMN98aBsX8lnig=";
+  };
+
+  league = {
+    title = "Pocket League";
+    pname = "pocket-league";
+    input = "pocket-league";
+    version = "0.4.6";
+    port = 8250;
+    vendorHash = "sha256-UsI/e/U1D9b8qcM8HTpS9jwK9kQHHVv3+/PTkhizGdk=";
+    npmDepsHash = "sha256-zOJtN1I9lfQlX8+5f8iFk0EvzJlwMU495u2bTj+A390=";
   };
 
   learn = {
@@ -388,6 +458,16 @@ in
     port = 8208;
     vendorHash = "sha256-kZcQ59gr0qjv7s+vIPRqjGvTRIYceZUvVAzPxEN620s=";
     npmDepsHash = "sha256-EF7X8qk+fReog1pzFKCgFN56Ud0bDVmN8DlH0Z73gso=";
+  };
+
+  map = {
+    title = "Pocket Map";
+    pname = "pocket-map";
+    input = "pocket-map";
+    version = "0.1.0";
+    port = 8255;
+    vendorHash = "sha256-czmaak0Anph/bKzWuexQBN0XPRuQK7otZx6KZOB77Fw=";
+    npmDepsHash = "sha256-U+exrYitvtCMA5ncGMwnU8OHJnfK9M3pvelXlowPRKs=";
   };
 
   money = {
@@ -567,6 +647,18 @@ in
     npmDepsHash = "sha256-EF7X8qk+fReog1pzFKCgFN56Ud0bDVmN8DlH0Z73gso=";
   };
 
+  remote = {
+    title = "Pocket Remote";
+    pname = "pocket-remote";
+    input = "pocket-remote";
+    version = "0.2.0";
+    port = 8259;
+    vendorHash = "sha256-+uDc+UC9z7QTsGhfbml1Z/B3VVbeHbjcccm0de8RxRI=";
+    npmDepsHash = "sha256-C/eL2qrSr8IunXu5eLF6aYQQZWwjUx0Bxe5oWepwSPM=";
+    # VNC, RDP and SSH through guacd on the box (modules/services.nix).
+    environment = { GUACD_ADDR = "127.0.0.1:4822"; };
+  };
+
   renewals = {
     title = "Pocket Renewals";
     pname = "pocket-renewals";
@@ -575,6 +667,16 @@ in
     port = 8230;
     vendorHash = "sha256-czmaak0Anph/bKzWuexQBN0XPRuQK7otZx6KZOB77Fw=";
     npmDepsHash = "sha256-guJjvt4I1xxbF73/lHy2qIv3VTS3mrZwhrzKixJoGW4=";
+  };
+
+  rentals = {
+    title = "Pocket Rentals";
+    pname = "pocket-rentals";
+    input = "pocket-rentals";
+    version = "0.1.1";
+    port = 8253;
+    vendorHash = "sha256-czmaak0Anph/bKzWuexQBN0XPRuQK7otZx6KZOB77Fw=";
+    npmDepsHash = "sha256-zOJtN1I9lfQlX8+5f8iFk0EvzJlwMU495u2bTj+A390=";
   };
 
   requests = {
@@ -592,9 +694,9 @@ in
     title = "Pocket Review";
     pname = "pocket-review";
     input = "pocket-review";
-    version = "0.6.1";
+    version = "0.7.0";
     port = 8180;
-    vendorHash = "sha256-fTd/wIwUt/17EZsOvQ6eur1HaEF4hsrsiav0tsX3a/k=";
+    vendorHash = "sha256-6jrjPbqotB5hfcLTWEGfH5bIki5/jEVxirr/TkXTJfw=";
     npmDepsHash = "sha256-R4VBjT/PtdtzLzOrxaY63Fg3qlIMO2qbjbxWTibAaY8=";
   };
 
@@ -673,6 +775,16 @@ in
     media = "rw";
   };
 
+  tables = {
+    title = "Pocket Tables";
+    pname = "pocket-tables";
+    input = "pocket-tables";
+    version = "0.2.0";
+    port = 8252;
+    vendorHash = "sha256-czmaak0Anph/bKzWuexQBN0XPRuQK7otZx6KZOB77Fw=";
+    npmDepsHash = "sha256-zOJtN1I9lfQlX8+5f8iFk0EvzJlwMU495u2bTj+A390=";
+  };
+
   tasks = {
     title = "Pocket Tasks";
     pname = "pocket-tasks";
@@ -691,6 +803,29 @@ in
     port = 8219;
     vendorHash = "sha256-orX8b2RbbV3XoLZ4WAfqSgQF/AYRinb4n6V4okSMbCk=";
     npmDepsHash = "sha256-IUfV0aYCkbPuBCCnr2zB+KlzfYC7Lobj1q+K8NsFeyk=";
+  };
+
+  trails = {
+    title = "Pocket Trails";
+    pname = "pocket-trails";
+    input = "pocket-trails";
+    version = "0.1.4";
+    port = 8254;
+    vendorHash = "sha256-czmaak0Anph/bKzWuexQBN0XPRuQK7otZx6KZOB77Fw=";
+    npmDepsHash = "sha256-U+exrYitvtCMA5ncGMwnU8OHJnfK9M3pvelXlowPRKs=";
+  };
+
+  translate = {
+    title = "Pocket Translate";
+    pname = "pocket-translate";
+    input = "pocket-translate";
+    version = "0.1.3";
+    port = 8251;
+    vendorHash = "sha256-rjLzlaSTxS9THfICzim5KR0SlXJhyZ5doZn5jVXOhZw=";
+    npmDepsHash = "sha256-TWtfA92MZXjLcv0IgvZw7OoUl/i2USWDAdXNoctaJn8=";
+    # Reads PDFs and photos. Translates with Pocket AI, and offline once
+    # pocket.box.services.libretranslate is on (modules/services.nix).
+    runtime = pkgs: with pkgs; [ poppler-utils (tesseract.override { enableLanguages = ocrLanguages; }) ];
   };
 
   travel = {
@@ -724,6 +859,16 @@ in
     port = 8238;
     vendorHash = "sha256-0exwAsKNPHyvVJflYAzBWdQWmvCpBqXhqc+7A6ZyH0o=";
     npmDepsHash = "sha256-gdJGeC2/yKxASHODiVBa2hQOHTSXunt83FfF52OcnEo=";
+  };
+
+  wardrobe = {
+    title = "Pocket Wardrobe";
+    pname = "pocket-wardrobe";
+    input = "pocket-wardrobe";
+    version = "0.1.3";
+    port = 8258;
+    vendorHash = "sha256-czmaak0Anph/bKzWuexQBN0XPRuQK7otZx6KZOB77Fw=";
+    npmDepsHash = "sha256-7H/p6i4P203zpCs4nK6kihq4uSC7t2HqG2sHAHnUous=";
   };
 
   watch = {

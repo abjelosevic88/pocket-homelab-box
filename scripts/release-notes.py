@@ -19,7 +19,7 @@ def main():
     others = sorted((c for c in catalog if c[1] != "pocket-core"), key=lambda c: c[0])
 
     out = [
-        f"The Pocket Box installer: Pocket Core and all {len(others)} Pocket apps, Jellyfin, Navidrome, Immich, ONLYOFFICE and SearXNG, "
+        f"The Pocket Box installer: Pocket Core and all {len(others)} Pocket apps, Jellyfin, Navidrome, Immich, ONLYOFFICE, SearXNG and guacd, "
         "on NixOS for x86_64 PCs that boot in UEFI mode. Installing needs no network.",
         "",
         "## Download",
