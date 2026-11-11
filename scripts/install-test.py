@@ -85,7 +85,8 @@ if not boot_only:
   print("phase 1: install from ISO", flush=True)
   p = vm(["-cdrom", iso, "-boot", "order=d", "-nic", "user,model=virtio-net-pci"])
   expect(p, "nixos@nixos", 300); time.sleep(2)
-  send(p, "sudo pocket-install vda\n")
+  # Every app (no question about apps), so the second boot checks them all.
+  send(p, "sudo pocket-install --apps all vda\n")
   expect(p, "Type the disk name again", 60)
   send(p, "vda\n")
   if use_tpm:
