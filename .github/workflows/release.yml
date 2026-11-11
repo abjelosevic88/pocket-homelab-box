@@ -1,6 +1,8 @@
 # Publishes the installer ISO as a GitHub release.
 #
 #   push a tag vYYYY.MM.DD (on a commit CI already passed), or run it by hand with that tag
+#   test build: run it by hand with publish = false and any branch or commit as the tag; the ISO is
+#   then kept as a private workflow artifact (14 days) and nothing is released
 #
 # The ISO is built from the Cachix cache where it can be, split into parts under GitHub's 2 GB
 # limit per file, and released with its checksum and the app versions (scripts/release-notes.py).
@@ -12,8 +14,12 @@ on:
   workflow_dispatch:
     inputs:
       tag:
-        description: The tag to release (it must exist)
+        description: The tag to release (it must exist); for a test build, any branch or commit
         required: true
+      publish:
+        description: Publish a GitHub release (off = test build, kept as a workflow artifact only)
+        type: boolean
+        default: true
 
 permissions:
   contents: write
@@ -28,6 +34,8 @@ jobs:
     timeout-minutes: 300
     env:
       TAG: ${{ inputs.tag || github.ref_name }}
+      # A tag push always publishes; by hand it follows the switch.
+      PUBLISH: ${{ github.event_name == 'push' || inputs.publish }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -71,7 +79,26 @@ jobs:
           python3 scripts/release-notes.py "$TAG" "$ISO" $(cd dist && ls "$ISO".part* | sort) > "$RUNNER_TEMP/notes.md"
           cat "$RUNNER_TEMP/notes.md" >> "$GITHUB_STEP_SUMMARY"
 
+      - name: Name a test build after its commit
+        if: env.PUBLISH != 'true'
+        run: |
+          rev=$(git rev-parse --short HEAD)
+          for f in dist/*; do mv "$f" "${f//$TAG/test-$rev}"; done
+          sed -i "s/$TAG/test-$rev/g" dist/*.sha256
+          echo "TEST_NAME=pocket-box-installer-test-$rev" >> "$GITHUB_ENV"
+          ls -l dist
+
+      - name: Keep the test build (no release)
+        if: env.PUBLISH != 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.TEST_NAME }}
+          path: dist/
+          retention-days: 14
+          compression-level: 0
+
       - name: Publish the release
+        if: env.PUBLISH == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
