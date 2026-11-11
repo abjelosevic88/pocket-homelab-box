@@ -52,11 +52,14 @@ def run(*args, timeout=None):
 
 
 def healthy(deadline):
-    """Every Pocket app answers /healthz and no Pocket unit failed; returns what is still wrong."""
+    """Every installed Pocket app answers /healthz and no Pocket unit failed; returns what is still wrong."""
     wrong = []
     while time.time() < deadline:
         wrong = []
         for name, url in CONFIG["checks"].items():
+            # An app removed in Core (no marker, see modules/installer.py) does not run, on purpose.
+            if name != "core" and not os.path.exists(os.path.join(CONFIG["markers"], name)):
+                continue
             try:
                 with urllib.request.urlopen(url, timeout=5) as r:
                     if r.status != 200:

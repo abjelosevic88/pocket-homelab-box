@@ -21,6 +21,7 @@ let
   installerConfig = pkgs.writeText "pocket-box-installer.json" (builtins.toJSON {
     socket = installerSocket;
     markers = appMarkers;
+    data_root = "/var/lib";
     token_file = installerEnv;
     name_file = "/var/lib/pocket-box-name/domain";
     inherit (cfg) domain;

@@ -13,6 +13,7 @@ let
     state_dir = "/var/lib/pocket-box/update";
     inherit (up) flake variant;
     health_seconds = 600;
+    markers = "/var/lib/pocket-box/apps";
     nix = "${config.nix.package}/bin/nix";
     "nix-env" = "${config.nix.package}/bin/nix-env";
     systemctl = "${pkgs.systemd}/bin/systemctl";

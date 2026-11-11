@@ -144,10 +144,35 @@ class Job:
         return v
 
 
+# Where the SDK keeps an app's Core registration. Remove unregisters the app in Core, which revokes
+# that token, and an app never enrolls again by itself with a revoked one; so these go on Remove and
+# before every Install, and the app registers afresh with the box's registration key. The same files
+# Core's own installer drops when it brings an app's data back (internal/installer/restore.go).
+CORE_TOKEN_FILES = ("core.token", "core.token.oidc.json")
+
+
+def forget_core(slug):
+    gone = 0
+    for f in CORE_TOKEN_FILES:
+        try:
+            os.remove(os.path.join(CONFIG["data_root"], f"pocket-{slug}", f))
+            gone += 1
+        except FileNotFoundError:
+            pass
+    return gone
+
+
 def install(job):
     slug, app = job.slug, CATALOG[job.slug]
     os.makedirs(MARKERS, mode=0o755, exist_ok=True)
     open(os.path.join(MARKERS, slug), "w").close()
+    # Core asks only for apps it doesn't know: one still running here (removed before this fix, or its
+    # registration lost) is started again with a fresh registration.
+    if active(slug):
+        job.say(f"{app['title']} runs but is not registered with Pocket Core; starting it again")
+        systemctl("stop", f"pocket-{slug}.service")
+    if forget_core(slug):
+        job.say("Its old Pocket Core registration is cleared, so it registers afresh")
     job.say(f"Switching {app['title']} on")
     code, out = systemctl("start", f"pocket-{slug}.service")
     if code != 0 or not active(slug):
@@ -166,6 +191,7 @@ def uninstall(job):
         os.remove(os.path.join(MARKERS, slug))
     except FileNotFoundError:
         pass
+    forget_core(slug)  # Core revokes it now; installing again registers afresh
     job.say("Stopped; it no longer starts with the box. Its data stays on the box.")
     job.result = {"version": app["version"]}
 
@@ -176,8 +202,6 @@ def start(kind, body):
         raise PermissionError("Pocket Core is always on")
     if slug not in CATALOG:
         raise LookupError(f"there is no app {slug!r} on this box")
-    if kind == "install" and installed(slug) and active(slug):
-        raise FileExistsError(f"{CATALOG[slug]['title']} is already on")
     job = Job(kind, slug)
     with jobs_lock:
         jobs[job.id] = job
