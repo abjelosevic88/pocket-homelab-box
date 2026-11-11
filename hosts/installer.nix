@@ -73,11 +73,7 @@ let
       fi
       [ -z "''${pick// /}" ] && pick=${if lite then "base" else "all"}
       apps=""
-      if [ "$pick" != base ]; then
-        if ! apps=$(${pick-apps} ${pickConfig} "$pick"); then exit 1; fi
-      else
-        apps=$(${pick-apps} ${pickConfig} "")
-      fi
+      if ! apps=$(${pick-apps} ${pickConfig} ${lib.optionalString lite "--lite"} "$pick"); then exit 1; fi
       echo
       if [ -n "$apps" ]; then
         echo "Apps: Pocket Core and $(echo "$apps" | wc -l) more: $(echo "$apps" | paste -sd, - | sed 's/,/, /g')"

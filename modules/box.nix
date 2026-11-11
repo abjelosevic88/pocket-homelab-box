@@ -34,12 +34,14 @@ let
     release = "/run/current-system/etc/pocket-box/release.json";
     apply_unit = "pocket-box-apply.service";
     apply_log = "/var/lib/pocket-box/update/apply.log";
+    apply_status = "/var/lib/pocket-box/update/apply.json";
   });
   screenConfig = pkgs.writeText "pocket-box-screen.json" (builtins.toJSON {
     out = "/run/pocket-box-screen/screen.issue";
     name_file = "/var/lib/pocket-box-name/domain";
     choice_file = "/var/lib/pocket-box-name/choice.json";
     password_flag = "/var/lib/pocket-box/agent/password-set";
+    apply_status = "/var/lib/pocket-box/update/apply.json";
     inherit (url) landing;
     qrencode = "${pkgs.qrencode}/bin/qrencode";
     agetty = "${pkgs.util-linux}/bin/agetty";

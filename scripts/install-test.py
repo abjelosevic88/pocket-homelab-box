@@ -6,6 +6,9 @@ os.makedirs(work, exist_ok=True)
 disk = os.path.join(work, "disk.qcow2")
 vars_fd = os.path.join(work, "vars.fd")
 boot_only = os.environ.get("BOOT_ONLY") == "1"
+# LITE=1: the Pocket Box Lite ISO with just its base apps (bundles.json), checked as such.
+lite = os.environ.get("LITE") == "1"
+root = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..")
 if not boot_only and os.path.exists(disk): os.remove(disk)
 if not boot_only: shutil.rmtree(os.path.join(work, "tpm"), ignore_errors=True)
 if not boot_only: subprocess.run([f"{qemu}/bin/qemu-img", "create", "-q", "-f", "qcow2", disk, "32G"], check=True)
@@ -85,8 +88,8 @@ if not boot_only:
   print("phase 1: install from ISO", flush=True)
   p = vm(["-cdrom", iso, "-boot", "order=d", "-nic", "user,model=virtio-net-pci"])
   expect(p, "nixos@nixos", 300); time.sleep(2)
-  # Every app (no question about apps), so the second boot checks them all.
-  send(p, "sudo pocket-install --apps all vda\n")
+  # Every app (no question about apps), so the second boot checks them all; Lite: only its base apps.
+  send(p, "sudo pocket-install --apps base vda\n" if lite else "sudo pocket-install --apps all vda\n")
   expect(p, "Type the disk name again", 60)
   send(p, "vda\n")
   if use_tpm:
@@ -113,7 +116,11 @@ print("phase 2: boot installed disk", flush=True)
 # forwarded to host ports 28443/28080 and every name is resolved to 127.0.0.1 by curl.
 catalog = open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "apps.nix")).read()
 slugs = re.findall(r'^  "?([a-z][a-z0-9-]*)"? = \{\n    title', catalog, re.M)
-sites = [(s, "/healthz") for s in slugs] + [("jellyfin", "/health"), ("navidrome", "/ping"), ("immich", "/api/server/ping"), ("onlyoffice", "/healthcheck")]
+if lite:
+    slugs = ["core"] + json.load(open(os.path.join(root, "bundles.json")))["base"]
+sites = [(s, "/healthz") for s in slugs]
+if not lite:
+    sites += [("jellyfin", "/health"), ("navidrome", "/ping"), ("immich", "/api/server/ping"), ("onlyoffice", "/healthcheck")]
 domain, https_port, http_port = "pocket.local", 28443, 28080
 ca = os.path.join(work, "ca.crt")
 p = vm(["-nic", f"user,model=virtio-net-pci,hostfwd=tcp:127.0.0.1:{https_port}-:443,hostfwd=tcp:127.0.0.1:{http_port}-:80"])
@@ -185,7 +192,7 @@ if "setup already completed" in r.stdout:  # BOOT_ONLY=1 on a box whose owner ex
 if '"owner@example.com"' not in r.stdout:
     failed.append("core setup")
     print("core setup:", r.stdout[:200], flush=True)
-backends = {"jellyfin": "watch", "navidrome": "music", "immich": "photos"}
+backends = {} if lite else {"jellyfin": "watch", "navidrome": "music", "immich": "photos"}
 accounts = {}
 end = time.time() + 300
 while time.time() < end and len(accounts) < len(backends):

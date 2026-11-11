@@ -183,6 +183,29 @@ def start_chosen(apps):
             systemctl("start", "--no-block", f"pocket-{a}.service")
 
 
+def progress(state, apps, message, running=0):
+    """update/apply.json, for the box's screen and Core's app store: installing which apps, how far."""
+    st = {"state": state, "apps": apps, "message": message, "running": running, "total": len(apps),
+          "at": int(time.time())}
+    with open(path("apply.json.tmp"), "w") as f:
+        json.dump(st, f)
+    os.replace(path("apply.json.tmp"), path("apply.json"))
+    subprocess.run([CONFIG["systemctl"], "start", "--no-block", "pocket-box-screen.service"], capture_output=True)
+
+
+def uncached(args):
+    """Whether building this would compile Pocket apps on the box: their builds are no longer in the cache
+    (an old release; Cachix keeps only so much)."""
+    r = subprocess.run([CONFIG["nix"], "build", "--dry-run", "--no-link", *args], capture_output=True, text=True, timeout=1800)
+    out = r.stdout + r.stderr
+    if "will be built" not in out:
+        return False
+    built = out.split("will be built", 1)[1].split("will be fetched", 1)[0]
+    # An app's own build (pocket-<slug>-<version>, its -web-, -go-modules, -npm-deps), not the box's
+    # small per-box files (pocket-box-*) or the system itself (nixos-system-pocket-…).
+    return bool(re.search(r"/nix/store/[a-z0-9]{32}-(?!pocket-box)pocket-[a-z0-9-]+-\d[^/\s]*\.drv", built))
+
+
 def apply():
     chosen = selection()
     if chosen is None:
@@ -201,15 +224,26 @@ def apply():
         flake = "github:" + "/".join(base[len("github:"):].split("/")[:2]) + "/" + rev
     else:
         say("This box's system was not built from a release, so it can't add apps.")
+        progress("failed", missing, "This box's system was not built from a release, so it can't add apps.")
         return 1
-    say(f"Getting {len(missing)} app{'s' if len(missing) > 1 else ''} for this box: {', '.join(missing)}")
+    n = len(missing)
+    some = f"{n} app{'s' if n > 1 else ''}"
+    say(f"Getting {some} for this box: {', '.join(missing)}")
+    progress("downloading", missing, f"Downloading {some} (a few minutes)")
     try:
-        new = run(CONFIG["nix"], "build", "--no-link", "--print-out-paths", *build_args(flake), timeout=3 * 3600).splitlines()[-1]
+        if flake != base and not os.path.exists(path("flake")) and uncached(build_args(flake)):
+            # This release's apps are gone from the cache: take the newest release instead, which also
+            # updates the box (the same as tonight's update would).
+            say("This box's release is no longer in the download cache; getting the apps from the newest release, which updates the box too")
+            flake = base
+        new = run(CONFIG["nix"], "build", "--no-link", "--print-out-paths", "--refresh", *build_args(flake), timeout=3 * 3600).splitlines()[-1]
     except (RuntimeError, subprocess.TimeoutExpired) as e:
         say("Downloading them did not work: " + str(e)[-400:])
+        progress("failed", missing, "Downloading them did not work; the box tries again in a while.")
         return 1
     current = os.path.realpath("/run/current-system")
     say("Downloaded; switching the box over")
+    progress("switching", missing, "Downloaded; switching the box over")
     try:
         switch(new)
         wrong = healthy(time.time() + CONFIG["health_seconds"])
@@ -225,9 +259,19 @@ def apply():
         with open(CONFIG["selection"] + ".tmp", "w") as f:
             json.dump({"apps": keep}, f)
         os.replace(CONFIG["selection"] + ".tmp", CONFIG["selection"])
+        progress("failed", missing, "The box did not come back cleanly with them, so it went back.")
         return 1
     start_chosen(chosen)
-    say("Done: " + ", ".join(missing) + (" is" if len(missing) == 1 else " are") + " on the box")
+    # Count them coming up, for the screen and Core.
+    deadline = time.time() + 600
+    while True:
+        up = sum(systemctl("is-active", "--quiet", f"pocket-{a}.service").returncode == 0 for a in missing)
+        progress("starting", missing, f"Starting them: {up} of {n} running", running=up)
+        if up == n or time.time() > deadline:
+            break
+        time.sleep(5)
+    say("Done: " + ", ".join(missing) + (" is" if n == 1 else " are") + " on the box")
+    progress("done", missing, f"{some.capitalize()} installed", running=up)
     return 0
 
 

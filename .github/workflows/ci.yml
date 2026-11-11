@@ -88,12 +88,20 @@ jobs:
           scripts/install-test.sh
           BOOT_ONLY=1 scripts/install-test.sh
 
+      - name: Install test of Pocket Box Lite (plain disk, its base apps)
+        if: env.BUMP != 'true' || steps.bump.outputs.changed == 'true'
+        run: |
+          rm -rf .installtest
+          LITE=1 TPM=0 scripts/install-test.sh
+
       - name: Keep the VM's console logs
         if: failure()
         uses: actions/upload-artifact@v4
         with:
           name: install-test-logs
-          path: .installtest/*.log
+          path: |
+            .installtest/*.log
+            .installtest-lite/*.log
           if-no-files-found: ignore
 
       - name: Commit the new releases

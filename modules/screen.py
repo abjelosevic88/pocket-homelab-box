@@ -8,6 +8,7 @@ agetty is told to show it again whenever it changes.
 import json
 import os
 import subprocess
+import time
 import sys
 
 CONFIG = json.load(open(sys.argv[1]))
@@ -49,6 +50,16 @@ else:
         also = "  (that page asks how the box gets its secure address)"
 
 password_set = os.path.exists(CONFIG["password_flag"])
+
+# Apps the box is still fetching (a Lite box's first boot, or Core's Install): pocket-box-apply's progress.
+installing = ""
+try:
+    st = json.loads(read(CONFIG.get("apply_status", "")) or "{}")
+except ValueError:
+    st = {}
+if st.get("state") in ("downloading", "switching", "starting") and time.time() - st.get("at", 0) < 3 * 3600:
+    installing = f"  Installing your apps: {st.get('message', '')}. They show up in Pocket Core as they start."
+
 lines = [
     "",
     "  Pocket Box is ready. Open it on a phone or laptop on the same network:",
@@ -56,7 +67,7 @@ lines = [
     f"    {address}",
     also,
     "",
-]
+] + ([installing, ""] if installing else [])
 code = qr(scan)
 if code:
     lines += ["  Or scan this with your phone's camera:", ""] + ["  " + line for line in code.rstrip("\n").split("\n")] + [""]

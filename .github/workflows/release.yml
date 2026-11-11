@@ -80,8 +80,15 @@ jobs:
           rm -f result
           nix build --print-build-logs --out-link result-lite .#iso-lite
           lite="pocket-box-lite-installer-$TAG.iso"
-          cp "$(echo result-lite/iso/*.iso)" "dist/$lite"
-          (cd dist && sha256sum "$lite" > "$lite.sha256")
+          src=$(echo result-lite/iso/*.iso)
+          (cd dist && sha256sum "$OLDPWD/$src" | awk -v n="$lite" '{print $1 "  " n}' > "$lite.sha256")
+          # One file while it fits under GitHub's 2 GB limit per file, else parts like the full ISO.
+          if [ "$(stat -c %s "$src")" -lt 1990000000 ]; then
+            cp "$src" "dist/$lite"
+          else
+            split --bytes=1900M --numeric-suffixes --suffix-length=2 "$src" "dist/$lite.part"
+            echo "LITE_PARTS=$(cd dist && ls "$lite".part* | sort | tr '\n' ' ')" >> "$GITHUB_ENV"
+          fi
           ls -l dist
           echo "LITE_ISO=$lite" >> "$GITHUB_ENV"
 

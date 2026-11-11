@@ -1,11 +1,13 @@
 """pocket-pick-apps: turns what someone picks in pocket-install into the box's app list.
 
   pocket-pick-apps CONFIG "office, media, notes"   → the apps, one per line (the base apps included)
+  pocket-pick-apps CONFIG --lite "all"             → every app listed (Lite carries few, so "all" must be spelled out)
   pocket-pick-apps CONFIG --menu                   → the bundles, for the typed question
   pocket-pick-apps CONFIG --choose OUT [--lite]    → a checklist on the terminal; writes the words to OUT
 
-Words are bundle ids (bundles.json), app slugs or "all". Unknown words fail with a message, so a typo
-never silently drops an app. Prints nothing for "all" (every app the release has: no list is kept).
+Words are bundle ids (bundles.json), app slugs, "base" (nothing more) or "all". Unknown words fail with a
+message, so a typo never silently drops an app. Prints nothing for "all" (every app the release has: no
+list is kept), except with --lite, where it lists every app so the box downloads them all.
 
 The checklist: bundles first (ticking one ticks its apps), then every app. ↑/↓ (PgUp/PgDn, Home/End)
 move, Space ticks, + ticks all, - none, a letter jumps to the next app starting with it, Enter is done,
@@ -26,10 +28,13 @@ def menu():
         print(f"  {b['id']:<11} {b['name']} ({len(b['apps'])} apps)")
 
 
-def resolve(argv):
+def resolve(argv, lite=False):
     words = [w.strip().lower() for w in " ".join(argv).replace(",", " ").split() if w.strip()]
     if "all" in words:
+        if lite:
+            print("\n".join(s for s in sorted(APPS) if s != "core"))
         return 0
+    words = [w for w in words if w != "base"]
     picked, unknown = list(BASE), []
     for w in words:
         if w in BUNDLES:
@@ -186,4 +191,5 @@ if args == ["--menu"]:
     sys.exit(0)
 if args[:1] == ["--choose"]:
     sys.exit(choose(args[1], "--lite" in args[2:]))
-sys.exit(resolve(args))
+lite = "--lite" in args
+sys.exit(resolve([a for a in args if a != "--lite"], lite))

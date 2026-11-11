@@ -90,6 +90,17 @@ def choose(apps):
     os.replace(tmp, CONFIG["selection"])
 
 
+def installing():
+    """pocket-box-apply's progress while it fetches apps (a Lite box's first boot), else None."""
+    try:
+        st = json.load(open(CONFIG["apply_status"]))
+    except (OSError, ValueError):
+        return None
+    if st.get("state") in ("downloading", "switching", "starting") and time.time() - st.get("at", 0) < 3 * 3600:
+        return {k: st.get(k) for k in ("state", "message", "apps", "running", "total")}
+    return None
+
+
 def systemctl(*args, timeout=180):
     r = subprocess.run([T["systemctl"], *args], capture_output=True, text=True, timeout=timeout)
     return r.returncode, (r.stderr or r.stdout).strip()
@@ -312,7 +323,7 @@ class Handler(BaseHTTPRequestHandler):
         if m == "GET" and p == "/v1/status":
             return 200, {"owner": "pocket-box", "apps_dir": "/var/lib", "archive_dir": "",
                          "public_url": public_url("{slug}"), "proxy": False, "source": "box",
-                         "source_url": "", "platform": CONFIG["platform"]}
+                         "source_url": "", "platform": CONFIG["platform"], "installing": installing()}
         if m == "GET" and p == "/v1/catalog":
             return 200, {"apps": [release(s) for s in sorted(CATALOG, key=lambda s: CATALOG[s]["title"].lower())]}
         if m == "POST" and p == "/v1/install":
