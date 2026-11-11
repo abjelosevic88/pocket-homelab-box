@@ -16,13 +16,13 @@
 
 ---
 
-Boot the installer from a USB stick, pick a disk, reboot. Then open `http://pocket.local` from a phone or laptop on the same network: install the box's certificate there once, and continue to Pocket Core at `https://core.pocket.local`.
+Boot the installer from a USB stick, pick a disk, reboot. Within a minute the box has its own name, like `x7k2m9.box.pockethomelab.com`, with a Let's Encrypt certificate every browser already trusts. Open `http://pocket.local` from a phone or laptop on the same network and it takes you there, on to Pocket Core: nothing to install.
 
 The whole system is declared in this flake. The installer ISO already contains the finished system, so installing needs no network.
 
 ## What's on the box
 
-All 82 Pocket apps and Pocket Core, each at `https://<slug>.pocket.local` (the port is where it listens on loopback). [pockethomelab.com/apps](https://pockethomelab.com/apps) has a page for every one of them.
+All 82 Pocket apps and Pocket Core, each at `https://<slug>.<the box's name>` (and `https://<slug>.pocket.local`; the port is where it listens on loopback). [pockethomelab.com/apps](https://pockethomelab.com/apps) has a page for every one of them.
 
 | App | Port |
 |---|---|
@@ -151,8 +151,18 @@ Tools the apps shell out to are put on their PATH:
 ## Addresses, HTTPS and sign-in
 
 Caddy is the only thing listening on the network (ports 80 and 443). The apps and services listen on loopback.
-- **Every app and service:** served at `https://<name>.pocket.local`, with certificates from Caddy's local CA, *Pocket Box Root CA*.
-- **`http://pocket.local`:** stays plain http on purpose. It's a landing page where each phone or computer downloads that CA once, with steps for iPhone, Mac, Android and Windows. It then links to Core.
+
+**The box's public name.** Each box gets a name of its own from Pocket Names (`names.pockethomelab.com`), like `x7k2m9.box.pockethomelab.com`, and a Let's Encrypt certificate for it and every app under it. `pocket-box-name` (`modules/names.{nix,py}`) does this on a timer:
+- **Asks early:** 15 seconds after boot, then every 3 minutes until the box has its name. In a VM against the live service the name and certificate were there 46 seconds after boot.
+- **Points the name at the box's home address** (its address on the home network), again when it changes and twice a day as a sign of life.
+- **Gets the certificate over DNS-01:** Pocket Names only answers Let's Encrypt's DNS check; the private key never leaves the box. It renews 30 days before the end.
+- **Switches over once it works:** Caddy serves every app on the new name too, the box resolves it itself, and the apps restart with it in their public URLs (`pocket-box-env` swaps the local domain in their environment).
+
+Until that has worked once (no internet, say), nothing changes: the box stays on its local names and its own CA, below. `pocket.box.names.enable = false` keeps it that way for good.
+
+**Local names, the fallback.**
+- **Every app and service:** also served at `https://<name>.pocket.local`, with certificates from Caddy's local CA, *Pocket Box Root CA*.
+- **`http://pocket.local`:** stays plain http on purpose. It's the landing page: while the box gets its name it shows "Getting your box's secure address…" and moves on by itself once the name works. If this network can't reach the name (some routers block names that point into the home network) or there is no internet, it shows how to install the box's CA once, with steps for iPhone, Mac, Android and Windows, and links to Core.
 - **`https://pocket.local`:** redirects to Core.
 
 `pocket.local` and all 87 names are announced over mDNS. `pocket-box-mdns-aliases` follows address changes and spreads the records over several Avahi groups, because Avahi allows 32 entries per group.
@@ -163,7 +173,9 @@ The box resolves its own names through `/etc/hosts`. The apps trust the CA throu
 
 Core's first-run screen creates the admin account. Every app has "Sign in with Pocket Core", and the first person to sign in becomes that app's admin. In the VM, the Core account signed in to every app this way and was admin in each (checked with the first 38 apps).
 
-Options: `pocket.box.domain` (default `<hostname>.local`), `pocket.box.httpsPort` and `pocket.box.httpPort`.
+Options: `pocket.box.domain` (default `<hostname>.local`), `pocket.box.httpsPort`, `pocket.box.httpPort`, and `pocket.box.names.{enable,server,acmeServer}`.
+
+**The box's screen** shows the address to open (the public name once the box has it, else `pocket.local`), a QR code for it, and how the console login works: user `pocket`, and whether a console password is set, never the password (`modules/screen.py`).
 
 ## Download
 
@@ -194,11 +206,20 @@ The console account `pocket` has no password until the owner sets one in the set
 
 ## First run
 
-1. Open `http://pocket.local`, install the certificate, and continue to `https://core.pocket.local`.
+1. Open `http://pocket.local` (or scan the QR code on the box's screen). It moves on to Pocket Core on the box's own name; only without that name does it ask you to install the box's certificate first.
 2. Create the first account. It becomes the admin of Core and of every app.
 3. Core opens the **setup wizard** (`/welcome`). It covers the time zone (the apps restart to pick it up), the network and Wi-Fi, Tailscale (a login link or an auth key) and the console password, and shows how the disk is protected. *Do this later* skips it, and everything stays under **Settings → System**.
 
 Core runs unprivileged, so `pocket-box-agent` makes these changes as root (`modules/agent.py`, `modules/system.nix`). It's reachable only through `/run/pocket-box-agent/agent.sock`, which only Core's group can open. NetworkManager runs the network (Ethernet by DHCP, Wi-Fi joined from the wizard) and Tailscale is installed but logged out. The time zone is UTC until the wizard sets it.
+
+## Installing and removing apps
+
+Every app ships in the box's system, each as its own service, and runs only while its marker `/var/lib/pocket-box/apps/<slug>` exists. **Core → Apps → Install an app** and **Remove** talk to `pocket-box-installer` (`modules/installer.py`), which speaks Core's installer protocol on a socket only Core's group can open, with a per-box token:
+- **Install** makes the marker and starts the app, which registers with Core on its own.
+- **Remove** stops it and drops the marker. Its data stays in `/var/lib/pocket-<slug>`, so installing it again brings everything back.
+- **New apps:** on the first boot every app the box carries is installed. Apps that arrive with a later update start out not installed, ready in Core.
+
+Apps update with the box, not one by one. Descriptions and icons come from the public app catalog when the box is online.
 
 ## Updates
 
@@ -233,7 +254,7 @@ Apps are pinned to their **release tags** (`github:abjelosevic88/<repo>/vX.Y.Z`)
 scripts/install-test.sh
 ```
 
-This builds the ISO and boots it in QEMU (KVM + OVMF). It runs `pocket-install` on a blank 32 GB virtual disk over the serial console, then boots that disk. It downloads the CA from the landing page and checks every app and service over https through Caddy, verifying certificates against that CA (host ports 28443/28080). Then it runs the owner's first visit:
+This builds the ISO and boots it in QEMU (KVM + OVMF). VMs never ask Pocket Names for a name (`-fw_cfg name=opt/pocket/names,string=off`), so the test covers the local names and CA. It runs `pocket-install` on a blank 32 GB virtual disk over the serial console, then boots that disk. It downloads the CA from the landing page and checks every app and service over https through Caddy, verifying certificates against that CA (host ports 28443/28080). Then it runs the owner's first visit:
 - creates the account in Core and waits for that person's Jellyfin, Navidrome and Immich accounts
 - requires Watch, Music and Photos to report their service connected after signing in with Pocket Core
 - goes through the wizard via Core's API: time zone, console password, and a disk state that matches the install
@@ -259,6 +280,9 @@ apps.nix              the app catalog: pname, version, port, hashes
 lib/mkPocketApp.nix   UI + Go build for one app
 modules/box.nix       pocket.box.* options: app services, first-boot secrets, Avahi
 modules/proxy.nix     Caddy, local CA, landing page, mDNS names
+modules/names.nix     the public name and its Let's Encrypt certificate; modules/names.py does the work
+modules/installer.py  Install and Remove for Core's app store
+modules/screen.py     the address, QR code and console login shown on the box's screen
 modules/system.nix    NetworkManager, Tailscale, console account, the box agent
 modules/agent.py      the box agent (time zone, Wi-Fi, Tailscale, console password, disk status, updates)
 modules/updates.nix   nightly updates; modules/updater.py does the switch, health check and rollback
@@ -276,8 +300,7 @@ tests/                NixOS VM tests: Pocket AI's jail, SearXNG and Chromium (ni
 
 - Boxes evaluate the release flake themselves, which downloads every app's source from GitHub. CI could publish each variant's store path, so a box only fetches the finished system from the cache.
 - Boot counting: a release that doesn't boot at all still needs someone to pick the previous one in the boot menu. aarch64 images.
-- The apps on the move: Tailscale gets the box onto your tailnet, but the `https://<app>.pocket.local` names and the local CA only work on the LAN.
-- Installing the CA from the native client during pairing, instead of the landing page.
+- The apps on the move: the public name points at the box's home address, so it works at home. Tailscale gets the box onto your tailnet, but the names don't follow you there yet.
 - "Sign in with Pocket Core" inside Immich and Jellyfin themselves. The Pocket apps already sign in for you; Jellyfin's needs the SSO plugin.
 - Collabora as a second Office engine, and Bazarr plus the arr apps (Radarr, Sonarr, Lidarr) for Subtitles, Watch and Requests. Pocket Requests is on the box, but needs arr apps you run yourself until then.
 - Secure Boot (lanzaboote), which would make the TPM binding mean more.
