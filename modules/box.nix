@@ -14,6 +14,31 @@ let
   publicUrl = slug: url.site slug;
   localUrl = app: "http://127.0.0.1:${toString app.port}";
   secretsFile = "/var/lib/pocket-box/secrets.env";
+  # Install and Remove (modules/installer.py): an app runs only while its marker exists.
+  appMarkers = "/var/lib/pocket-box/apps";
+  installerEnv = "/var/lib/pocket-box/installer.env";
+  installerSocket = "/run/pocket-box-installer/installer.sock";
+  installerConfig = pkgs.writeText "pocket-box-installer.json" (builtins.toJSON {
+    socket = installerSocket;
+    markers = appMarkers;
+    token_file = installerEnv;
+    name_file = "/var/lib/pocket-box-name/domain";
+    inherit (cfg) domain;
+    platform = pkgs.stdenv.hostPlatform.system;
+    catalog_url = "https://github.com/abjelosevic88/pocket-homelab-core/releases/download/catalog/apps.json";
+    tools.systemctl = "${pkgs.systemd}/bin/systemctl";
+    apps = lib.mapAttrs (_: app: { inherit (app) title version port; }) apps;
+  });
+  screenConfig = pkgs.writeText "pocket-box-screen.json" (builtins.toJSON {
+    out = "/run/pocket-box-screen/screen.issue";
+    name_file = "/var/lib/pocket-box-name/domain";
+    password_flag = "/var/lib/pocket-box/agent/password-set";
+    inherit (url) landing;
+    qrencode = "${pkgs.qrencode}/bin/qrencode";
+    agetty = "${pkgs.util-linux}/bin/agetty";
+  });
+  screen = pkgs.writers.writePython3 "pocket-box-screen" { flakeIgnore = [ "E501" ]; } (builtins.readFile ./screen.py);
+  installer = pkgs.writers.writePython3 "pocket-box-installer" { flakeIgnore = [ "E501" ]; } (builtins.readFile ./installer.py);
 
   mediaDir = "/srv/media";
 
@@ -46,8 +71,10 @@ let
     {
       description = app.title;
       wantedBy = [ "multi-user.target" ];
-      after = [ "network-online.target" "pocket-box-secrets.service" "pocket-box-ca.service" ];
-      wants = [ "network-online.target" "pocket-box-ca.service" ];
+      after = [ "network-online.target" "pocket-box-secrets.service" "pocket-box-ca.service" "pocket-box-apps.service" ];
+      wants = [ "network-online.target" "pocket-box-ca.service" "pocket-box-apps.service" ];
+      # Installed (Core → Apps → Install an app) or not: see modules/installer.py. Core always runs.
+      unitConfig = lib.optionalAttrs (slug != "core") { ConditionPathExists = "${appMarkers}/${slug}"; };
       requires = [ "pocket-box-secrets.service" ];
       environment = {
         DATA_DIR = "/var/lib/pocket-${slug}";
@@ -153,10 +180,66 @@ in
               printf 'REGISTRATION_KEY=%s\nCORE_REGISTRATION_KEY=%s\n' "$key" "$key" > "$f.tmp"
               mv "$f.tmp" "$f"
             fi
+            # Core's key to the app installer (only Core reads this file; the apps never see it).
+            i=${installerEnv}
+            if [ ! -s "$i" ]; then
+              printf 'INSTALLER_TOKEN=pinst_%s\n' "$(head -c 24 /dev/urandom | base32 | tr -d '=' | tr 'A-Z' 'a-z')" > "$i.tmp"
+              mv "$i.tmp" "$i"
+            fi
           '';
         };
 
         pocket-core.environment.OIDC_ISSUER = publicUrl "core";
+
+        # Which apps are installed. On the first boot (a new box, or one updating to the release that
+        # brought Install and Remove) every app the box carries is; apps that arrive later with an
+        # update start out not installed, ready in Core → Apps → Install an app.
+        pocket-box-apps = {
+          description = "Pocket Box installed apps";
+          wantedBy = [ "multi-user.target" ];
+          serviceConfig = { Type = "oneshot"; RemainAfterExit = true; StateDirectory = "pocket-box"; StateDirectoryMode = "0700"; };
+          path = [ pkgs.coreutils ];
+          script = ''
+            d=${appMarkers}
+            if [ ! -e "$d/.seeded" ]; then
+              mkdir -p "$d"
+              for a in ${lib.concatStringsSep " " (lib.attrNames apps)}; do touch "$d/$a"; done
+              touch "$d/.seeded"
+            fi
+          '';
+        };
+
+        pocket-box-screen = {
+          description = "Pocket Box screen (address and console login)";
+          wantedBy = [ "multi-user.target" ];
+          before = [ "getty@tty1.service" "serial-getty@ttyS0.service" ];
+          serviceConfig = { Type = "oneshot"; ExecStart = "${screen} ${screenConfig}"; RuntimeDirectory = "pocket-box-screen"; RuntimeDirectoryPreserve = "yes"; };
+        };
+
+        pocket-box-installer = {
+          description = "Pocket Box app installer (Install and Remove for Pocket Core)";
+          wantedBy = [ "multi-user.target" ];
+          after = [ "pocket-box-secrets.service" "pocket-box-apps.service" ];
+          requires = [ "pocket-box-secrets.service" ];
+          wants = [ "pocket-box-apps.service" ];
+          before = [ "pocket-core.service" ];
+          serviceConfig = {
+            ExecStart = "${installer} ${installerConfig}";
+            RuntimeDirectory = "pocket-box-installer";
+            RuntimeDirectoryMode = "0750";
+            Group = "pocket-box-agent";
+            UMask = "0007";
+            Restart = "on-failure";
+            RestartSec = 3;
+          };
+        };
+
+        pocket-core = {
+          wants = [ "pocket-box-installer.service" ];
+          after = [ "pocket-box-installer.service" ];
+          environment.INSTALLER_SOCKET = installerSocket;
+          serviceConfig.EnvironmentFile = [ installerEnv ];
+        };
       }
 
       (lib.mapAttrs' (slug: app: lib.nameValuePair "pocket-${slug}" (common slug app)) enabled)
@@ -192,10 +275,24 @@ in
     # Caddy serves every app; the apps themselves only listen on loopback.
     pocket.box.sites = lib.mapAttrs (_: app: app.port) enabled;
 
+    # The box's screen: the address (with a QR code) and how the console login works, kept current by
+    # pocket-box-screen (modules/screen.py). The help line is what shows if that ever fails.
     services.getty.helpLine = ''
 
       Pocket Box: open ${url.landing} on a phone or laptop on the same network.
-      It has the box's certificate and the link to Pocket Core (${publicUrl "core"}).
     '';
+    environment.etc."issue.d/pocket-box.issue".source = "/run/pocket-box-screen/screen.issue";
+    # Again when the box gets its name or a console password, and every few minutes besides.
+    systemd.paths.pocket-box-screen = {
+      wantedBy = [ "multi-user.target" ];
+      pathConfig = {
+        PathChanged = [ "/var/lib/pocket-box-name/domain" "/var/lib/pocket-box/agent/password-set" ];
+        Unit = "pocket-box-screen.service";
+      };
+    };
+    systemd.timers.pocket-box-screen = {
+      wantedBy = [ "timers.target" ];
+      timerConfig = { OnBootSec = "1min"; OnUnitActiveSec = "5min"; };
+    };
   };
 }
