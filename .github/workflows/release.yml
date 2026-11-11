@@ -1,4 +1,5 @@
-# Publishes the installer ISO as a GitHub release.
+# Publishes the installer ISOs as a GitHub release: the full one (every app) and Pocket Box Lite
+# (Pocket Core and the base apps; the rest download on the first boot or from Core → Install an app).
 #
 #   push a tag vYYYY.MM.DD (on a commit CI already passed), or run it by hand with that tag
 #   test build: run it by hand with publish = false and any branch or commit as the tag; the ISO is
@@ -73,6 +74,16 @@ jobs:
           ls -l dist
           cat dist/*.sha256
           echo "ISO=$iso" >> "$GITHUB_ENV"
+
+      - name: Build Pocket Box Lite's installer ISO
+        run: |
+          rm -f result
+          nix build --print-build-logs --out-link result-lite .#iso-lite
+          lite="pocket-box-lite-installer-$TAG.iso"
+          cp "$(echo result-lite/iso/*.iso)" "dist/$lite"
+          (cd dist && sha256sum "$lite" > "$lite.sha256")
+          ls -l dist
+          echo "LITE_ISO=$lite" >> "$GITHUB_ENV"
 
       - name: Release notes
         run: |

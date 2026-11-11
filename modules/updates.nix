@@ -14,6 +14,9 @@ let
     inherit (up) flake variant;
     health_seconds = 600;
     markers = "/var/lib/pocket-box/apps";
+    # A box that chose its apps (Pocket Box Lite, pocket-install --bundle/--apps, Install of an app it
+    # doesn't carry) lists them here; the update and Install build exactly that set.
+    selection = "/var/lib/pocket-box/apps.json";
     nix = "${config.nix.package}/bin/nix";
     "nix-env" = "${config.nix.package}/bin/nix-env";
     systemctl = "${pkgs.systemd}/bin/systemctl";
@@ -27,6 +30,7 @@ in
     release = {
       version = lib.mkOption { type = lib.types.str; default = "dev"; description = "This release, shown in Settings → System."; };
       rev = lib.mkOption { type = lib.types.str; default = "dev"; description = "Git revision of the release flake."; };
+      flakeRev = lib.mkOption { type = lib.types.str; default = ""; description = "Full git revision, so Install can build this same release with more apps (empty for uncommitted builds)."; };
     };
 
     updates = {
@@ -53,7 +57,10 @@ in
     {
       environment.etc."pocket-box/release.json".text = builtins.toJSON {
         inherit (cfg.release) version rev;
+        flake_rev = cfg.release.flakeRev;
         inherit (up) variant;
+        # The apps this system carries (Pocket Core always).
+        apps = lib.attrNames (lib.filterAttrs (slug: _: slug != "core") enabled);
       };
       system.nixos.label = "pocket-box-${cfg.release.version}";
     }
@@ -80,6 +87,29 @@ in
           TimeoutStartSec = "8h";
         };
       };
+      # Adds the apps a box chose but doesn't carry yet: on the first boot of a Lite box with bundles,
+      # and for Core → Install an app (modules/installer.py starts it and waits). Same release, so
+      # nothing else changes; the apps come prebuilt from the cache.
+      systemd.services.pocket-box-apply = {
+        description = "Pocket Box: add the chosen apps";
+        after = [ "network-online.target" ];
+        wants = [ "network-online.target" ];
+        restartIfChanged = false;
+        stopIfChanged = false;
+        unitConfig.X-StopOnRemoval = false;
+        path = [ config.nix.package pkgs.git ];
+        serviceConfig = {
+          Type = "oneshot";
+          ExecStart = "${updater} ${updaterConfig} --apply";
+          StateDirectory = "pocket-box/update";
+          TimeoutStartSec = "3h";
+        };
+      };
+      systemd.timers.pocket-box-apply = {
+        wantedBy = [ "timers.target" ];
+        timerConfig = { OnBootSec = "1min"; OnUnitInactiveSec = "15min"; };
+      };
+
       systemd.timers.pocket-box-update = {
         wantedBy = [ "timers.target" ];
         timerConfig = {

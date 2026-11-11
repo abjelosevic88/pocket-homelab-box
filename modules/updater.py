@@ -9,7 +9,13 @@
 State in STATE (/var/lib/pocket-box/update): status.json (what the last run did), bad (releases
 that failed), auto-off (no nightly updates), manual (this run was asked for in Settings), flake
 (an override of the release flake, for support and tests).
+
+A box that chose its apps keeps the list in /var/lib/pocket-box/apps.json ({"apps": [...]}); then the
+update builds exactly those (the flake's lib.boxToplevel) instead of every app. `--apply` adds the
+chosen apps this system doesn't carry yet, from this same release (its full revision in release.json),
+for Core's Install and the first boot of a Lite box; its progress goes to update/apply.log too.
 """
+import fcntl
 import json
 import os
 import re
@@ -42,6 +48,30 @@ def write_status(result, message, **extra):
         json.dump(st, f)
     os.replace(tmp, path("status.json"))
     print(result, "-", message, flush=True)
+
+
+def selection():
+    """The apps this box chose, or None for "every app the release has"."""
+    try:
+        apps = json.load(open(CONFIG["selection"])).get("apps")
+    except (OSError, ValueError, AttributeError):
+        return None
+    return [a for a in apps if isinstance(a, str)] if isinstance(apps, list) else None
+
+
+def build_args(flake):
+    if selection() is None:
+        return [f"{flake}#nixosConfigurations.{CONFIG['variant']}.config.system.build.toplevel"]
+    expr = (f'(builtins.getFlake "{flake}").lib.boxToplevel {{ variant = "{CONFIG["variant"]}"; '
+            f'apps = (builtins.fromJSON (builtins.readFile {CONFIG["selection"]})).apps; }}')
+    return ["--impure", "--expr", expr]
+
+
+def lock():
+    """One update or Install at a time."""
+    f = open(path("lock"), "w")
+    fcntl.flock(f, fcntl.LOCK_EX)
+    return f
 
 
 def run(*args, timeout=None):
@@ -90,9 +120,8 @@ def main():
         return 0
     flake = open(path("flake")).read().strip() if os.path.exists(path("flake")) else CONFIG["flake"]
     write_status("checking", "Looking for a new release…")
-    target = f"{flake}#nixosConfigurations.{CONFIG['variant']}.config.system.build.toplevel"
     try:
-        new = run(CONFIG["nix"], "build", "--no-link", "--print-out-paths", "--refresh", target, timeout=6 * 3600).splitlines()[-1]
+        new = run(CONFIG["nix"], "build", "--no-link", "--print-out-paths", "--refresh", *build_args(flake), timeout=6 * 3600).splitlines()[-1]
     except (RuntimeError, subprocess.TimeoutExpired) as e:
         write_status("error", "Could not get the new release.", detail=str(e)[-800:])
         return 1
@@ -135,4 +164,74 @@ def main():
     return 0
 
 
-sys.exit(main())
+def say(msg):
+    print(msg, flush=True)
+    with open(path("apply.log"), "a") as f:
+        f.write(msg + "\n")
+
+
+def systemctl(*args):
+    return subprocess.run([CONFIG["systemctl"], *args], capture_output=True, text=True)
+
+
+def start_chosen(apps):
+    """Each chosen app the system carries gets its marker and runs."""
+    os.makedirs(CONFIG["markers"], exist_ok=True)
+    for a in apps:
+        open(os.path.join(CONFIG["markers"], a), "a").close()
+        if systemctl("is-active", "--quiet", f"pocket-{a}.service").returncode != 0:
+            systemctl("start", "--no-block", f"pocket-{a}.service")
+
+
+def apply():
+    chosen = selection()
+    if chosen is None:
+        return 0
+    cur = release("/run/current-system")
+    have = set(cur.get("apps", []))
+    missing = [a for a in chosen if a not in have]
+    if not missing:
+        start_chosen([a for a in chosen if a in have])
+        return 0
+    rev = cur.get("flake_rev", "")
+    base = CONFIG["flake"]
+    if os.path.exists(path("flake")):  # support and tests, as for the update
+        flake = open(path("flake")).read().strip()
+    elif rev and base.startswith("github:"):
+        flake = "github:" + "/".join(base[len("github:"):].split("/")[:2]) + "/" + rev
+    else:
+        say("This box's system was not built from a release, so it can't add apps.")
+        return 1
+    say(f"Getting {len(missing)} app{'s' if len(missing) > 1 else ''} for this box: {', '.join(missing)}")
+    try:
+        new = run(CONFIG["nix"], "build", "--no-link", "--print-out-paths", *build_args(flake), timeout=3 * 3600).splitlines()[-1]
+    except (RuntimeError, subprocess.TimeoutExpired) as e:
+        say("Downloading them did not work: " + str(e)[-400:])
+        return 1
+    current = os.path.realpath("/run/current-system")
+    say("Downloaded; switching the box over")
+    try:
+        switch(new)
+        wrong = healthy(time.time() + CONFIG["health_seconds"])
+    except (RuntimeError, subprocess.TimeoutExpired) as e:
+        wrong = [f"switch: {str(e)[-300:]}"]
+    if wrong:
+        say("The box did not come back cleanly (" + ", ".join(wrong[:5]) + "), so it went back")
+        try:
+            switch(current)
+        except (RuntimeError, subprocess.TimeoutExpired):
+            pass
+        keep = [a for a in chosen if a not in missing]
+        with open(CONFIG["selection"] + ".tmp", "w") as f:
+            json.dump({"apps": keep}, f)
+        os.replace(CONFIG["selection"] + ".tmp", CONFIG["selection"])
+        return 1
+    start_chosen(chosen)
+    say("Done: " + ", ".join(missing) + (" is" if len(missing) == 1 else " are") + " on the box")
+    return 0
+
+
+if __name__ == "__main__":
+    os.makedirs(STATE, exist_ok=True)
+    held = lock()
+    sys.exit(apply() if "--apply" in sys.argv[1:] else main())

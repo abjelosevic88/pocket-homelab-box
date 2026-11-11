@@ -198,6 +198,8 @@ sha256sum -c pocket-box-installer-<release>.iso.sha256
 
 Then write it to a USB stick (8 GB or more) with `dd`, Etcher or Rufus (DD mode) and follow [Install](#build) below. A box installed from any release updates itself from `stable` afterwards.
 
+**Pocket Box Lite** (`pocket-box-lite-installer-<release>.iso`, one file) carries only Pocket Core with the base apps from `bundles.json` (Pocket AI, Alerts and Backups). See [Bundles and Lite](#bundles-and-pocket-box-lite).
+
 ## Build
 
 Needs Nix with flakes on x86_64 Linux.
@@ -227,9 +229,20 @@ Core runs unprivileged, so `pocket-box-agent` makes these changes as root (`modu
 Every app ships in the box's system, each as its own service, and runs only while its marker `/var/lib/pocket-box/apps/<slug>` exists. **Core → Apps → Install an app** and **Remove** talk to `pocket-box-installer` (`modules/installer.py`), which speaks Core's installer protocol on a socket only Core's group can open, with a per-box token:
 - **Install** makes the marker and starts the app, which registers with Core on its own.
 - **Remove** stops it and drops the marker. Its data stays in `/var/lib/pocket-<slug>`, so installing it again brings everything back.
-- **New apps:** on the first boot every app the box carries is installed. Apps that arrive with a later update start out not installed, ready in Core.
+- **New apps:** on the first boot every app the box carries is installed (or only the chosen ones, see [Bundles and Lite](#bundles-and-pocket-box-lite)). Apps that arrive with a later update start out not installed, ready in Core.
+- **An app the box doesn't carry** (Lite, or a box set up with bundles) is downloaded first; see below.
 
 Apps update with the box, not one by one. Descriptions and icons come from the public app catalog when the box is online.
+
+## Bundles and Pocket Box Lite
+
+`bundles.json` lists app bundles (essentials, office, developer, media, family, money, health) and `base`, the apps Pocket Box Lite carries. `pocket-install` reads it, and so does [pockethomelab.com/box/bundles](https://pockethomelab.com/box/bundles), where you pick bundles and apps and get the line to type. The flake check `bundles` fails if a bundle names an app `apps.nix` doesn't have.
+
+- `sudo pocket-install --bundle office,media --apps voice` (or answer its question with `office, media, voice`) writes the chosen apps, plus `base`, to `/var/lib/pocket-box/apps.json`. `--help` lists the bundles. With nothing chosen, the full ISO installs every app and keeps no list.
+- A box with that list starts with just those apps. The full ISO has the rest on the disk, unused; the Lite ISO (`nix build .#iso-lite`) doesn't carry them, and **`pocket-box-apply`** downloads them on the first boot (it needs the internet then).
+- `pocket-box-apply` (`modules/updater.py --apply`) builds this same release (its full revision is in `/etc/pocket-box/release.json`) with the box's list through `lib.boxToplevel { variant; apps; }`, gets the apps from the cache, switches, and checks the box is healthy. If not, it goes back and drops the new apps from the list. Core's **Install** of an app the box doesn't carry adds it to the list and runs it, showing its progress in Core.
+- The nightly update builds the box's list too, so a box never grows apps it didn't choose. Remove takes an app off the list, and the next update leaves it out.
+- Jellyfin, Navidrome, Immich and ONLYOFFICE run only with the apps that use them, so a small box stays small (Lite's system is about 3.3 GiB against 11.4 GiB for every app).
 
 ## Updates
 

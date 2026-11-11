@@ -5,7 +5,7 @@
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
 
     # App sources, pinned in flake.lock. Each has its own entry in apps.nix.
-    pocket-core = { url = "github:abjelosevic88/pocket-homelab-core/v0.36.24"; flake = false; };
+    pocket-core = { url = "github:abjelosevic88/pocket-homelab-core/v0.36.25"; flake = false; };
     pocket-ai = { url = "github:abjelosevic88/pocket-homelab-ai/v0.88.5"; flake = false; };
     pocket-alerts = { url = "github:abjelosevic88/pocket-homelab-alerts/v0.2.1"; flake = false; };
     pocket-audiobooks = { url = "github:abjelosevic88/pocket-homelab-audiobooks/v1.6.1"; flake = false; };
@@ -96,6 +96,17 @@
       lib = nixpkgs.lib;
       pkgs = import nixpkgs { inherit system; overlays = [ self.overlays.default ]; };
       catalog = import ./apps.nix { inherit lib; };
+      # App bundles (pocket-install --bundle, pockethomelab.com/box/bundles); `base` is Pocket Box Lite.
+      bundles = builtins.fromJSON (builtins.readFile ./bundles.json);
+      unknown = lib.filter (slug: !(catalog ? ${slug}) || slug == "core")
+        (bundles.base ++ lib.concatMap (b: b.apps) bundles.bundles);
+      liteApps = assert lib.assertMsg (unknown == [ ]) "bundles.json names apps apps.nix doesn't have: ${toString unknown}"; bundles.base;
+      # The box with just these apps (Pocket Core always). What a box that chose its apps runs: the
+      # update and Install (modules/updater.py) build it from the release with the box's own list.
+      boxSystem = { variant ? "box", apps }: self.nixosConfigurations.${variant}.extendModules {
+        # An app a later release no longer has is simply left out.
+        modules = [ { pocket.box.apps = lib.mkForce (lib.unique (lib.filter (slug: catalog ? ${slug} && slug != "core") apps)); } ];
+      };
     in
     {
       # pkgs.pocket.<slug> for every app in apps.nix.
@@ -111,6 +122,11 @@
           }) catalog;
       };
 
+      lib = {
+        inherit bundles boxSystem;
+        boxToplevel = args: (boxSystem args).config.system.build.toplevel;
+      };
+
       nixosModules.default = {
         imports = [ ./modules/box.nix ./modules/ai-sandbox.nix ];
         nixpkgs.overlays = [ self.overlays.default ];
@@ -119,6 +135,7 @@
           version = let d = self.lastModifiedDate or "197001010000"; in
             "${builtins.substring 0 4 d}.${builtins.substring 4 2 d}.${builtins.substring 6 2 d}.${builtins.substring 8 4 d}";
           rev = self.shortRev or self.dirtyShortRev or "dirty";
+          flakeRev = self.rev or "";
         };
         system.configurationRevision = self.rev or self.dirtyRev or null;
       };
@@ -139,6 +156,21 @@
           specialArgs = {
             boxSystem = self.nixosConfigurations.box.config.system.build.toplevel;
             boxSystemEncrypted = self.nixosConfigurations.box-encrypted.config.system.build.toplevel;
+            inherit bundles catalog;
+            lite = false;
+          };
+          modules = [ ./hosts/installer.nix ];
+        };
+
+        # Pocket Box Lite: only Pocket Core and the base apps on the ISO; the rest come from the cache
+        # on the first boot (the bundles picked in pocket-install) or later from Core → Install an app.
+        installer-lite = lib.nixosSystem {
+          inherit system;
+          specialArgs = {
+            boxSystem = (boxSystem { apps = liteApps; }).config.system.build.toplevel;
+            boxSystemEncrypted = (boxSystem { variant = "box-encrypted"; apps = liteApps; }).config.system.build.toplevel;
+            inherit bundles catalog;
+            lite = true;
           };
           modules = [ ./hosts/installer.nix ];
         };
@@ -147,10 +179,16 @@
       packages.${system} = pkgs.pocket // {
         vm = self.nixosConfigurations.box.config.system.build.vm;
         iso = self.nixosConfigurations.installer.config.system.build.isoImage;
+        iso-lite = self.nixosConfigurations.installer-lite.config.system.build.isoImage;
+        lite = (boxSystem { apps = liteApps; }).config.system.build.toplevel;
         default = self.packages.${system}.iso;
       };
 
-      checks.${system}.engines = import ./tests/engines.nix { inherit self pkgs; };
+      checks.${system} = {
+        engines = import ./tests/engines.nix { inherit self pkgs; };
+        # Every bundle names apps the box has (bundles.json is read by pocket-install and the website).
+        bundles = pkgs.runCommand "pocket-box-bundles" { } "echo ${toString liteApps} > $out";
+      };
 
       apps.${system}.vm = {
         type = "app";

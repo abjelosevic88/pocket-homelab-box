@@ -28,7 +28,12 @@ let
     platform = pkgs.stdenv.hostPlatform.system;
     catalog_url = "https://github.com/abjelosevic88/pocket-homelab-core/releases/download/catalog/apps.json";
     tools.systemctl = "${pkgs.systemd}/bin/systemctl";
-    apps = lib.mapAttrs (_: app: { inherit (app) title version port; }) apps;
+    # Every app of this release, carried or not (a Lite box downloads the rest on Install).
+    apps = lib.mapAttrs (_: app: { inherit (app) title version port; }) (lib.filterAttrs (slug: _: slug != "core") catalog);
+    selection = "/var/lib/pocket-box/apps.json";
+    release = "/run/current-system/etc/pocket-box/release.json";
+    apply_unit = "pocket-box-apply.service";
+    apply_log = "/var/lib/pocket-box/update/apply.log";
   });
   screenConfig = pkgs.writeText "pocket-box-screen.json" (builtins.toJSON {
     out = "/run/pocket-box-screen/screen.issue";
@@ -200,12 +205,19 @@ in
           description = "Pocket Box installed apps";
           wantedBy = [ "multi-user.target" ];
           serviceConfig = { Type = "oneshot"; RemainAfterExit = true; StateDirectory = "pocket-box"; StateDirectoryMode = "0700"; };
-          path = [ pkgs.coreutils ];
+          path = [ pkgs.coreutils pkgs.jq ];
+          # A box that chose its apps (pocket-install --bundle/--apps, Lite) starts with just those;
+          # the ones it doesn't carry yet come with pocket-box-apply.
           script = ''
             d=${appMarkers}
+            sel=/var/lib/pocket-box/apps.json
             if [ ! -e "$d/.seeded" ]; then
               mkdir -p "$d"
-              for a in ${lib.concatStringsSep " " (lib.attrNames apps)}; do touch "$d/$a"; done
+              carried=" ${lib.concatStringsSep " " (lib.attrNames apps)} "
+              if [ -s "$sel" ]; then wanted=$(jq -r '.apps[]' "$sel"); else wanted=$carried; fi
+              for a in $wanted; do
+                case "$carried" in *" $a "*) touch "$d/$a" ;; esac
+              done
               touch "$d/.seeded"
             fi
           '';

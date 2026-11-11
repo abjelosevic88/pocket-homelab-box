@@ -1,6 +1,9 @@
 """pocket-box-installer: Install and Remove for the Pocket apps, behind Pocket Core's app store.
 
-Every Pocket app ships in the box's system (apps.nix), each as its own service. An app runs only while
+Every Pocket app of the release is listed (apps.nix). A full box carries them all; a box that chose its
+apps (Pocket Box Lite, pocket-install --bundle) carries those, listed in /var/lib/pocket-box/apps.json,
+and Install of one it doesn't carry adds it there and runs pocket-box-apply, which downloads it from the
+cache and switches the box over (same release, nothing else changes). An app runs only while
 its marker /var/lib/pocket-box/apps/<slug> exists (the units' ConditionPathExists), so Install makes the
 marker and starts the app (it then registers with Core on its own), and Remove stops it and drops the
 marker. Its data stays in /var/lib/pocket-<slug>: installing it again brings everything back. Apps come
@@ -62,6 +65,29 @@ def public_url(slug):
 
 def installed(slug):
     return os.path.exists(os.path.join(MARKERS, slug))
+
+
+def carried():
+    """The apps this system has (release.json); every app when that can't be read."""
+    try:
+        return set(json.load(open(CONFIG["release"])).get("apps", []))
+    except (OSError, ValueError):
+        return set(CATALOG)
+
+
+def chosen():
+    try:
+        apps = json.load(open(CONFIG["selection"])).get("apps")
+        return [a for a in apps if isinstance(a, str)]
+    except (OSError, ValueError, AttributeError, TypeError):
+        return None
+
+
+def choose(apps):
+    tmp = CONFIG["selection"] + ".tmp"
+    with open(tmp, "w") as f:
+        json.dump({"apps": sorted(set(apps))}, f)
+    os.replace(tmp, CONFIG["selection"])
 
 
 def systemctl(*args, timeout=180):
@@ -162,8 +188,52 @@ def forget_core(slug):
     return gone
 
 
+def fetch(job):
+    """Adds an app this box doesn't carry: pocket-box-apply downloads it and switches the box over."""
+    slug, app = job.slug, CATALOG[job.slug]
+    have = carried()
+    choose((chosen() if chosen() is not None else sorted(have)) + [slug])
+    forget_core(slug)
+    open(CONFIG["apply_log"], "w").close()
+    job.say(f"{app['title']} is not on this box yet; downloading it (this can take a few minutes)")
+    done = threading.Event()
+
+    def follow():
+        seen = 0
+        while not done.is_set():
+            time.sleep(2)
+            try:
+                lines = open(CONFIG["apply_log"]).read().splitlines()
+            except OSError:
+                continue
+            for line in lines[seen:]:
+                job.say(line)
+            seen = len(lines)
+
+    t = threading.Thread(target=follow, daemon=True)
+    t.start()
+    code, out = systemctl("start", CONFIG["apply_unit"], timeout=3 * 3600)
+    done.set()
+    t.join()
+    if code != 0 or slug not in carried():
+        raise RuntimeError(f"{app['title']} could not be added to the box" + (f": {out[-300:]}" if out else ""))
+    for _ in range(30):
+        if active(slug):
+            break
+        time.sleep(2)
+    if not active(slug):
+        raise RuntimeError(f"{app['title']} was added but did not start: see journalctl -u pocket-{slug}")
+    job.say(f"{app['title']} {app['version']} is running")
+    job.result = {"app_url": f"http://127.0.0.1:{app['port']}", "public_url": public_url(slug),
+                  "port": app["port"], "version": app["version"]}
+
+
 def install(job):
     slug, app = job.slug, CATALOG[job.slug]
+    if slug not in carried():
+        return fetch(job)
+    if chosen() is not None:
+        choose(chosen() + [slug])
     os.makedirs(MARKERS, mode=0o755, exist_ok=True)
     open(os.path.join(MARKERS, slug), "w").close()
     # Core asks only for apps it doesn't know: one still running here (removed before this fix, or its
@@ -192,6 +262,8 @@ def uninstall(job):
     except FileNotFoundError:
         pass
     forget_core(slug)  # Core revokes it now; installing again registers afresh
+    if chosen() is not None:
+        choose([a for a in chosen() if a != slug])  # and the next update leaves it out
     job.say("Stopped; it no longer starts with the box. Its data stays on the box.")
     job.result = {"version": app["version"]}
 

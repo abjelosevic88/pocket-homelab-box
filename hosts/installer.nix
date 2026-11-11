@@ -4,27 +4,75 @@
 # On a PC with a TPM 2.0 the root partition is encrypted (LUKS2), unlocked at boot by the TPM; the
 # installer shows a recovery key once, with a QR code. Without a TPM, or with --no-encrypt, the disk
 # is plain: a headless box could not ask anyone for a password at boot.
-{ config, lib, pkgs, modulesPath, boxSystem, boxSystemEncrypted, ... }:
+#
+# Apps: `--bundle office,media` / `--apps notes,tasks` (or the question pocket-install asks) choose them;
+# the list goes onto the disk as /var/lib/pocket-box/apps.json and the box starts with just those. The
+# full ISO carries every app; Pocket Box Lite (lite = true) carries Pocket Core and the base apps only and
+# downloads the rest on the first boot (it needs the internet then).
+{ config, lib, pkgs, modulesPath, boxSystem, boxSystemEncrypted, bundles, catalog, lite, ... }:
 
 let
+  appTitles = lib.mapAttrs (_: app: app.title) (lib.filterAttrs (slug: _: slug != "core") catalog);
+  pickConfig = pkgs.writeText "pocket-pick-apps.json" (builtins.toJSON { inherit bundles; apps = appTitles; });
+  pick-apps = pkgs.writers.writePython3 "pocket-pick-apps" { flakeIgnore = [ "E501" ]; } (builtins.readFile ./pick-apps.py);
+  baseNames = lib.concatMapStringsSep ", " (slug: appTitles.${slug}) bundles.base;
   pocket-install = pkgs.writeShellApplication {
     name = "pocket-install";
-    runtimeInputs = with pkgs; [ util-linux parted dosfstools e2fsprogs coreutils gnugrep gnused cryptsetup systemd qrencode config.system.build.nixos-install ];
+    runtimeInputs = with pkgs; [ util-linux parted dosfstools e2fsprogs coreutils gnugrep gnused cryptsetup systemd qrencode jq config.system.build.nixos-install ];
     text = ''
       if [ "$(id -u)" -ne 0 ]; then
         echo "Run it as root: sudo pocket-install" >&2
         exit 1
       fi
       encrypt=yes
-      if [ "''${1:-}" = "--no-encrypt" ]; then
-        encrypt=no
+      pick=""
+      disk=""
+      while [ $# -gt 0 ]; do
+        case "$1" in
+          --no-encrypt) encrypt=no ;;
+          --apps|--bundle|--bundles) pick="$pick ''${2:-}"; shift ;;
+          --apps=*|--bundle=*|--bundles=*) pick="$pick ''${1#*=}" ;;
+          -h|--help)
+            echo "sudo pocket-install [disk] [--bundle office,media] [--apps notes,tasks] [--no-encrypt]"
+            echo "Bundles:"; ${pick-apps} ${pickConfig} --menu
+            exit 0 ;;
+          *) disk="$1" ;;
+        esac
         shift
+      done
+
+      # Which apps. Asked when not given on the command line.
+      if [ -z "''${pick// /}" ] && [ -t 0 ]; then
+        echo "Which apps should this box have? Bundles:"
+        ${pick-apps} ${pickConfig} --menu
+        echo "Type bundles and apps, e.g.  office, media  or  notes, tasks  (all of them: pockethomelab.com/box/bundles)."
+        ${if lite
+          then ''read -rp "Or press Enter for just Pocket Core with ${baseNames}: " pick''
+          else ''read -rp "Or press Enter for every app (${toString (lib.length (lib.attrNames appTitles))}): " pick''}
+        [ -z "''${pick// /}" ] && pick=${if lite then "base" else "all"}
       fi
+      [ -z "''${pick// /}" ] && pick=${if lite then "base" else "all"}
+      apps=""
+      if [ "$pick" != base ]; then
+        if ! apps=$(${pick-apps} ${pickConfig} "$pick"); then exit 1; fi
+      else
+        apps=$(${pick-apps} ${pickConfig} "")
+      fi
+      echo
+      if [ -n "$apps" ]; then
+        echo "Apps: Pocket Core and $(echo "$apps" | wc -l) more: $(echo "$apps" | paste -sd, - | sed 's/,/, /g')"
+        ${lib.optionalString lite ''
+        extra=$(echo "$apps" | grep -cvxF -e ${lib.concatStringsSep " -e " bundles.base} || true)
+        if [ "$extra" -gt 0 ]; then echo "The box downloads $extra of them on its first boot, so it needs the internet then."; fi
+        ''}
+      else
+        echo "Apps: every Pocket app."
+      fi
+      echo
 
       echo "Disks:"
       lsblk -d -e 7,11 -o NAME,SIZE,MODEL,TRAN
       echo
-      disk="''${1:-}"
       if [ -z "$disk" ]; then
         read -rp "Install Pocket Box on which disk (e.g. nvme0n1, sda)? " disk
       fi
@@ -119,6 +167,12 @@ let
 
       nixos-install --system "$system" --no-root-passwd --no-channel-copy
 
+      # The chosen apps (none listed = every app the release has).
+      if [ -n "$apps" ]; then
+        install -d -m 0700 /mnt/var/lib/pocket-box
+        printf '%s\n' "$apps" | jq -R . | jq -s '{apps: .}' > /mnt/var/lib/pocket-box/apps.json
+      fi
+
       umount -R /mnt
       if [ "$tpm" = yes ]; then
         cryptsetup close pocket-root
@@ -144,7 +198,7 @@ in
 {
   imports = [ (modulesPath + "/installer/cd-dvd/installation-cd-minimal.nix") ];
 
-  image.baseName = lib.mkForce "pocket-box-installer";
+  image.baseName = lib.mkForce (if lite then "pocket-box-lite-installer" else "pocket-box-installer");
   isoImage.volumeID = "POCKET_BOX";
   isoImage.storeContents = [ boxSystem boxSystemEncrypted ];
 
@@ -155,7 +209,8 @@ in
 
   services.getty.helpLine = lib.mkForce ''
 
-    Pocket Box installer. Run:  sudo pocket-install
+    Pocket Box${lib.optionalString lite " Lite"} installer. Run:  sudo pocket-install
+    Apps: sudo pocket-install --bundle office,media  (or --apps notes,tasks; --help lists the bundles)
   '';
 
   system.stateVersion = "26.11";

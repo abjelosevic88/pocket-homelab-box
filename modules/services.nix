@@ -43,10 +43,11 @@ let
 in
 {
   options.pocket.box.services = {
-    jellyfin.enable = lib.mkOption { type = lib.types.bool; default = true; description = "Jellyfin, for Pocket Watch."; };
-    navidrome.enable = lib.mkOption { type = lib.types.bool; default = true; description = "Navidrome, for Pocket Music."; };
-    immich.enable = lib.mkOption { type = lib.types.bool; default = true; description = "Immich, for Pocket Photos."; };
-    onlyoffice.enable = lib.mkOption { type = lib.types.bool; default = true; description = "OnlyOffice Document Server, for Pocket Office."; };
+    # Each only with the apps that use it, so a box with a few apps (Pocket Box Lite) stays small.
+    jellyfin.enable = lib.mkOption { type = lib.types.bool; default = lib.any hasApp [ "watch" "subtitles" "requests" ]; defaultText = lib.literalExpression ''any of watch, subtitles, requests in config.pocket.box.apps''; description = "Jellyfin, for Pocket Watch."; };
+    navidrome.enable = lib.mkOption { type = lib.types.bool; default = lib.any hasApp [ "music" "radio" "requests" ]; defaultText = lib.literalExpression ''any of music, radio, requests in config.pocket.box.apps''; description = "Navidrome, for Pocket Music."; };
+    immich.enable = lib.mkOption { type = lib.types.bool; default = hasApp "photos"; defaultText = lib.literalExpression ''lib.elem "photos" config.pocket.box.apps''; description = "Immich, for Pocket Photos."; };
+    onlyoffice.enable = lib.mkOption { type = lib.types.bool; default = hasApp "office"; defaultText = lib.literalExpression ''lib.elem "office" config.pocket.box.apps''; description = "OnlyOffice Document Server, for Pocket Office."; };
     searxng.enable = lib.mkOption { type = lib.types.bool; default = hasApp "search"; defaultText = lib.literalExpression ''lib.elem "search" config.pocket.box.apps''; description = "SearXNG, the search engine behind Pocket Search."; };
     browser.enable = lib.mkOption { type = lib.types.bool; default = hasApp "lookout"; defaultText = lib.literalExpression ''lib.elem "lookout" config.pocket.box.apps''; description = "A headless Chromium for Pocket Lookout."; };
     guacd.enable = lib.mkOption { type = lib.types.bool; default = hasApp "remote"; defaultText = lib.literalExpression ''lib.elem "remote" config.pocket.box.apps''; description = "guacd, the remote desktop engine behind Pocket Remote."; };

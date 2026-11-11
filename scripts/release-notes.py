@@ -50,6 +50,20 @@ def main():
         repo = repos.get(inp)
         name = f"[{title}](https://github.com/{repo}/releases/tag/v{version})" if repo else title
         out.append(f"| {name} | {version} |")
+    lite = os.environ.get("LITE_ISO", "")
+    if lite:
+        bundles = __import__("json").load(open(os.path.join(ROOT, "bundles.json")))
+        out += [
+            "",
+            "## Pocket Box Lite",
+            "",
+            f"`{lite}` is one file and much smaller: Pocket Core with {', '.join(bundles['base'])}. In `sudo pocket-install` pick bundles or apps "
+            "(for example `sudo pocket-install --bundle office,media`, or answer its question); the box downloads them on its first boot, so it "
+            "needs the internet then. More apps any time in Pocket Core → Apps → Install an app. Check it with "
+            f"`sha256sum -c {lite}.sha256`.",
+            "",
+            "Bundles: " + "; ".join(f"**{b['id']}** ({len(b['apps'])} apps)" for b in bundles["bundles"]) + ". Pick them on [pockethomelab.com/box/bundles](https://pockethomelab.com/box/bundles).",
+        ]
     print("\n".join(out))
 
 
