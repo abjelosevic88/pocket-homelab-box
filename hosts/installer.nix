@@ -41,11 +41,13 @@ let
             fi ;;
           --apps=*|--bundle=*|--bundles=*) pick="$pick ''${1#*=}" ;;
           -h|--help)
-            echo "sudo pocket-install [disk] [--bundle office,media] [--apps notes,tasks] [--pick] [--no-encrypt]"
+            echo "sudo pocket-install [disk] [bundles and apps, e.g. office media voice] [--pick] [--no-encrypt]"
+            echo "(--bundle office,media and --apps notes,tasks work too)"
             echo "Without a choice (or with --pick, or --apps alone) it shows a checklist of every app."
             echo "Bundles:"; ${pick-apps} ${pickConfig} --menu
             exit 0 ;;
-          *) disk="$1" ;;
+          # A disk, or else a bundle or app name: sudo pocket-install office media voice
+          *) if [ -b "/dev/''${1#/dev/}" ]; then disk="$1"; else pick="$pick $1"; fi ;;
         esac
         shift
       done
