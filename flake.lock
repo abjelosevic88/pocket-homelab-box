@@ -223,16 +223,16 @@
     "pocket-core": {
       "flake": false,
       "locked": {
-        "lastModified": 1794389440,
-        "narHash": "sha256-FeybEx5V2mTg40SA/G47gatg1rGdG5v0Pyewjsi+Exo=",
+        "lastModified": 1794398045,
+        "narHash": "sha256-AWpG1uRvC7fWfacafiTIDJUmFzeasgXYRGp+2pC9lrQ=",
         "owner": "abjelosevic88",
         "repo": "pocket-homelab-core",
-        "rev": "667332e1d6e625a31422f388f77d498843e9f142",
+        "rev": "938aec99d7c40cd3df87f8292e01ba7be17065f7",
         "type": "github"
       },
       "original": {
         "owner": "abjelosevic88",
-        "ref": "v0.36.22",
+        "ref": "v0.36.24",
         "repo": "pocket-homelab-core",
         "type": "github"
       }

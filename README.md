@@ -16,7 +16,7 @@
 
 ---
 
-Boot the installer from a USB stick, pick a disk, reboot. Within a minute the box has its own name, like `x7k2m9.box.pockethomelab.com`, with a Let's Encrypt certificate every browser already trusts. Open `http://pocket.local` from a phone or laptop on the same network and it takes you there, on to Pocket Core: nothing to install.
+Boot the installer from a USB stick, pick a disk, reboot. Open `http://pocket.local` from a phone or laptop on the same network and choose how the box gets its padlock: **Pocket's free address** (recommended; within a minute the box is at a name like `x7k2m9.box.pockethomelab.com`, with a Let's Encrypt certificate every browser already trusts), **your own domain on Cloudflare** (sign in with Cloudflare, and the box sets up `pocket.yourdomain` itself), or **the box's own certificate** (installed once on each device; no name on the internet). The page then takes you on to Pocket Core.
 
 The whole system is declared in this flake. The installer ISO already contains the finished system, so installing needs no network.
 
@@ -152,8 +152,18 @@ Tools the apps shell out to are put on their PATH:
 
 Caddy is the only thing listening on the network (ports 80 and 443). The apps and services listen on loopback.
 
-**The box's public name.** Each box gets a name of its own from Pocket Names (`names.pockethomelab.com`), like `x7k2m9.box.pockethomelab.com`, and a Let's Encrypt certificate for it and every app under it. `pocket-box-name` (`modules/names.{nix,py}`) does this on a timer:
-- **Asks early:** 15 seconds after boot, then every 3 minutes until the box has its name. In a VM against the live service the name and certificate were there 46 seconds after boot.
+**How the box gets its padlock** is the owner's choice, made on `http://pocket.local` before anyone has an account, and changeable in Core → Settings → System → Secure address. `pocket-box-address` (`modules/address.py`) records it; `pocket-box-name` does the work. Until there is a choice the box asks nobody for anything (it doesn't send its home address to Pocket Names unless that is what the owner picked). Boxes that got a Pocket name before the choice existed keep it.
+
+| | What happens |
+|---|---|
+| **Pocket's free address** (recommended) | below |
+| **Your own domain on Cloudflare** | *Sign in with Cloudflare* (OAuth with PKCE; the client id comes from Pocket Names, which only passes the browser back to the box) or a pasted API token (a prefilled *Create token* link: Zone · Read, DNS · Edit). The box adds `<name>.<zone>` and `*.<name>.<zone>` as A records to the owner's zone (tagged with the comment "Pocket Box"; it refuses names already in use), keeps them on its home address, and gets the certificate over DNS-01 with lego's Cloudflare provider. Pocket Names isn't involved. A lapsed sign-in shows in Core |
+| **The box's own certificate** | no public name; the local names and CA below |
+
+Switching moves the box over once the new address works, then lets the old one go: the Pocket name is given back, the old Cloudflare records are removed. The landing page may only make the first choice, and only from that page (it must send `X-Pocket-Box`, which other sites can't add without asking); Core, as an admin, may change it any time.
+
+**Pocket's free address.** Each box gets a name of its own from Pocket Names (`names.pockethomelab.com`), like `x7k2m9.box.pockethomelab.com`, and a Let's Encrypt certificate for it and every app under it. `pocket-box-name` (`modules/names.{nix,py}`) does this on a timer:
+- **Asks as soon as it's chosen,** then every 3 minutes until the box has its name. In a VM against the live service the name and certificate were there 46 seconds after boot.
 - **Points the name at the box's home address** (its address on the home network), again when it changes and twice a day as a sign of life.
 - **Gets the certificate over DNS-01:** Pocket Names only answers Let's Encrypt's DNS check; the private key never leaves the box. It renews 30 days before the end.
 - **Switches over once it works:** Caddy serves every app on the new name too, the box resolves it itself, and the apps restart with it in their public URLs (`pocket-box-env` swaps the local domain in their environment).
@@ -162,7 +172,7 @@ Until that has worked once (no internet, say), nothing changes: the box stays on
 
 **Local names, the fallback.**
 - **Every app and service:** also served at `https://<name>.pocket.local`, with certificates from Caddy's local CA, *Pocket Box Root CA*.
-- **`http://pocket.local`:** stays plain http on purpose. It's the landing page: while the box gets its name it shows "Getting your box's secure address…" and moves on by itself once the name works. If this network can't reach the name (some routers block names that point into the home network) or there is no internet, it shows how to install the box's CA once, with steps for iPhone, Mac, Android and Windows, and links to Core.
+- **`http://pocket.local`:** stays plain http on purpose. It's the landing page: first it asks how the box should get its padlock (above); while the box gets its name it shows "Getting your box's secure address…" and moves on by itself once the name works. If this network can't reach the name (some routers block names that point into the home network) or there is no internet, it shows how to install the box's CA once, with steps for iPhone, Mac, Android and Windows, and links to Core.
 - **`https://pocket.local`:** redirects to Core.
 
 `pocket.local` and all 87 names are announced over mDNS. `pocket-box-mdns-aliases` follows address changes and spreads the records over several Avahi groups, because Avahi allows 32 entries per group.
@@ -206,9 +216,9 @@ The console account `pocket` has no password until the owner sets one in the set
 
 ## First run
 
-1. Open `http://pocket.local` (or scan the QR code on the box's screen). It moves on to Pocket Core on the box's own name; only without that name does it ask you to install the box's certificate first.
+1. Open `http://pocket.local` (or scan the QR code on the box's screen) and choose how the box gets its padlock. With Pocket's address or your own Cloudflare domain it moves on to Pocket Core on that name; with the box's own certificate it shows how to install it first.
 2. Create the first account. It becomes the admin of Core and of every app.
-3. Core opens the **setup wizard** (`/welcome`). It covers the time zone (the apps restart to pick it up), the network and Wi-Fi, Tailscale (a login link or an auth key) and the console password, and shows how the disk is protected. *Do this later* skips it, and everything stays under **Settings → System**.
+3. Core opens the **setup wizard** (`/welcome`). It covers the secure address, the time zone (the apps restart to pick it up), the network and Wi-Fi, Tailscale (a login link or an auth key) and the console password, and shows how the disk is protected. *Do this later* skips it, and everything stays under **Settings → System**.
 
 Core runs unprivileged, so `pocket-box-agent` makes these changes as root (`modules/agent.py`, `modules/system.nix`). It's reachable only through `/run/pocket-box-agent/agent.sock`, which only Core's group can open. NetworkManager runs the network (Ethernet by DHCP, Wi-Fi joined from the wizard) and Tailscale is installed but logged out. The time zone is UTC until the wizard sets it.
 
@@ -254,7 +264,7 @@ Apps are pinned to their **release tags** (`github:abjelosevic88/<repo>/vX.Y.Z`)
 scripts/install-test.sh
 ```
 
-This builds the ISO and boots it in QEMU (KVM + OVMF). VMs never ask Pocket Names for a name (`-fw_cfg name=opt/pocket/names,string=off`), so the test covers the local names and CA. It runs `pocket-install` on a blank 32 GB virtual disk over the serial console, then boots that disk. It downloads the CA from the landing page and checks every app and service over https through Caddy, verifying certificates against that CA (host ports 28443/28080). Then it runs the owner's first visit:
+This builds the ISO and boots it in QEMU (KVM + OVMF). VMs never ask Pocket Names for a name (`-fw_cfg name=opt/pocket/names,string=off`; `string=pocket` instead picks Pocket's address without asking), so the test covers the local names and CA. It runs `pocket-install` on a blank 32 GB virtual disk over the serial console, then boots that disk. It downloads the CA from the landing page and checks every app and service over https through Caddy, verifying certificates against that CA (host ports 28443/28080). Then it runs the owner's first visit:
 - creates the account in Core and waits for that person's Jellyfin, Navidrome and Immich accounts
 - requires Watch, Music and Photos to report their service connected after signing in with Pocket Core
 - goes through the wizard via Core's API: time zone, console password, and a disk state that matches the install
@@ -281,6 +291,7 @@ lib/mkPocketApp.nix   UI + Go build for one app
 modules/box.nix       pocket.box.* options: app services, first-boot secrets, Avahi
 modules/proxy.nix     Caddy, local CA, landing page, mDNS names
 modules/names.nix     the public name and its Let's Encrypt certificate; modules/names.py does the work
+modules/address.py    the owner's choice: Pocket's address, own domain on Cloudflare, or own certificate
 modules/installer.py  Install and Remove for Core's app store
 modules/screen.py     the address, QR code and console login shown on the box's screen
 modules/system.nix    NetworkManager, Tailscale, console account, the box agent

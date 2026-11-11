@@ -33,6 +33,22 @@ let
     };
   });
   names = pkgs.writers.writePython3 "pocket-box-name" { flakeIgnore = [ "E501" ]; } (builtins.readFile ./names.py);
+
+  # How the box gets its padlock (modules/address.py): Pocket's address, the owner's own domain on
+  # Cloudflare, or the box's own certificate. Core reaches it on the socket, the landing page on the port.
+  addressSocket = "/run/pocket-box-address/address.sock";
+  addressPort = 7391;
+  addressConfig = pkgs.writeText "pocket-box-address.json" (builtins.toJSON {
+    socket = addressSocket;
+    port = addressPort;
+    group = "pocket-box-agent";
+    state_dir = stateDir;
+    names_server = cfg.server;
+    landing = url.landing;
+    tools.systemctl = "${pkgs.systemd}/bin/systemctl";
+  });
+  address = pkgs.writers.writePython3 "pocket-box-address" { flakeIgnore = [ "E501" ]; } (builtins.readFile ./address.py);
+  url = import ./urls.nix box;
 in
 {
   options.pocket.box.names = {
@@ -58,7 +74,8 @@ in
       import ${stateDir}/caddy/*.caddy
     '';
 
-    # The landing page asks for this to send a browser on to the public name.
+    # The landing page asks for these to send a browser on to the public name, and to let the owner
+    # choose how the box gets it.
     services.caddy.virtualHosts."http://${box.domain}".extraConfig = lib.mkBefore ''
       @name path /name.json /name-status.json
       handle @name {
@@ -66,7 +83,39 @@ in
         root * ${stateDir}/public
         file_server
       }
+      handle_path /box-address/* {
+        request_body {
+          max_size 16KB
+        }
+        reverse_proxy 127.0.0.1:${toString addressPort}
+      }
     '';
+
+    systemd.services.pocket-box-address = {
+      description = "Pocket Box address choice (Pocket's address, own domain on Cloudflare, or own certificate)";
+      wantedBy = [ "multi-user.target" ];
+      after = [ "network.target" ];
+      before = [ "pocket-core.service" ];
+      serviceConfig = {
+        ExecStart = "${address} ${addressConfig}";
+        RuntimeDirectory = "pocket-box-address";
+        RuntimeDirectoryMode = "0750";
+        Group = "pocket-box-agent";
+        Restart = "on-failure";
+        RestartSec = 3;
+        NoNewPrivileges = true;
+        ProtectHome = true;
+        PrivateTmp = true;
+        ProtectSystem = "strict";
+        ReadWritePaths = [ stateDir ];
+      };
+    };
+
+    systemd.services.pocket-core = {
+      wants = [ "pocket-box-address.service" ];
+      after = [ "pocket-box-address.service" ];
+      environment.BOX_ADDRESS = addressSocket;
+    };
 
     # So the QEMU switch above is visible early (it is a no-op on real hardware).
     boot.kernelModules = [ "qemu_fw_cfg" ];

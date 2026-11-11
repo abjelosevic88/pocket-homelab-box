@@ -35,7 +35,18 @@ if name:
 else:
     address = CONFIG["landing"]
     scan = address
-    also = "  (it gets a secure address of its own within a few minutes)"
+    # Before the owner chose how the box gets its padlock, that page asks; with the box's own
+    # certificate it stays the address.
+    try:
+        mode = json.loads(read(CONFIG["choice_file"]) or "{}").get("mode")
+    except ValueError:
+        mode = None
+    if mode == "own-ca":
+        also = "  (install the box's certificate from that page once on each device)"
+    elif mode:
+        also = "  (it moves on to the box's secure address by itself)"
+    else:
+        also = "  (that page asks how the box gets its secure address)"
 
 password_set = os.path.exists(CONFIG["password_flag"])
 lines = [

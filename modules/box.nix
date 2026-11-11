@@ -32,6 +32,7 @@ let
   screenConfig = pkgs.writeText "pocket-box-screen.json" (builtins.toJSON {
     out = "/run/pocket-box-screen/screen.issue";
     name_file = "/var/lib/pocket-box-name/domain";
+    choice_file = "/var/lib/pocket-box-name/choice.json";
     password_flag = "/var/lib/pocket-box/agent/password-set";
     inherit (url) landing;
     qrencode = "${pkgs.qrencode}/bin/qrencode";
@@ -286,7 +287,7 @@ in
     systemd.paths.pocket-box-screen = {
       wantedBy = [ "multi-user.target" ];
       pathConfig = {
-        PathChanged = [ "/var/lib/pocket-box-name/domain" "/var/lib/pocket-box/agent/password-set" ];
+        PathChanged = [ "/var/lib/pocket-box-name/domain" "/var/lib/pocket-box-name/choice.json" "/var/lib/pocket-box/agent/password-set" ];
         Unit = "pocket-box-screen.service";
       };
     };

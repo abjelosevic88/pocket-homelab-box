@@ -37,6 +37,20 @@ let
       @keyframes spin { to { transform: rotate(360deg); } }
       @media (prefers-reduced-motion: reduce) { .spin { animation: none; } }
       button.link { background: none; border: 0; padding: 0; color: var(--accent); font: inherit; cursor: pointer; text-decoration: underline; }
+      .choice { display: block; background: var(--card); border: 2px solid transparent; border-radius: 16px; padding: 16px 18px 16px 48px; margin-bottom: 12px; cursor: pointer; position: relative; }
+      .choice:has(input:checked) { border-color: var(--accent); }
+      .choice input { position: absolute; left: 18px; top: 19px; width: 18px; height: 18px; accent-color: var(--accent); margin: 0; }
+      .choice b { display: block; font-size: 17px; }
+      .choice > span { color: var(--muted); font-size: 15px; }
+      .tag { display: inline-block; background: var(--accent); color: #fff; font-size: 12px; font-weight: 600; border-radius: 6px; padding: 1px 7px; margin-left: 6px; vertical-align: 2px; }
+      button.primary { background: var(--accent); color: #fff; border: 0; padding: 11px 20px; border-radius: 10px; font: inherit; font-weight: 600; cursor: pointer; margin: 6px 0 4px; }
+      button.primary:disabled { opacity: .55; cursor: default; }
+      label.field { display: block; font-weight: 600; margin: 12px 0 4px; }
+      input.text, select.text { width: 100%; box-sizing: border-box; font: inherit; padding: 9px 11px; border-radius: 10px; border: 1px solid var(--muted); background: var(--bg); color: var(--fg); }
+      .row { display: flex; align-items: center; gap: 6px; } .row input.text { flex: 1; } .row .suffix { color: var(--muted); white-space: nowrap; }
+      p.error { color: #d70015; font-size: 15px; margin: 8px 0 0; }
+      @media (prefers-color-scheme: dark) { p.error { color: #ff6961; } }
+      hr { border: 0; border-top: 1px solid var(--bg); margin: 16px 0; }
     </style>
     </head>
     <body>
@@ -45,6 +59,50 @@ let
       <section id="opening" hidden>
         <h2>Opening Pocket Box…</h2>
         <p>If nothing happens, <a id="opening-link" href="#">open it here</a>.</p>
+      </section>
+      <div id="choose" hidden>
+        <p class="lead">How should your box get its padlock? You can change this later in Pocket Core → Settings → This box.</p>
+        <label class="choice"><input type="radio" name="mode" value="pocket" checked>
+          <b>Pocket's free address<span class="tag">Recommended</span></b>
+          <span>Ready in about a minute, nothing to install. Your box gets a name like x7k2m9.box.pockethomelab.com, pointing at its home address.</span></label>
+        <label class="choice"><input type="radio" name="mode" value="cloudflare">
+          <b>My own domain on Cloudflare</b>
+          <span>Like pocket.yourname.com. Sign in with Cloudflare and the box sets up the rest itself; nothing goes through Pocket's servers.</span></label>
+        <label class="choice"><input type="radio" name="mode" value="own-ca">
+          <b>The box's own certificate</b>
+          <span>No name on the internet at all. Install the box's certificate once on each phone and computer; works without internet.</span></label>
+        <button type="button" class="primary" id="choose-go">Continue</button>
+        <p class="error" id="choose-error" hidden></p>
+      </div>
+      <section id="cf" hidden>
+        <h2>Your own domain on Cloudflare</h2>
+        <p>You need a domain whose DNS is on Cloudflare (the free plan is enough). The box adds two records to it,
+          <i>name</i>.yourdomain and *.<i>name</i>.yourdomain, pointing at its home address, and gets its certificate itself.</p>
+        <div id="cf-signin">
+          <div id="cf-oauth" hidden>
+            <button type="button" class="primary" id="cf-oauth-go">Sign in with Cloudflare</button>
+            <p class="note">Cloudflare asks you to allow “Pocket Box” to read your domains and edit their DNS.</p>
+            <hr>
+            <p class="note"><button type="button" class="link" id="cf-token-show">Use an API token instead</button></p>
+          </div>
+          <div id="cf-token">
+            <p><b>1.</b> <a href="#" id="cf-token-link" target="_blank" rel="noopener">Create a token in Cloudflare</a>. The permissions are filled in already
+              (Zone · Read and DNS · Edit); press <i>Continue to summary</i>, then <i>Create Token</i>.</p>
+            <label class="field" for="cf-token-in"><b>2.</b> Paste the token here</label>
+            <input class="text" id="cf-token-in" autocomplete="off" spellcheck="false" placeholder="The token Cloudflare shows once">
+            <button type="button" class="primary" id="cf-token-go">Next</button>
+          </div>
+        </div>
+        <div id="cf-zone" hidden>
+          <label class="field" for="cf-zone-in">Domain</label>
+          <select class="text" id="cf-zone-in"></select>
+          <label class="field" for="cf-sub-in">Name for the box</label>
+          <div class="row"><input class="text" id="cf-sub-in" value="pocket" autocomplete="off" spellcheck="false"><span class="suffix" id="cf-suffix"></span></div>
+          <p class="note" id="cf-preview"></p>
+          <button type="button" class="primary" id="cf-use">Use this address</button>
+        </div>
+        <p class="error" id="cf-error" hidden></p>
+        <p class="note"><button type="button" class="link" id="cf-back">Back to the choices</button></p>
       </section>
       <section id="getting" hidden>
         <h2><span class="spin" aria-hidden="true"></span>Getting your box's secure address…</h2>
@@ -79,26 +137,42 @@ let
         <p>Create your account there; it lists every app on the box.</p>
         <a class="button" href="${url.site "core"}">Open Pocket Core</a>
       </section>
+      <p class="note" id="steps-change" hidden>Rather have an address every browser trusts? Choose it in Pocket Core → Settings → This box.</p>
       </div>
     </main>
     <script>
-      // Once the box has its public name (a certificate every browser trusts), go there instead, if this
-      // network can reach it. While the box is still getting the name (its first minutes), wait for it
-      // rather than offer the certificate steps.
+      // First the owner chooses how the box gets its padlock (Pocket's address, their own domain on
+      // Cloudflare, or the box's own certificate). Once the box has a public name, go there instead,
+      // if this network can reach it. While the box is still getting it, wait rather than offer the
+      // certificate steps.
       const $ = (id) => document.getElementById(id);
-      const show = (view) => { for (const v of ["opening", "getting", "steps"]) $(v).hidden = v !== view; };
+      const VIEWS = ["opening", "choose", "cf", "getting", "steps"];
+      const show = (view) => { for (const v of VIEWS) $(v).hidden = v !== view; };
       const get = async (path) => {
         try {
           const r = await fetch(path, { cache: "no-store" });
           return r.ok ? await r.json() : null;
         } catch (e) { return null; }
       };
+      const send = async (method, path, body) => {
+        try {
+          const r = await fetch("/box-address" + path, { method, cache: "no-store",
+            headers: { "Content-Type": "application/json", "X-Pocket-Box": "1" }, body: JSON.stringify(body || {}) });
+          const data = await r.json().catch(() => ({}));
+          if (!r.ok) throw new Error(data.error || "The box didn't answer (" + r.status + ").");
+          return data;
+        } catch (e) {
+          throw new Error(e instanceof TypeError ? "The box didn't answer. Is this device on the same network?" : e.message);
+        }
+      };
+      const fail = (id, e) => { $(id).textContent = e ? e.message || String(e) : ""; $(id).hidden = !e; };
+      const busy = (btn, on, text) => { btn.disabled = on; if (text) btn.textContent = text; };
       const WHAT = {
         asking: "Asking for its address. This takes a minute or two; the page moves on by itself.",
         certificate: "Almost there: getting its certificate. The page moves on by itself.",
         waiting: "Waiting for its address; the box asks again every few minutes and the page moves on by itself.",
       };
-      let gaveUp = false;
+      let gaveUp = false, polling = false, addr = null, signin = {};
       const opened = Date.now();
       $("now").onclick = () => { gaveUp = true; show("steps"); };
 
@@ -117,27 +191,134 @@ let
         }
       }
 
+      // ---- the choice ----
+      $("choose-go").onclick = async () => {
+        const mode = document.querySelector("input[name=mode]:checked").value;
+        fail("choose-error");
+        if (mode === "cloudflare") return showCloudflare();
+        busy($("choose-go"), true);
+        try {
+          await send("PUT", "/v1/address", { mode });
+          if (mode === "own-ca") { gaveUp = true; show("steps"); $("steps-change").hidden = false; }
+          else { $("getting-what").textContent = WHAT.asking; show("getting"); poll(); }
+        } catch (e) { fail("choose-error", e); }
+        busy($("choose-go"), false);
+      };
+
+      function showCloudflare() {
+        fail("cf-error");
+        $("cf-token-link").href = (addr && addr.options && addr.options.token_link) || "https://dash.cloudflare.com/profile/api-tokens";
+        const oauth = !!(addr && addr.options && addr.options.oauth);
+        $("cf-oauth").hidden = !oauth;
+        $("cf-token").hidden = oauth;
+        $("cf-signin").hidden = false;
+        $("cf-zone").hidden = true;
+        show("cf");
+      }
+      $("cf-back").onclick = () => show("choose");
+      $("cf-token-show").onclick = () => { $("cf-token").hidden = false; $("cf-oauth").hidden = true; };
+      $("cf-oauth-go").onclick = async () => {
+        fail("cf-error");
+        busy($("cf-oauth-go"), true);
+        try { location.href = (await send("POST", "/v1/address/cloudflare/start", {})).url; }
+        catch (e) { fail("cf-error", e); busy($("cf-oauth-go"), false); }
+      };
+      $("cf-token-go").onclick = async () => {
+        const token = $("cf-token-in").value.trim();
+        fail("cf-error");
+        if (!token) return fail("cf-error", new Error("Paste the token first."));
+        busy($("cf-token-go"), true);
+        try { showZones((await send("POST", "/v1/address/cloudflare/zones", { token })).zones, { token }); }
+        catch (e) { fail("cf-error", e); }
+        busy($("cf-token-go"), false);
+      };
+
+      function preview() {
+        const z = $("cf-zone-in").selectedOptions[0];
+        const sub = $("cf-sub-in").value.trim().toLowerCase() || "pocket";
+        $("cf-suffix").textContent = z ? "." + z.textContent : "";
+        $("cf-preview").textContent = z ? "Pocket Core will be at https://core." + sub + "." + z.textContent : "";
+      }
+      $("cf-zone-in").onchange = preview;
+      $("cf-sub-in").oninput = () => { fail("cf-error"); preview(); };
+
+      function showZones(zones, how) {
+        signin = how;
+        show("cf");
+        if (!zones.length) {
+          $("cf-signin").hidden = false;
+          return fail("cf-error", new Error("This sign-in can't change any domain. Add your domain to Cloudflare first, or give the token access to it."));
+        }
+        $("cf-zone-in").replaceChildren(...zones.map((z) => { const o = document.createElement("option"); o.value = z.id; o.textContent = z.name; return o; }));
+        $("cf-signin").hidden = true;
+        $("cf-zone").hidden = false;
+        preview();
+      }
+      $("cf-use").onclick = async () => {
+        fail("cf-error");
+        busy($("cf-use"), true);
+        try {
+          await send("PUT", "/v1/address", { mode: "cloudflare", zone_id: $("cf-zone-in").value, sub: $("cf-sub-in").value.trim().toLowerCase(), ...signin });
+          $("getting-what").textContent = "Setting up " + $("cf-sub-in").value.trim().toLowerCase() + "." + $("cf-zone-in").selectedOptions[0].textContent + ". This takes a minute or two; the page moves on by itself.";
+          show("getting");
+          poll();
+        } catch (e) { fail("cf-error", e); }
+        busy($("cf-use"), false);
+      };
+
+      // Back from "Sign in with Cloudflare" (through names.pockethomelab.com, with the code).
+      async function cloudflareBack(q) {
+        history.replaceState(null, "", "/");
+        addr = await get("/box-address/v1/address");
+        showCloudflare();
+        if (q.get("error")) return fail("cf-error", new Error("Cloudflare didn't sign you in (" + (q.get("error_description") || q.get("error")) + ")."));
+        try {
+          const r = await send("POST", "/v1/address/cloudflare/finish", { code: q.get("code"), state: q.get("state") });
+          showZones(r.zones, { pending: r.pending });
+        } catch (e) { fail("cf-error", e); }
+      }
+
+      // ---- waiting for the name ----
+      function poll() { if (!polling) { polling = true; check(); } }
+
       async function check() {
+        polling = false;
         const name = await get("/name.json");
         if (name) return open(name);
-        const st = await get("/name-status.json");
+        addr = await get("/box-address/v1/address");
+        if (addr && addr.mode === null && addr.can_choose) {
+          if ($("choose").hidden && $("cf").hidden) show("choose");
+          return;
+        }
+        if (addr && (addr.mode === "own-ca" || addr.mode === "off")) {
+          show("steps");
+          $("steps-change").hidden = addr.mode !== "own-ca";
+          return;
+        }
+        const st = (addr && addr.status && addr.status.state ? addr.status : null) || await get("/name-status.json");
         const fresh = st && Date.now() / 1000 - st.at < 45 * 60;
         $("why").hidden = true;
         const tooLong = st && st.state === "waiting" && Date.now() - opened > 10 * 60 * 1000;
         if (!gaveUp && fresh && WHAT[st.state] && !tooLong) {
-          $("getting-what").textContent = WHAT[st.state];
+          // Keep "Setting up pocket.example.com…" while it asks; say what comes next after that.
+          if (st.state !== "asking" || $("getting").hidden) $("getting-what").textContent = WHAT[st.state];
           show("getting");
         } else if (!gaveUp) {
           show("steps");
-          if (st && fresh && st.message && (st.state === "offline" || st.state === "failed" || tooLong)) {
+          if (st && fresh && st.message && (["offline", "failed", "signin"].includes(st.state) || tooLong)) {
             $("why").textContent = st.message + " Until then, use the steps below; the page moves on by itself once the box has its address.";
             $("why").hidden = false;
           }
         }
         // Keep looking while the box may still get its name (no status yet: it has only just started).
-        if (!st || ["asking", "certificate", "waiting", "offline", "failed"].includes(st.state)) setTimeout(check, 4000);
+        if (!st || ["asking", "certificate", "waiting", "offline", "failed", "signin", "choose"].includes(st.state)) {
+          polling = true;
+          setTimeout(check, 4000);
+        }
       }
-      check();
+
+      const q = new URLSearchParams(location.search);
+      if (q.get("code") || q.get("error")) cloudflareBack(q); else poll();
     </script>
     </body>
     </html>
