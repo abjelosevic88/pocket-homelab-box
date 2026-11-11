@@ -26,14 +26,23 @@ let
       fi
       encrypt=yes
       pick=""
+      choose=no
       disk=""
       while [ $# -gt 0 ]; do
         case "$1" in
           --no-encrypt) encrypt=no ;;
-          --apps|--bundle|--bundles) pick="$pick ''${2:-}"; shift ;;
+          --pick) choose=yes ;;
+          --apps|--bundle|--bundles)
+            # A name after it is the choice; nothing (or the disk) opens the checklist.
+            if [ $# -ge 2 ] && [ "''${2#-}" = "$2" ] && [ ! -b "/dev/''${2#/dev/}" ]; then
+              pick="$pick $2"; shift
+            else
+              choose=yes
+            fi ;;
           --apps=*|--bundle=*|--bundles=*) pick="$pick ''${1#*=}" ;;
           -h|--help)
-            echo "sudo pocket-install [disk] [--bundle office,media] [--apps notes,tasks] [--no-encrypt]"
+            echo "sudo pocket-install [disk] [--bundle office,media] [--apps notes,tasks] [--pick] [--no-encrypt]"
+            echo "Without a choice (or with --pick, or --apps alone) it shows a checklist of every app."
             echo "Bundles:"; ${pick-apps} ${pickConfig} --menu
             exit 0 ;;
           *) disk="$1" ;;
@@ -41,7 +50,16 @@ let
         shift
       done
 
-      # Which apps. Asked when not given on the command line.
+      # Which apps. Not given on the command line: a checklist (Space ticks, Enter installs); Esc there,
+      # or a terminal curses can't drive, falls back to typing bundle and app names.
+      if { [ -z "''${pick// /}" ] || [ "$choose" = yes ]; } && [ -t 0 ]; then
+        if ${pick-apps} ${pickConfig} --choose /tmp/pocket-apps ${lib.optionalString lite "--lite"}; then
+          pick=$(cat /tmp/pocket-apps)
+          [ -n "''${pick// /}" ] || pick=base
+        else
+          pick=""
+        fi
+      fi
       if [ -z "''${pick// /}" ] && [ -t 0 ]; then
         echo "Which apps should this box have? Bundles:"
         ${pick-apps} ${pickConfig} --menu
