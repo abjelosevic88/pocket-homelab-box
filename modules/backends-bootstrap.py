@@ -45,22 +45,41 @@ def log(*args):
     print(*args, flush=True)
 
 
+def tell(*args):
+    """Also on the serial console: the install test keeps it, so a service left out there is explained."""
+    log(*args)
+    try:
+        fd = os.open("/dev/ttyS0", os.O_WRONLY | os.O_NOCTTY | os.O_NONBLOCK)
+        try:
+            os.write(fd, ("pocket-box-backends: " + " ".join(str(a) for a in args)[:400] + "\r\n").encode())
+        finally:
+            os.close(fd)
+    except OSError:
+        pass
+
+
 def call(method, url, body=None, headers=None, raw=False):
     data = None if body is None else json.dumps(body).encode()
-    # A service that answers its health check can still be finishing its start (Jellyfin: 503).
+    # A service that answers its health check can still be finishing its start (Jellyfin: 503), and
+    # on a busy first boot (every service starting at once) a request can take long: wait for it,
+    # and ask again while it isn't there (a GET also after a time-out).
     end = time.time() + 300
     while True:
         req = urllib.request.Request(url, data=data, method=method, headers={"Accept": "application/json", **(headers or {})})
         if data is not None:
             req.add_header("Content-Type", "application/json")
         try:
-            with urllib.request.urlopen(req, timeout=30) as res:
+            with urllib.request.urlopen(req, timeout=180) as res:
                 text = res.read().decode() or "null"
                 return text if raw else json.loads(text)
         except urllib.error.HTTPError as e:
-            if e.code != 503 or time.time() > end:
+            if e.code not in (502, 503, 504) or time.time() > end:
                 raise
-            time.sleep(3)
+        except (ConnectionError, TimeoutError, urllib.error.URLError) as e:
+            timed_out = isinstance(e, TimeoutError) or isinstance(getattr(e, "reason", None), TimeoutError)
+            if time.time() > end or (timed_out and method != "GET"):
+                raise
+        time.sleep(3)
 
 
 def wait(url, seconds=600):
@@ -93,15 +112,18 @@ def password():
 
 def jellyfin(base):
     info = call("GET", base + "/System/Info/Public")
+    cred = load("jellyfin")
     if not info.get("StartupWizardCompleted"):
-        pw = password()
+        # The password is kept before Jellyfin hears it: a step that fails half-way (a time-out after
+        # Jellyfin did it) is simply done again with the same one, here or at the next boot.
+        if not cred:
+            cred = {"user": ADMIN, "password": password()}
+            save("jellyfin", cred)
         call("POST", base + "/Startup/Configuration", {"UICulture": "en-US", "MetadataCountryCode": "US", "PreferredMetadataLanguage": "en"}, raw=True)
         call("GET", base + "/Startup/User")
-        call("POST", base + "/Startup/User", {"Name": ADMIN, "Password": pw}, raw=True)
+        call("POST", base + "/Startup/User", {"Name": ADMIN, "Password": cred["password"]}, raw=True)
         call("POST", base + "/Startup/RemoteAccess", {"EnableRemoteAccess": True, "EnableAutomaticPortMapping": False}, raw=True)
         call("POST", base + "/Startup/Complete", raw=True)
-        save("jellyfin", {"user": ADMIN, "password": pw})
-    cred = load("jellyfin")
     if not cred:
         raise RuntimeError("Jellyfin was set up before, without the box's administrator")
     if not cred.get("api_key"):
@@ -126,21 +148,30 @@ def jellyfin(base):
 
 def navidrome(base):
     cred = load("navidrome")
-    if not cred:
-        pw = password()
-        call("POST", base + "/auth/createAdmin", {"username": ADMIN, "password": pw})
-        cred = {"user": ADMIN, "password": pw}
+    if not cred or not cred.get("created"):
+        # Kept first (see jellyfin); an admin that already exists must take this password.
+        cred = cred or {"user": ADMIN, "password": password()}
+        save("navidrome", cred)
+        try:
+            call("POST", base + "/auth/createAdmin", {"username": cred["user"], "password": cred["password"]})
+        except urllib.error.HTTPError:
+            call("POST", base + "/auth/login", {"username": cred["user"], "password": cred["password"]})
+        cred["created"] = True
         save("navidrome", cred)
     return {"USER": cred["user"], "PASSWORD": cred["password"]}
 
 
 def immich(base):
     cred = load("immich")
-    if not cred:
-        pw = password()
-        email = ADMIN + "@" + CONFIG["domain"]
-        call("POST", base + "/api/auth/admin-sign-up", {"email": email, "password": pw, "name": "Pocket Box"})
-        cred = {"email": email, "password": pw}
+    if not cred or not cred.get("created"):
+        cred = cred or {"email": ADMIN + "@" + CONFIG["domain"], "password": password()}
+        save("immich", cred)
+        try:
+            call("POST", base + "/api/auth/admin-sign-up", {"email": cred["email"], "password": cred["password"], "name": "Pocket Box"})
+        except urllib.error.HTTPError as e:
+            if e.code != 400:  # 400: there is an admin already (perhaps this one, from a step cut short)
+                raise
+        cred["created"] = True
         save("immich", cred)
     if not cred.get("api_key"):
         token = call("POST", base + "/api/auth/login", {"email": cred["email"], "password": cred["password"]})["accessToken"]
@@ -328,13 +359,20 @@ for svc in CONFIG["services"]:
         continue
     setup, probe = SETUP[name]
     if not wait(base + probe):
-        log(name, "did not answer in time; left out until the next boot")
+        tell(name, "did not answer in time; left out until the next boot")
         continue
-    try:
-        fields = setup(base)
-    except (urllib.error.URLError, OSError, KeyError, IndexError, RuntimeError, ValueError, StopIteration, TypeError) as e:
-        detail = e.read().decode()[:200] if isinstance(e, urllib.error.HTTPError) else ""
-        log(name, "setup failed:", e, detail)
+    fields = None
+    # Each step only does what isn't done yet, so a try cut short (a busy first boot) is tried again.
+    for attempt in range(3):
+        try:
+            fields = setup(base)
+            break
+        except (urllib.error.URLError, OSError, KeyError, IndexError, RuntimeError, ValueError, StopIteration, TypeError) as e:
+            detail = e.read().decode()[:200] if isinstance(e, urllib.error.HTTPError) else ""
+            tell(name, "setup failed (try %d of 3):" % (attempt + 1), repr(e), detail)
+            time.sleep(20)
+    if fields is None:
+        tell(name, "left out until the next boot")
         continue
     box_only = name in BOX_ONLY
     entries.append({
@@ -354,4 +392,4 @@ tmp = out + ".tmp"
 with open(os.open(tmp, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600), "w") as f:
     json.dump(entries, f)
 os.replace(tmp, out)
-log("services for Pocket Core:", ", ".join(e["type"] for e in entries) or "none")
+tell("services for Pocket Core:", ", ".join(e["type"] for e in entries) or "none")
