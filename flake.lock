@@ -223,16 +223,16 @@
     "pocket-core": {
       "flake": false,
       "locked": {
-        "lastModified": 1794492615,
-        "narHash": "sha256-oFq4fWffLADXGHH+aJbu65TFkWuFIh3daOB7aeJewNs=",
+        "lastModified": 1794505033,
+        "narHash": "sha256-Lc2hEaYDp8n6cP+cPYZCtXEDMECl2Q6nqu0L2RA/Pc8=",
         "owner": "abjelosevic88",
         "repo": "pocket-homelab-core",
-        "rev": "31b67feb75c10f8daaccdcecf9af3e019b558ce4",
+        "rev": "78d242bcd77ef6e56d981935cce6b4cee38aa40b",
         "type": "github"
       },
       "original": {
         "owner": "abjelosevic88",
-        "ref": "v0.37.4",
+        "ref": "v0.37.9",
         "repo": "pocket-homelab-core",
         "type": "github"
       }
@@ -1073,16 +1073,16 @@
     "pocket-requests": {
       "flake": false,
       "locked": {
-        "lastModified": 1793871822,
-        "narHash": "sha256-Wg+Qvdt6P4lczlLLM2vtpi5sTiXPjFWRUW1fdzSf8vE=",
+        "lastModified": 1794504681,
+        "narHash": "sha256-uUw2YdpujJSd5LVs7VEknxZOU7alsqZLZrFJ8vdnNWU=",
         "owner": "abjelosevic88",
         "repo": "pocket-homelab-requests",
-        "rev": "d25f7b59c1094b2a5ed72602e387adccd0305adf",
+        "rev": "a22bf69ada0204f5a8df707bf578142503e492ce",
         "type": "github"
       },
       "original": {
         "owner": "abjelosevic88",
-        "ref": "v0.9.1",
+        "ref": "v0.10.1",
         "repo": "pocket-homelab-requests",
         "type": "github"
       }
@@ -1362,16 +1362,16 @@
     "pocket-watch": {
       "flake": false,
       "locked": {
-        "lastModified": 1794340441,
-        "narHash": "sha256-B5YlkTn0lXh17cM9UongJW4ogoII+1Cv1nGfBp2fvhY=",
+        "lastModified": 1794504440,
+        "narHash": "sha256-fzsDC/7Lj/lCjkL1bLR21sgJixCzFQyQ/5/HfX/hIZc=",
         "owner": "abjelosevic88",
         "repo": "pocket-homelab-watch",
-        "rev": "b24cfde98fb0aca99a221511c8e3893ea4b89de5",
+        "rev": "8d264805fcd700e9977d6e6cb016229b2737d105",
         "type": "github"
       },
       "original": {
         "owner": "abjelosevic88",
-        "ref": "v0.6.0",
+        "ref": "v0.7.0",
         "repo": "pocket-homelab-watch",
         "type": "github"
       }

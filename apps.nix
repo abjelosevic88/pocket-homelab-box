@@ -25,7 +25,7 @@ in
     title = "Pocket Core";
     pname = "pocket-core";
     input = "pocket-core";
-    version = "0.37.4";
+    version = "0.37.9";
     port = 8179;
     vendorHash = "sha256-AmQl4eumT1+KUEk3jsBDJpAV1h2efmwUL+gcfg4IrIE=";
     npmDepsHash = "sha256-B6hwAJzFxJG6iSPCb/vrsQrF8lzORM95hK7vslmlGm0=";
@@ -683,7 +683,7 @@ in
     title = "Pocket Requests";
     pname = "pocket-requests";
     input = "pocket-requests";
-    version = "0.9.1";
+    version = "0.10.1";
     port = 8210;
     # Requests go to the box's Radarr, Sonarr and Lidarr (modules/services.nix), through Pocket Core.
     vendorHash = "sha256-orX8b2RbbV3XoLZ4WAfqSgQF/AYRinb4n6V4okSMbCk=";
@@ -875,7 +875,7 @@ in
     title = "Pocket Watch";
     pname = "pocket-watch";
     input = "pocket-watch";
-    version = "0.6.0";
+    version = "0.7.0";
     port = 8201;
     vendorHash = "sha256-5t6xTN2Ck2RHfOV4+otOwXkR11Rzj7mhNcig+mLAJmM=";
     npmDepsHash = "sha256-iJULF2fqzlRKJ7Q88yR2fb9L/GH5stsYJx0GYsm/RyI=";
