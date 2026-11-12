@@ -1,0 +1,526 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0d172a" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#eef2f9" media="(prefers-color-scheme: light)">
+<title>Pocket Box</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%23347af3'/%3E%3Cstop offset='1' stop-color='%2335d9f5'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='64' height='64' rx='15' fill='url(%23g)'/%3E%3Cpath d='M32 14 49 23.5v17L32 50 15 40.5v-17z M15 23.5 32 33l17-9.5 M32 33v17' fill='none' stroke='%23fff' stroke-width='3.5' stroke-linejoin='round'/%3E%3C/svg%3E">
+<style>
+  :root {
+    color-scheme: dark;
+    --bg: #070b14; --bg-2: #0d172a; --bg-3: #12213b;
+    --panel: rgba(18, 33, 59, .62); --panel-solid: #101d34; --line: rgba(154, 167, 187, .16); --line-2: rgba(154, 167, 187, .28);
+    --fg: #e6edf7; --muted: #9aa7bb; --faint: #6b788e;
+    --accent: #35d9f5; --blue: #347af3; --mint: #7cf5c4; --amber: #f5b84d; --rose: #f7728b;
+    --glow: rgba(53, 217, 245, .18); --shadow: 0 20px 50px -24px rgba(0, 0, 0, .7);
+  }
+  @media (prefers-color-scheme: light) {
+    :root {
+      color-scheme: light;
+      --bg: #f5f7fb; --bg-2: #e6eef9; --bg-3: #ffffff;
+      --panel: rgba(255, 255, 255, .78); --panel-solid: #ffffff; --line: rgba(14, 23, 38, .09); --line-2: rgba(14, 23, 38, .18);
+      --fg: #0e1726; --muted: #45536b; --faint: #5b6a80;
+      --accent: #0e7490; --blue: #2563eb; --mint: #057a55; --amber: #b45309; --rose: #be123c;
+      --glow: rgba(14, 116, 144, .12); --shadow: 0 18px 40px -26px rgba(14, 23, 38, .35);
+    }
+  }
+  * { box-sizing: border-box; }
+  [hidden] { display: none !important; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0; min-height: 100vh; min-height: 100dvh;
+    font: 16px/1.55 -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+    color: var(--fg); background: var(--bg);
+    background-image:
+      radial-gradient(60rem 30rem at 50% -8rem, var(--glow), transparent 70%),
+      linear-gradient(180deg, var(--bg-2) 0%, var(--bg) 38rem);
+    background-repeat: no-repeat;
+  }
+  a { color: var(--accent); }
+  main { max-width: 620px; margin: 0 auto; padding: max(28px, env(safe-area-inset-top)) 18px 56px; }
+
+  /* ---- header ---- */
+  header { display: flex; align-items: center; gap: 12px; margin-bottom: 34px; }
+  header .mark { width: 40px; height: 40px; flex: none; border-radius: 11px; box-shadow: 0 0 22px -4px rgba(53, 217, 245, .55); }
+  header .brand { font-weight: 650; font-size: 17px; letter-spacing: -.01em; }
+  .pill { margin-left: auto; display: inline-flex; align-items: center; gap: 7px; font-size: 13px; font-weight: 600; color: var(--muted);
+    background: var(--panel); border: 1px solid var(--line); border-radius: 999px; padding: 5px 12px 5px 10px; backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
+  .pill i { width: 8px; height: 8px; border-radius: 50%; background: var(--mint); box-shadow: 0 0 0 3px color-mix(in srgb, var(--mint) 22%, transparent); }
+
+  /* ---- type ---- */
+  .eyebrow { font-size: 12px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--accent); margin: 0 0 10px; }
+  h1 { font-size: clamp(28px, 7vw, 38px); line-height: 1.12; letter-spacing: -.025em; margin: 0 0 12px; font-weight: 750; }
+  h1 em { font-style: normal; background: linear-gradient(90deg, var(--blue), var(--accent)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  h2 { font-size: 19px; letter-spacing: -.01em; margin: 0 0 6px; }
+  p { margin: 0 0 12px; }
+  p.lead { color: var(--muted); font-size: 17px; margin: 0 0 26px; }
+  p.note { color: var(--muted); font-size: 14px; margin: 0 0 8px; }
+  p.small { font-size: 13.5px; color: var(--faint); margin: 14px 0 0; }
+
+  /* ---- panels ---- */
+  .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 22px; padding: 22px; margin-bottom: 16px;
+    box-shadow: var(--shadow); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); }
+  .center { text-align: center; }
+
+  /* ---- buttons ---- */
+  .btn, button.primary { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 48px; padding: 0 22px; border: 0; border-radius: 14px;
+    background: linear-gradient(180deg, color-mix(in srgb, var(--blue) 88%, #fff), var(--blue)); color: #fff; font: inherit; font-weight: 650; text-decoration: none; cursor: pointer;
+    box-shadow: 0 10px 24px -12px var(--blue), inset 0 1px 0 rgba(255, 255, 255, .22); transition: transform .12s, filter .12s; }
+  .btn:hover, button.primary:hover { filter: brightness(1.08); }
+  .btn:active, button.primary:active { transform: scale(.98); }
+  button.primary:disabled { opacity: .55; cursor: default; transform: none; filter: none; }
+  .btn.ghost { background: transparent; color: var(--fg); border: 1px solid var(--line-2); box-shadow: none; }
+  .btn svg, button.primary svg { width: 18px; height: 18px; }
+  .wide { width: 100%; }
+  button.link { background: none; border: 0; padding: 0; color: var(--accent); font: inherit; font-weight: 600; cursor: pointer; }
+  button.link:hover { text-decoration: underline; }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+
+  /* ---- the choice ---- */
+  .choices { display: grid; gap: 12px; margin-bottom: 18px; }
+  .choice { position: relative; display: grid; grid-template-columns: 48px 1fr 22px; gap: 14px; align-items: start; padding: 18px; cursor: pointer;
+    background: var(--panel); border: 1.5px solid var(--line); border-radius: 20px; backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+    transition: border-color .15s, background .15s, transform .15s; }
+  .choice:hover { border-color: var(--line-2); }
+  .choice:has(input:checked) { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 8%, var(--panel)); box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 12%, transparent), var(--shadow); }
+  .choice input { position: absolute; opacity: 0; pointer-events: none; }
+  .choice:has(input:focus-visible) { outline: 2px solid var(--accent); outline-offset: 3px; }
+  .ico { width: 48px; height: 48px; border-radius: 14px; display: grid; place-items: center; color: #fff; }
+  .ico svg { width: 26px; height: 26px; }
+  .ico.c1 { background: linear-gradient(135deg, var(--blue), #35d9f5); }
+  .ico.c2 { background: linear-gradient(135deg, #f6821f, #fbad41); }
+  .ico.c3 { background: linear-gradient(135deg, #7c5cf0, #a78bfa); }
+  .choice b { display: block; font-size: 17px; line-height: 1.3; margin: 1px 0 4px; }
+  .choice .desc { display: block; color: var(--muted); font-size: 14.5px; }
+  .radio { width: 22px; height: 22px; border-radius: 50%; border: 2px solid var(--line-2); margin-top: 2px; display: grid; place-items: center; transition: border-color .15s; }
+  .radio::after { content: ""; width: 10px; height: 10px; border-radius: 50%; background: var(--accent); transform: scale(0); transition: transform .15s; }
+  .choice:has(input:checked) .radio { border-color: var(--accent); }
+  .choice:has(input:checked) .radio::after { transform: scale(1); }
+  .tag { display: inline-block; font-size: 11px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: var(--mint);
+    background: color-mix(in srgb, var(--mint) 14%, transparent); border-radius: 999px; padding: 2px 8px; margin-left: 6px; vertical-align: 2px; }
+  .facts { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; padding: 0; list-style: none; }
+  .facts li { font-size: 12.5px; font-weight: 600; color: var(--muted); border: 1px solid var(--line); border-radius: 999px; padding: 3px 10px; }
+  .facts li::before { content: "✓ "; color: var(--mint); }
+
+  /* ---- forms ---- */
+  label.field { display: block; font-weight: 650; font-size: 14.5px; margin: 16px 0 6px; }
+  input.text, select.text { width: 100%; min-height: 48px; font: inherit; padding: 10px 14px; border-radius: 13px; border: 1px solid var(--line-2);
+    background: var(--panel-solid); color: var(--fg); }
+  input.text:focus, select.text:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 22%, transparent); }
+  .row { display: flex; align-items: center; gap: 8px; } .row input.text { flex: 1; min-width: 0; } .row .suffix { color: var(--muted); white-space: nowrap; font-size: 15px; }
+  .preview { margin-top: 12px; padding: 10px 14px; border-radius: 12px; background: color-mix(in srgb, var(--accent) 9%, transparent); color: var(--fg); font-size: 14px; word-break: break-all; }
+  .preview:empty { display: none; }
+  p.error { color: var(--rose); font-size: 14.5px; margin: 12px 0 0; padding: 10px 14px; border-radius: 12px; background: color-mix(in srgb, var(--rose) 10%, transparent); }
+  .numbered { display: grid; grid-template-columns: 30px 1fr; gap: 12px; align-items: start; margin-top: 16px; }
+  .num { width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; font-weight: 700; font-size: 14px; color: var(--accent);
+    background: color-mix(in srgb, var(--accent) 13%, transparent); }
+  .divider { display: flex; align-items: center; gap: 12px; color: var(--faint); font-size: 13px; margin: 18px 0 12px; }
+  .divider::before, .divider::after { content: ""; flex: 1; border-top: 1px solid var(--line); }
+  .back { display: inline-flex; align-items: center; gap: 6px; margin-bottom: 18px; }
+
+  /* ---- waiting ---- */
+  .orb { position: relative; width: 116px; height: 116px; margin: 6px auto 22px; }
+  .orb svg.ring { position: absolute; inset: 0; width: 100%; height: 100%; animation: spin 1.6s linear infinite; }
+  .orb .lock { position: absolute; inset: 26px; border-radius: 50%; display: grid; place-items: center; background: color-mix(in srgb, var(--accent) 12%, transparent); color: var(--accent); }
+  .orb .lock svg { width: 34px; height: 34px; }
+  .spin { display: inline-block; width: 26px; height: 26px; border: 3px solid var(--line-2); border-top-color: var(--accent); border-radius: 50%; animation: spin .9s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  @keyframes pulse { 50% { opacity: .45; } }
+  .stages { list-style: none; padding: 0; margin: 22px auto 4px; max-width: 320px; text-align: left; }
+  .stages li { display: flex; align-items: center; gap: 12px; padding: 9px 0; color: var(--faint); font-weight: 600; font-size: 15px; }
+  .stages li i { width: 22px; height: 22px; flex: none; border-radius: 50%; border: 2px solid var(--line-2); display: grid; place-items: center; font-style: normal; font-size: 12px; }
+  .stages li.done { color: var(--muted); } .stages li.done i { border-color: var(--mint); background: var(--mint); color: var(--bg); }
+  .stages li.done i::before { content: "✓"; font-weight: 800; }
+  .stages li.now { color: var(--fg); } .stages li.now i { border-color: var(--accent); }
+  .stages li.now i::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--accent); animation: pulse 1.2s ease-in-out infinite; }
+  @media (prefers-reduced-motion: reduce) { .orb svg.ring, .spin, .stages li.now i::before { animation: none; } }
+
+  /* ---- the steps ---- */
+  .notice { display: flex; gap: 12px; align-items: flex-start; padding: 14px 16px; border-radius: 16px; margin: 0 0 16px; font-size: 14.5px; color: var(--fg);
+    background: color-mix(in srgb, var(--amber) 11%, transparent); border: 1px solid color-mix(in srgb, var(--amber) 30%, transparent); }
+  .notice::before { content: "!"; flex: none; width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center; font-weight: 800; font-size: 13px; color: var(--bg); background: var(--amber); margin-top: 1px; }
+  .notice.info { background: color-mix(in srgb, var(--accent) 9%, transparent); border-color: color-mix(in srgb, var(--accent) 26%, transparent); }
+  .notice.info::before { content: "i"; background: var(--accent); }
+  .step-head { display: flex; align-items: center; gap: 14px; margin-bottom: 10px; }
+  .step-head .num { width: 36px; height: 36px; font-size: 16px; flex: none; }
+  .step-head h2 { margin: 0; }
+  .tabs { display: flex; flex-wrap: wrap; gap: 3px; padding: 4px; margin: 18px 0 14px; border-radius: 14px; background: color-mix(in srgb, var(--fg) 6%, transparent); }
+  .tabs button { flex: 1 1 auto; border: 0; background: none; color: var(--muted); font: inherit; font-size: 13.5px; font-weight: 650; padding: 8px 6px; border-radius: 10px; cursor: pointer; white-space: nowrap; }
+  .tabs button[aria-selected="true"] { background: var(--panel-solid); color: var(--fg); box-shadow: 0 2px 8px -3px rgba(0, 0, 0, .35); }
+  ol.how { margin: 0; padding: 0; list-style: none; counter-reset: how; }
+  ol.how li { counter-increment: how; position: relative; padding: 0 0 12px 34px; color: var(--muted); font-size: 15px; }
+  ol.how li::before { content: counter(how); position: absolute; left: 0; top: 1px; width: 22px; height: 22px; border-radius: 7px; display: grid; place-items: center;
+    font-size: 12px; font-weight: 700; color: var(--fg); background: color-mix(in srgb, var(--fg) 9%, transparent); }
+  ol.how b { color: var(--fg); font-weight: 600; }
+  .actions { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin: 14px 0 4px; }
+
+  footer { margin-top: 30px; text-align: center; color: var(--faint); font-size: 13px; }
+  footer a { color: inherit; }
+
+  @media (max-width: 480px) {
+    main { padding-left: 14px; padding-right: 14px; }
+    .panel { padding: 18px; border-radius: 20px; }
+    .choice { grid-template-columns: 42px 1fr 22px; gap: 12px; padding: 16px; }
+    .ico { width: 42px; height: 42px; border-radius: 12px; } .ico svg { width: 22px; height: 22px; }
+    #choose-go, #cf-use, #cf-token-go, #cf-oauth-go, .step .btn { width: 100%; }
+  }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <svg class="mark" viewBox="0 0 64 64" aria-hidden="true"><defs><linearGradient id="mk" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#347af3"/><stop offset="1" stop-color="#35d9f5"/></linearGradient></defs>
+      <rect width="64" height="64" rx="15" fill="url(#mk)"/><path d="M32 14 49 23.5v17L32 50 15 40.5v-17z M15 23.5 32 33l17-9.5 M32 33v17" fill="none" stroke="#fff" stroke-width="3.5" stroke-linejoin="round"/></svg>
+    <span class="brand">Pocket Box</span>
+    <span class="pill"><i></i>Box is on</span>
+  </header>
+
+  <!-- Sending the browser on to the box's public name -->
+  <section id="opening" class="panel center" hidden>
+    <div class="spin" aria-hidden="true" style="margin: 10px auto 16px"></div>
+    <h2>Opening Pocket Box…</h2>
+    <p class="note">If nothing happens, <a id="opening-link" href="#">open it here</a>.</p>
+  </section>
+
+  <!-- First visit: how the box gets its padlock -->
+  <div id="choose" hidden>
+    <p class="eyebrow">Welcome · one last step</p>
+    <h1>Give your box a <em>secure address</em></h1>
+    <p class="lead">Pick how your phones and computers reach the box with a padlock in the address bar. You can change it later in Pocket Core → Settings → This box.</p>
+    <div class="choices" role="radiogroup" aria-label="Secure address">
+      <label class="choice"><input type="radio" name="mode" value="pocket" checked>
+        <span class="ico c1" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 4 14h7l-1 8 9-12h-7z"/></svg></span>
+        <span>
+          <b>Pocket's free address<span class="tag">Recommended</span></b>
+          <span class="desc">Your box gets a name like <i>x7k2m9.box.pockethomelab.com</i>, pointing at your home. Every browser trusts it.</span>
+          <ul class="facts"><li>Ready in a minute</li><li>Nothing to install</li><li>Free</li></ul>
+        </span>
+        <span class="radio" aria-hidden="true"></span></label>
+      <label class="choice"><input type="radio" name="mode" value="cloudflare">
+        <span class="ico c2" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.5 19a4.5 4.5 0 1 0-1.2-8.84A6 6 0 0 0 5 12.5 3.25 3.25 0 0 0 6.5 19z"/></svg></span>
+        <span>
+          <b>My own domain on Cloudflare</b>
+          <span class="desc">Like <i>pocket.yourname.com</i>. Sign in with Cloudflare and the box sets up the rest itself.</span>
+          <ul class="facts"><li>Your own name</li><li>Nothing through Pocket</li></ul>
+        </span>
+        <span class="radio" aria-hidden="true"></span></label>
+      <label class="choice"><input type="radio" name="mode" value="own-ca">
+        <span class="ico c3" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-3.5 8-10V5l-8-3-8 3v7c0 6.5 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg></span>
+        <span>
+          <b>The box's own certificate</b>
+          <span class="desc">No name on the internet at all. Install the box's certificate once on each phone and computer.</span>
+          <ul class="facts"><li>Works offline</li><li>Fully private</li></ul>
+        </span>
+        <span class="radio" aria-hidden="true"></span></label>
+    </div>
+    <button type="button" class="primary" id="choose-go">Continue
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
+    <p class="error" id="choose-error" hidden></p>
+  </div>
+
+  <!-- Own domain on Cloudflare -->
+  <section id="cf" hidden>
+    <button type="button" class="link back" id="cf-back">← Back to the choices</button>
+    <p class="eyebrow">Your own domain</p>
+    <h1>Connect <em>Cloudflare</em></h1>
+    <p class="lead">You need a domain whose DNS is on Cloudflare (the free plan is enough). The box adds two records, <i>name</i>.yourdomain and *.<i>name</i>.yourdomain, pointing at your home, and gets its certificate itself.</p>
+    <div class="panel">
+      <div id="cf-signin">
+        <div id="cf-oauth" hidden>
+          <button type="button" class="primary" id="cf-oauth-go">Sign in with Cloudflare</button>
+          <p class="small">Cloudflare asks you to allow “Pocket Box” to read your domains and edit their DNS.</p>
+          <div class="divider">or</div>
+          <p class="note"><button type="button" class="link" id="cf-token-show">Use an API token instead</button></p>
+        </div>
+        <div id="cf-token">
+          <div class="numbered" style="margin-top: 0"><span class="num">1</span>
+            <p><a href="#" id="cf-token-link" target="_blank" rel="noopener"><b>Create a token in Cloudflare</b></a>. The permissions are filled in already
+              (Zone · Read and DNS · Edit); press <i>Continue to summary</i>, then <i>Create Token</i>.</p></div>
+          <div class="numbered"><span class="num">2</span>
+            <div><label class="field" for="cf-token-in" style="margin-top: 3px">Paste the token here</label>
+              <input class="text" id="cf-token-in" autocomplete="off" spellcheck="false" placeholder="The token Cloudflare shows once"></div></div>
+          <div class="actions"><button type="button" class="primary" id="cf-token-go">Next</button></div>
+        </div>
+      </div>
+      <div id="cf-zone" hidden>
+        <label class="field" for="cf-zone-in" style="margin-top: 0">Domain</label>
+        <select class="text" id="cf-zone-in"></select>
+        <label class="field" for="cf-sub-in">Name for the box</label>
+        <div class="row"><input class="text" id="cf-sub-in" value="pocket" autocomplete="off" spellcheck="false"><span class="suffix" id="cf-suffix"></span></div>
+        <p class="preview" id="cf-preview"></p>
+        <div class="actions"><button type="button" class="primary" id="cf-use">Use this address</button></div>
+      </div>
+      <p class="error" id="cf-error" hidden></p>
+    </div>
+  </section>
+
+  <!-- Waiting for the public name -->
+  <section id="getting" class="panel center" hidden>
+    <div class="orb" aria-hidden="true">
+      <svg class="ring" viewBox="0 0 116 116"><defs><linearGradient id="rg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#347af3"/><stop offset="1" stop-color="#35d9f5" stop-opacity="0"/></linearGradient></defs>
+        <circle cx="58" cy="58" r="54" fill="none" stroke="url(#rg)" stroke-width="4" stroke-linecap="round" stroke-dasharray="250 400"/></svg>
+      <div class="lock"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="10" rx="2.5"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg></div>
+    </div>
+    <h2>Getting your box's secure address…</h2>
+    <p class="note" id="getting-what">This takes a minute or two. The page moves on by itself; nothing to install.</p>
+    <ol class="stages" id="stages" data-stage="1">
+      <li class="done"><i></i>Choice saved</li>
+      <li><i></i>Address for your box</li>
+      <li><i></i>Padlock certificate</li>
+      <li><i></i>Opening Pocket Core</li>
+    </ol>
+    <p class="small">Can't wait? <button type="button" class="link" id="now">Use the box now</button> by installing its certificate instead.</p>
+  </section>
+
+  <!-- Certificate steps -->
+  <div id="steps">
+    <p class="eyebrow">Set up this device</p>
+    <h1>Two quick steps <em>on each device</em></h1>
+    <p class="lead">Do this once on every phone and computer you use with the box.</p>
+    <p class="notice" id="why" hidden></p>
+    <p class="notice" id="blocked" hidden><span>This network can't reach the box's own address (<b id="blocked-name"></b>);
+      some routers block names that point into the home network. Until the router allows it, use the steps below.</span></p>
+    <section class="panel step">
+      <div class="step-head"><span class="num">1</span><h2>Trust the box's certificate</h2></div>
+      <p class="note">The box encrypts everything with its own certificate. Install it once so your browser trusts it.</p>
+      <div class="actions"><a class="btn" href="/pocket-box-ca.crt">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg>Download certificate</a></div>
+      <p class="small">If the browser says “Insecure download blocked”, choose Keep: this page can't use https until the certificate is installed.</p>
+      <div class="tabs" role="tablist" aria-label="Your device">
+        <button type="button" role="tab" data-os="ios">iPhone</button>
+        <button type="button" role="tab" data-os="mac">Mac</button>
+        <button type="button" role="tab" data-os="android">Android</button>
+        <button type="button" role="tab" data-os="windows">Windows</button>
+        <button type="button" role="tab" data-os="linux">Linux</button>
+      </div>
+      <ol class="how" data-os="ios">
+        <li>iPhone or iPad: open the download, then <b>Settings → Profile Downloaded → Install</b>.</li>
+        <li><b>Settings → General → About → Certificate Trust Settings</b> → turn on “Pocket Box”.</li></ol>
+      <ol class="how" data-os="mac" hidden>
+        <li>Open the file; Keychain Access adds it to the login keychain.</li>
+        <li>Double-click “Pocket Box” → <b>Trust → When using this certificate: Always Trust</b>.</li></ol>
+      <ol class="how" data-os="android" hidden>
+        <li><b>Settings → Security → More security settings → Install from storage → CA certificate</b>.</li>
+        <li>Pick the downloaded file.</li></ol>
+      <ol class="how" data-os="windows" hidden>
+        <li>Open the file → <b>Install Certificate → Local Machine</b>.</li>
+        <li>Place it in <b>“Trusted Root Certification Authorities”</b>.</li></ol>
+      <ol class="how" data-os="linux" hidden>
+        <li>Chrome: <b>Settings → Privacy and security → Security → Manage certificates → Authorities → Import</b>.</li>
+        <li>Firefox: <b>Settings → Privacy &amp; Security → Certificates → View Certificates → Authorities → Import</b>, tick “Trust this CA to identify websites”.</li></ol>
+    </section>
+    <section class="panel step">
+      <div class="step-head"><span class="num">2</span><h2>Open Pocket Core</h2></div>
+      <p class="note">Create your account there; it lists every app on the box.</p>
+      <div class="actions"><a class="btn" href="@CORE_URL@">Open Pocket Core
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a></div>
+    </section>
+    <p class="notice info" id="steps-change" hidden>Rather have an address every browser trusts? Choose it in Pocket Core → Settings → This box.</p>
+  </div>
+
+  <footer>Pocket Box · <a href="https://pockethomelab.com/box" target="_blank" rel="noopener">pockethomelab.com/box</a></footer>
+</main>
+<script>
+  // First the owner chooses how the box gets its padlock (Pocket's address, their own domain on
+  // Cloudflare, or the box's own certificate). Once the box has a public name, go there instead,
+  // if this network can reach it. While the box is still getting it, wait rather than offer the
+  // certificate steps.
+  const $ = (id) => document.getElementById(id);
+  const VIEWS = ["opening", "choose", "cf", "getting", "steps"];
+  const show = (view) => { for (const v of VIEWS) $(v).hidden = v !== view; window.scrollTo(0, 0); };
+  const get = async (path) => {
+    try {
+      const r = await fetch(path, { cache: "no-store" });
+      return r.ok ? await r.json() : null;
+    } catch (e) { return null; }
+  };
+  const send = async (method, path, body) => {
+    try {
+      const r = await fetch("/box-address" + path, { method, cache: "no-store",
+        headers: { "Content-Type": "application/json", "X-Pocket-Box": "1" }, body: JSON.stringify(body || {}) });
+      const data = await r.json().catch(() => ({}));
+      if (!r.ok) throw new Error(data.error || "The box didn't answer (" + r.status + ").");
+      return data;
+    } catch (e) {
+      throw new Error(e instanceof TypeError ? "The box didn't answer. Is this device on the same network?" : e.message);
+    }
+  };
+  const fail = (id, e) => { $(id).textContent = e ? e.message || String(e) : ""; $(id).hidden = !e; };
+  const busy = (btn, on, text) => { btn.disabled = on; if (text) btn.textContent = text; };
+  const WHAT = {
+    asking: "Asking for its address. This takes a minute or two; the page moves on by itself.",
+    certificate: "Almost there: getting its certificate. The page moves on by itself.",
+    waiting: "Waiting for its address; the box asks again every few minutes and the page moves on by itself.",
+  };
+  // The checklist under the ring: 1 = the address, 2 = the certificate, 3 = opening Pocket Core.
+  const STAGE = { asking: 1, waiting: 1, certificate: 2 };
+  const stage = (n) => {
+    [...$("stages").children].forEach((li, i) => { li.className = i < n ? "done" : i === n ? "now" : ""; });
+  };
+  stage(1);
+  let gaveUp = false, polling = false, addr = null, signin = {};
+  const opened = Date.now();
+  $("now").onclick = () => { gaveUp = true; show("steps"); };
+
+  // The device tabs under step 1, opened on the one this browser runs on.
+  const tabs = [...document.querySelectorAll(".tabs button")];
+  const pick = (os) => {
+    for (const t of tabs) t.setAttribute("aria-selected", t.dataset.os === os ? "true" : "false");
+    for (const l of document.querySelectorAll("ol.how")) l.hidden = l.dataset.os !== os;
+  };
+  for (const t of tabs) t.onclick = () => pick(t.dataset.os);
+  const ua = navigator.userAgent;
+  pick(/iPhone|iPad|iPod/.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1) ? "ios"
+    : /Android/.test(ua) ? "android" : /Macintosh/.test(ua) ? "mac" : /Windows/.test(ua) ? "windows" : /Linux|CrOS/.test(ua) ? "linux" : "ios");
+
+  async function open(name) {
+    stage(3);
+    show("opening");
+    $("opening-link").href = name.core + "/";
+    const stop = new AbortController();
+    setTimeout(() => stop.abort(), 5000);
+    try {
+      await fetch(name.core + "/healthz", { mode: "no-cors", cache: "no-store", signal: stop.signal });
+      location.replace(name.core + "/");
+    } catch (e) {
+      show("steps");
+      $("blocked-name").textContent = name.domain;
+      $("blocked").hidden = false;
+    }
+  }
+
+  // ---- the choice ----
+  $("choose-go").onclick = async () => {
+    const mode = document.querySelector("input[name=mode]:checked").value;
+    fail("choose-error");
+    if (mode === "cloudflare") return showCloudflare();
+    busy($("choose-go"), true);
+    try {
+      await send("PUT", "/v1/address", { mode });
+      if (mode === "own-ca") { gaveUp = true; show("steps"); $("steps-change").hidden = false; }
+      else { $("getting-what").textContent = WHAT.asking; stage(1); show("getting"); poll(); }
+    } catch (e) { fail("choose-error", e); }
+    busy($("choose-go"), false);
+  };
+
+  function showCloudflare() {
+    fail("cf-error");
+    $("cf-token-link").href = (addr && addr.options && addr.options.token_link) || "https://dash.cloudflare.com/profile/api-tokens";
+    const oauth = !!(addr && addr.options && addr.options.oauth);
+    $("cf-oauth").hidden = !oauth;
+    $("cf-token").hidden = oauth;
+    $("cf-signin").hidden = false;
+    $("cf-zone").hidden = true;
+    show("cf");
+  }
+  $("cf-back").onclick = () => show("choose");
+  $("cf-token-show").onclick = () => { $("cf-token").hidden = false; $("cf-oauth").hidden = true; };
+  $("cf-oauth-go").onclick = async () => {
+    fail("cf-error");
+    busy($("cf-oauth-go"), true);
+    try { location.href = (await send("POST", "/v1/address/cloudflare/start", {})).url; }
+    catch (e) { fail("cf-error", e); busy($("cf-oauth-go"), false); }
+  };
+  $("cf-token-go").onclick = async () => {
+    const token = $("cf-token-in").value.trim();
+    fail("cf-error");
+    if (!token) return fail("cf-error", new Error("Paste the token first."));
+    busy($("cf-token-go"), true);
+    try { showZones((await send("POST", "/v1/address/cloudflare/zones", { token })).zones, { token }); }
+    catch (e) { fail("cf-error", e); }
+    busy($("cf-token-go"), false);
+  };
+
+  function preview() {
+    const z = $("cf-zone-in").selectedOptions[0];
+    const sub = $("cf-sub-in").value.trim().toLowerCase() || "pocket";
+    $("cf-suffix").textContent = z ? "." + z.textContent : "";
+    $("cf-preview").textContent = z ? "Pocket Core will be at https://core." + sub + "." + z.textContent : "";
+  }
+  $("cf-zone-in").onchange = preview;
+  $("cf-sub-in").oninput = () => { fail("cf-error"); preview(); };
+
+  function showZones(zones, how) {
+    signin = how;
+    show("cf");
+    if (!zones.length) {
+      $("cf-signin").hidden = false;
+      return fail("cf-error", new Error("This sign-in can't change any domain. Add your domain to Cloudflare first, or give the token access to it."));
+    }
+    $("cf-zone-in").replaceChildren(...zones.map((z) => { const o = document.createElement("option"); o.value = z.id; o.textContent = z.name; return o; }));
+    $("cf-signin").hidden = true;
+    $("cf-zone").hidden = false;
+    preview();
+  }
+  $("cf-use").onclick = async () => {
+    fail("cf-error");
+    busy($("cf-use"), true);
+    try {
+      await send("PUT", "/v1/address", { mode: "cloudflare", zone_id: $("cf-zone-in").value, sub: $("cf-sub-in").value.trim().toLowerCase(), ...signin });
+      $("getting-what").textContent = "Setting up " + $("cf-sub-in").value.trim().toLowerCase() + "." + $("cf-zone-in").selectedOptions[0].textContent + ". This takes a minute or two; the page moves on by itself.";
+      stage(1);
+      show("getting");
+      poll();
+    } catch (e) { fail("cf-error", e); }
+    busy($("cf-use"), false);
+  };
+
+  // Back from "Sign in with Cloudflare" (through names.pockethomelab.com, with the code).
+  async function cloudflareBack(q) {
+    history.replaceState(null, "", "/");
+    addr = await get("/box-address/v1/address");
+    showCloudflare();
+    if (q.get("error")) return fail("cf-error", new Error("Cloudflare didn't sign you in (" + (q.get("error_description") || q.get("error")) + ")."));
+    try {
+      const r = await send("POST", "/v1/address/cloudflare/finish", { code: q.get("code"), state: q.get("state") });
+      showZones(r.zones, { pending: r.pending });
+    } catch (e) { fail("cf-error", e); }
+  }
+
+  // ---- waiting for the name ----
+  function poll() { if (!polling) { polling = true; check(); } }
+
+  async function check() {
+    polling = false;
+    const name = await get("/name.json");
+    if (name) return open(name);
+    addr = await get("/box-address/v1/address");
+    if (addr && addr.mode === null && addr.can_choose) {
+      if ($("choose").hidden && $("cf").hidden) show("choose");
+      return;
+    }
+    if (addr && (addr.mode === "own-ca" || addr.mode === "off")) {
+      if ($("steps").hidden) show("steps");
+      $("steps-change").hidden = addr.mode !== "own-ca";
+      return;
+    }
+    const st = (addr && addr.status && addr.status.state ? addr.status : null) || await get("/name-status.json");
+    const fresh = st && Date.now() / 1000 - st.at < 45 * 60;
+    $("why").hidden = true;
+    const tooLong = st && st.state === "waiting" && Date.now() - opened > 10 * 60 * 1000;
+    if (!gaveUp && fresh && WHAT[st.state] && !tooLong) {
+      // Keep "Setting up pocket.example.com…" while it asks; say what comes next after that.
+      if (st.state !== "asking" || $("getting").hidden) $("getting-what").textContent = WHAT[st.state];
+      stage(STAGE[st.state]);
+      if ($("getting").hidden) show("getting");
+    } else if (!gaveUp) {
+      if ($("steps").hidden) show("steps");
+      if (st && fresh && st.message && (["offline", "failed", "signin"].includes(st.state) || tooLong)) {
+        $("why").textContent = st.message + " Until then, use the steps below; the page moves on by itself once the box has its address.";
+        $("why").hidden = false;
+      }
+    }
+    // Keep looking while the box may still get its name (no status yet: it has only just started).
+    if (!st || ["asking", "certificate", "waiting", "offline", "failed", "signin", "choose"].includes(st.state)) {
+      polling = true;
+      setTimeout(check, 4000);
+    }
+  }
+
+  const q = new URLSearchParams(location.search);
+  if (q.get("code") || q.get("error")) cloudflareBack(q); else poll();
+</script>
+</body>
+</html>
