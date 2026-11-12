@@ -10,14 +10,26 @@ for them (pocket-box-media-keys):
   POST   /v1/downloads/indexers     {preset?, name?, url?, api_key}  → Prowlarr (Newznab), tested
   DELETE /v1/downloads/indexers/{id}
   PUT    /v1/downloads/subtitles    {languages, opensubtitles?: {username, password}}  → Bazarr
+  PUT    /v1/downloads/torrents     {enabled, seeding?: {ratio, days}}  → qBittorrent started/stopped, the arr apps' client on/off
+  PUT    /v1/downloads/vpn          {wireguard: "<wg-quick .conf>"}  → the tunnel for qBittorrent, tested
+  DELETE /v1/downloads/vpn
+  POST   /v1/downloads/indexers     {kind: "torrent", preset?, definition?, name?, url?, api_key?, username?, password?}
+
+Torrents are off until the owner switches them on: they show the home address to other peers. With a VPN,
+qBittorrent's traffic leaves only through it: pocket-box-vpn (this program with "vpn") routes everything
+qBittorrent's user sends by a table of its own, whose default is the tunnel and, behind it, unreachable,
+so with the tunnel down qBittorrent has no way out. The arr apps still reach its web UI on loopback.
 
 Every change answers with the GET body. A failed test still answers 200, with status "error" and a
 message in plain words; 400 is for bad input only. Passwords and API keys are never sent back.
 """
 import json
 import os
+import pwd
 import re
+import socket
 import socketserver
+import subprocess
 import sys
 import threading
 import time
@@ -27,7 +39,19 @@ import urllib.request
 from http.server import BaseHTTPRequestHandler
 
 CONFIG = json.load(open(sys.argv[1]))
-SERVICES = CONFIG["services"]  # type → http://127.0.0.1:<port>, only those on this box
+SERVICES = dict(CONFIG["services"])  # type → http://127.0.0.1:<port>, only those on this box
+QB_URL = SERVICES.pop("qbittorrent", None)  # runs only while torrents are on
+T = CONFIG.get("tools", {})
+MARKER = CONFIG.get("torrents_marker", "")
+VPN_DIR = CONFIG.get("vpn_dir", "")
+VPN_CONF = os.path.join(VPN_DIR, "wg.conf")
+VPN_RESOLV = os.path.join(VPN_DIR, "resolv.conf")
+IFACE = CONFIG.get("vpn_interface", "wg-pocket")
+TABLE = str(CONFIG.get("vpn_table", 51820))
+RULE_PRIORITY = "5000"
+ADMIN = "pocket-box"
+CATEGORIES = ["movies", "tv", "music", "books"]
+SEEDING = {"ratio": 1.0, "days": 7}
 STATE_FILE = os.path.join(CONFIG["state_dir"], "state.json")
 SERVER_NAME = "usenet"
 PROFILE_NAME = "Pocket Box"
@@ -54,6 +78,19 @@ INDEXERS = [
     {"id": "ninjacentral", "name": "NinjaCentral", "definition": "NinjaCentral", "url": "https://ninjacentral.co.za", "signup": "https://ninjacentral.co.za"},
     {"id": "abnzb", "name": "abNZB", "definition": "abNZB", "url": "https://abnzb.com", "signup": "https://abnzb.com"},
 ]
+# Public torrent sites that work in Prowlarr without FlareSolverr (checked from a box, 2026-11): the
+# definition is Prowlarr's name for it.
+TORRENT_INDEXERS = [
+    {"id": "yts", "name": "YTS", "definition": "yts", "url": "https://yts.gg", "signup": "", "for": "films"},
+    {"id": "thepiratebay", "name": "The Pirate Bay", "definition": "thepiratebay", "url": "https://thepiratebay.org", "signup": "", "for": "films, shows and music"},
+    {"id": "limetorrents", "name": "LimeTorrents", "definition": "limetorrents", "url": "https://www.limetorrents.fun", "signup": "", "for": "films and shows"},
+    {"id": "showrss", "name": "showRSS", "definition": "showrss", "url": "https://showrss.info", "signup": "", "for": "shows"},
+    {"id": "torrentproject", "name": "TorrentProject", "definition": "torrentproject2", "url": "https://torrentproject.cc", "signup": "", "for": "films and shows"},
+    {"id": "nyaa", "name": "Nyaa", "definition": "nyaasi", "url": "https://nyaa.si", "signup": "", "for": "anime"},
+]
+# A private tracker: Prowlarr's name for it in "definition", and the login or key it asks for.
+PRIVATE_TRACKER = {"id": "private", "name": "Private tracker", "kind": "torrent", "public": False, "url": "", "signup": "",
+                   "needs": ["definition", "username", "password"]}
 HOST = re.compile(r"^[A-Za-z0-9](?:[A-Za-z0-9.-]{0,251}[A-Za-z0-9])?$")
 LANG = re.compile(r"^[a-z]{2}(?:-[a-z]{2})?$")
 
@@ -214,7 +251,8 @@ def indexers_view(st):
     out = []
     known = st.get("indexers", {})
     for it in items:
-        if it.get("protocol") != "usenet":
+        kind = it.get("protocol")
+        if kind not in ("usenet", "torrent"):
             continue
         mine = known.get(str(it["id"]), {})
         status, message = mine.get("status", "ok"), mine.get("message", "")
@@ -223,8 +261,12 @@ def indexers_view(st):
             status, message = "error", message or "Switched off in Prowlarr."
         elif s and s.get("disabledTill") and status == "ok":
             status, message = "error", "Prowlarr paused it after errors; it tries again by itself."
-        out.append({"id": it["id"], "name": it.get("name", ""), "preset": mine.get("preset") or preset_for_url(field(it, "baseUrl") or ""),
-                    "status": status, "message": message})
+        row = {"id": it["id"], "name": it.get("name", ""), "kind": kind, "status": status, "message": message,
+               "preset": mine.get("preset") or (preset_for_url(field(it, "baseUrl") or "") if kind == "usenet" else
+                                                next((p["id"] for p in TORRENT_INDEXERS if p["definition"] == (it.get("definitionName") or "").lower()), ""))}
+        if kind == "torrent":
+            row["public"] = it.get("privacy") == "public"
+        out.append(row)
     return out
 
 
@@ -248,15 +290,29 @@ def view():
     st = state()
     usenet = usenet_view(st)
     indexers = indexers_view(st)
+    torrents = torrents_view(st)
+    good = {k: any(i["status"] == "ok" and i["kind"] == k for i in indexers) for k in ("usenet", "torrent")}
+    services = [{"type": t, "ready": service_ready(t)} for t in SERVICES]
+    if QB_URL:
+        services.append({"type": "qbittorrent", "ready": torrents["status"] == "ok"})
     return {
         "installed": bool(CONFIG["installed"]) and bool(SERVICES),
-        "ready": usenet["status"] == "ok" and any(i["status"] == "ok" for i in indexers),
-        "services": [{"type": t, "ready": service_ready(t)} for t in SERVICES],
+        "ready": (usenet["status"] == "ok" and good["usenet"]) or (torrents["enabled"] and torrents["status"] == "ok" and good["torrent"]),
+        "services": services,
         "usenet": usenet,
         "indexers": indexers,
+        "torrents": torrents,
         "subtitles": subtitles_view(),
-        "presets": {"providers": PROVIDERS, "indexers": [{k: p[k] for k in ("id", "name", "url", "signup")} for p in INDEXERS]},
+        "presets": {"providers": PROVIDERS, "indexers": indexer_presets()},
     }
+
+
+def indexer_presets():
+    out = [dict({k: p[k] for k in ("id", "name", "url", "signup")}, kind="usenet", needs=["api_key"]) for p in INDEXERS]
+    if QB_URL:
+        out += [dict({k: p[k] for k in ("id", "name", "url", "signup", "for")}, kind="torrent", public=True, needs=[]) for p in TORRENT_INDEXERS]
+        out.append(PRIVATE_TRACKER)
+    return out
 
 
 # ---- Usenet (SABnzbd) ----
@@ -338,6 +394,7 @@ def delete_usenet():
 # ---- indexers (Prowlarr) ----
 
 PROWLARR_PLAIN = [
+    (r"(?i)invalid username|username/password|password combination|login failed|wrong password", "The tracker didn't accept this username and password."),
     (r"(?i)api ?key|unauthori[sz]ed|\b401\b|\b403\b|incorrect user credentials|apikey", "The indexer didn't accept this API key."),
     (r"(?i)name or service not known|no such host|nodename|resolve", "There's no indexer at this address. Check the URL."),
     (r"(?i)timed? ?out", "The indexer didn't answer in time. Try again later."),
@@ -355,26 +412,49 @@ def failure_text(out):
     else:
         msg = str(out)
     msg = msg.replace(", check the log above for more details", "").replace("check the log for more details", "")
+    msg = re.sub(r"(?i),? *check the log above the ValidationFailure for more details\.? *(Error: *)*", ": ", msg).strip(": ")
     return plain(msg, PROWLARR_PLAIN)
 
 
 _schema = {"items": None}
 
 
-def newznab_schema():
-    """Prowlarr's Newznab types. Its full schema is large and slow at first (it fetches its indexer
+def full_schema():
+    """Prowlarr's indexer types. Its schema is large and slow at first (it fetches its indexer
     definitions), so it is read once, in the background at start, and kept."""
     if _schema["items"] is None:
-        items = ok(*prowlarr("GET", "/indexer/schema", timeout=180), "Prowlarr")
-        _schema["items"] = [s for s in items if s.get("implementation") == "Newznab"]
-    return [json.loads(json.dumps(s)) for s in _schema["items"]]
+        _schema["items"] = ok(*prowlarr("GET", "/indexer/schema", timeout=180), "Prowlarr")
+    return _schema["items"]
+
+
+def newznab_schema():
+    return [json.loads(json.dumps(s)) for s in full_schema() if s.get("implementation") == "Newznab"]
+
+
+def definition_item(name):
+    n = name.strip().lower()
+    for s in full_schema():
+        if (s.get("definitionName") or "").lower() == n or (s.get("name") or "").lower() == n:
+            return json.loads(json.dumps(s))
+    return None
+
+
+KEY_FIELDS = ("apikey", "apiKey", "passkey", "rsskey", "key", "token")
+
+
+def needs_of(item):
+    names = {f.get("name") for f in item.get("fields", [])}
+    out = [n for n in ("username", "password") if n in names]
+    if names & set(KEY_FIELDS):
+        out.append("api_key")
+    return out
 
 
 def warm_schema():
     for _ in range(60):
         try:
-            newznab_schema()
-            log("prowlarr: %d Newznab types" % len(_schema["items"]))
+            full_schema()
+            log("prowlarr: %d indexer types" % len(_schema["items"]))
             return
         except (Down, Problem, KeyError, TypeError) as e:
             log("prowlarr schema not yet:", e)
@@ -382,6 +462,9 @@ def warm_schema():
 
 
 def add_indexer(b):
+    tpreset = next((p for p in TORRENT_INDEXERS if p["id"] == b.get("preset")), None)
+    if b.get("kind") == "torrent" or tpreset or b.get("definition"):
+        return add_torrent_indexer(b, tpreset)
     preset = next((p for p in INDEXERS if p["id"] == b.get("preset")), None)
     if b.get("preset") and not preset:
         raise Problem("Unknown preset " + str(b.get("preset"))[:40])
@@ -407,12 +490,77 @@ def add_indexer(b):
             f["value"] = api_key
         elif f.get("name") == "apiPath" and not f.get("value"):
             f["value"] = "/api"
-    profiles = ok(*prowlarr("GET", "/appprofile"), "Prowlarr")
-    item.update({"name": name, "enable": True, "appProfileId": profiles[0]["id"] if profiles else 1, "priority": 25})
-    item.pop("id", None)
     # The same indexer again (a new key, say): replace it rather than add a twin.
     existing = next((x for x in ok(*prowlarr("GET", "/indexer"), "Prowlarr")
-                     if (field(x, "baseUrl") or "").rstrip("/").lower() == url.lower()), None)
+                     if x.get("protocol") == "usenet" and (field(x, "baseUrl") or "").rstrip("/").lower() == url.lower()), None)
+    # Usenet first: Radarr, Sonarr and Lidarr prefer lower numbers.
+    return save_indexer(item, name, existing, 25, (preset or {}).get("id", "") or preset_for_url(url), url)
+
+
+def add_torrent_indexer(b, preset):
+    definition = (preset or {}).get("definition") or str(b.get("definition") or b.get("preset") or "").strip()
+    if (not definition or definition == "private") and b.get("url") and not b.get("definition"):
+        return add_torznab(b)
+    if not definition or definition == "private":
+        raise Problem("Pick a torrent site, or type Prowlarr's name for your private tracker (like torrentleech).")
+    item = definition_item(definition)
+    if not item or item.get("protocol") != "torrent":
+        raise Problem("Prowlarr has no torrent site called " + definition[:60] + ".")
+    values = {"username": str(b.get("username") or "").strip(), "password": str(b.get("password") or "")}
+    api_key = str(b.get("api_key") or "").strip()
+    url = str(b.get("url") or "").strip().rstrip("/")
+    names = {f.get("name") for f in item.get("fields", [])}
+    if item.get("privacy") != "public":
+        missing = [n for n in needs_of(item) if (n == "api_key" and not api_key) or (n != "api_key" and not values[n])]
+        if missing:
+            raise Problem("%s needs your %s." % (item.get("name", definition), " and ".join(m.replace("api_key", "API key or passkey") for m in missing)))
+    for f in item.get("fields", []):
+        n = f.get("name")
+        if n in values and values[n]:
+            f["value"] = values[n]
+        elif n in KEY_FIELDS and api_key:
+            f["value"] = api_key
+        elif n == "baseUrl" and url:
+            f["value"] = url if url in (item.get("indexerUrls") or [url]) else f.get("value")
+    if url and "baseUrl" not in names:
+        log("indexer: %s has no address to set" % definition)
+    name = str(b.get("name") or (preset or {}).get("name") or item.get("name") or definition).strip()[:60]
+    existing = next((x for x in ok(*prowlarr("GET", "/indexer"), "Prowlarr")
+                     if (x.get("definitionName") or "").lower() == (item.get("definitionName") or "").lower()), None)
+    return save_indexer(item, name, existing, 35, (preset or {}).get("id", "") or ("private" if item.get("privacy") != "public" else ""), definition)
+
+
+def add_torznab(b):
+    """Another torrent indexer by its Torznab address (Jackett, a tracker's own Torznab feed…)."""
+    url = str(b.get("url") or "").strip().rstrip("/")
+    u = urllib.parse.urlparse(url)
+    if u.scheme not in ("http", "https") or not u.netloc:
+        raise Problem("Type the indexer's Torznab address, like https://tracker.example/api.")
+    item = next((s for s in full_schema() if s.get("implementation") == "Torznab" and s.get("name") == "Generic Torznab"), None) \
+        or next((s for s in full_schema() if s.get("implementation") == "Torznab"), None)
+    if not item:
+        raise Down("Prowlarr has no Torznab indexer type")
+    item = json.loads(json.dumps(item))
+    path = u.path if u.path not in ("", "/") else "/api"
+    base = "%s://%s" % (u.scheme, u.netloc)
+    for f in item.get("fields", []):
+        if f.get("name") == "baseUrl":
+            f["value"] = base
+        elif f.get("name") == "apiPath":
+            f["value"] = path
+        elif f.get("name") == "apiKey":
+            f["value"] = str(b.get("api_key") or "").strip()
+    name = str(b.get("name") or u.netloc).strip()[:60]
+    existing = next((x for x in ok(*prowlarr("GET", "/indexer"), "Prowlarr")
+                     if x.get("protocol") == "torrent" and (field(x, "baseUrl") or "").rstrip("/").lower() == base.lower()), None)
+    return save_indexer(item, name, existing, 35, "", base + path)
+
+
+def save_indexer(item, name, existing, priority, preset_id, label):
+    """Test it in Prowlarr, then save it; one that fails the test is kept switched off."""
+    profiles = ok(*prowlarr("GET", "/appprofile"), "Prowlarr")
+    item.update({"name": name, "enable": True, "appProfileId": profiles[0]["id"] if profiles else 1, "priority": priority})
+    item.pop("id", None)
     if existing:
         item["id"] = existing["id"]
     code, out = prowlarr("POST", "/indexer/test", item, timeout=90)
@@ -426,10 +574,10 @@ def add_indexer(b):
     if code >= 300 or not isinstance(out, dict):
         raise Down("Prowlarr didn't save the indexer: " + failure_text(out))
     st = state()
-    entry = {"preset": (preset or {}).get("id", "") or preset_for_url(url), "status": "ok" if good else "error", "message": message, "at": int(time.time())}
+    entry = {"preset": preset_id, "status": "ok" if good else "error", "message": message, "at": int(time.time())}
     st.setdefault("indexers", {})[str(out["id"])] = entry
     save_state(st)
-    log("indexer:", name, url, "ok" if good else "error: " + message[:120])
+    log("indexer:", name, label, "ok" if good else "error: " + message[:120])
     return view()
 
 
@@ -441,6 +589,384 @@ def delete_indexer(iid):
     st.get("indexers", {}).pop(str(iid), None)
     save_state(st)
     log("indexer removed:", iid)
+    return view()
+
+
+# ---- torrents (qBittorrent) ----
+
+API = {"radarr": "/api/v3", "sonarr": "/api/v3", "lidarr": "/api/v1", "prowlarr": "/api/v1"}
+
+
+def arr(t, method, path, body=None, timeout=20):
+    return http(method, SERVICES[t] + API[t] + path, body, {"X-Api-Key": keys()[t]}, timeout=timeout)
+
+
+def run(*cmd, check=True, timeout=60):
+    return subprocess.run([str(c) for c in cmd], check=check, capture_output=True, text=True, timeout=timeout)
+
+
+def torrents_on():
+    return bool(MARKER) and os.path.exists(MARKER)
+
+
+def qb_login(timeout=8):
+    """A qBittorrent session (its SID cookie) with the box's login."""
+    data = urllib.parse.urlencode({"username": ADMIN, "password": keys()["qbittorrent"]}).encode()
+    req = urllib.request.Request(QB_URL + "/api/v2/auth/login", data=data, method="POST", headers={"Referer": QB_URL})
+    try:
+        with urllib.request.urlopen(req, timeout=timeout) as r:
+            r.read()
+            cookie = r.headers.get("Set-Cookie") or ""
+    except urllib.error.HTTPError as e:
+        raise Down("qBittorrent didn't take the box's login" if e.code in (401, 403) else "qBittorrent answered %s" % e.code)
+    except (urllib.error.URLError, OSError) as e:
+        raise Down("qBittorrent isn't answering (%s)" % str(getattr(e, "reason", e))[:80])
+    # qBittorrent 5 names the cookie QBT_SID_<port> (older ones SID) and answers 204 on success.
+    m = re.search(r"((?:QBT_)?SID(?:_\d+)?)=([^;]+)", cookie)
+    if not m:
+        raise Down("qBittorrent didn't take the box's login")
+    return m.group(1) + "=" + m.group(2)
+
+
+def qb(sid, path, form=None, timeout=20):
+    data = urllib.parse.urlencode(form).encode() if form is not None else None
+    req = urllib.request.Request(QB_URL + "/api/v2" + path, data=data, method="POST" if form is not None else "GET",
+                                 headers={"Cookie": sid, "Referer": QB_URL})
+    try:
+        with urllib.request.urlopen(req, timeout=timeout) as r:
+            raw = r.read()
+    except urllib.error.HTTPError as e:
+        raise Down("qBittorrent %s: %s %s" % (path, e.code, e.read()[:120].decode(errors="replace")))
+    except (urllib.error.URLError, OSError) as e:
+        raise Down("qBittorrent isn't answering (%s)" % str(getattr(e, "reason", e))[:80])
+    try:
+        return json.loads(raw) if raw.strip() else None
+    except ValueError:
+        return raw.decode(errors="replace")
+
+
+def seeding(st):
+    return dict(SEEDING, **(st.get("seeding") or {}))
+
+
+def apply_qb(st, wait=60):
+    """The box's settings in qBittorrent: folders and categories, seeding limits, the VPN interface."""
+    end = time.time() + wait
+    while True:
+        try:
+            sid = qb_login()
+            break
+        except Down:
+            if time.time() > end:
+                raise
+            time.sleep(2)
+    sd = seeding(st)
+    root = CONFIG["torrent_dir"]
+    prefs = {
+        "save_path": root + "/complete", "temp_path_enabled": True, "temp_path": root + "/incomplete",
+        "auto_tmm_enabled": True, "torrent_changed_tmm_enabled": True, "save_path_changed_tmm_enabled": True, "category_changed_tmm_enabled": True,
+        "upnp": False, "web_ui_upnp": False,
+        # Stop (not remove) at the limit: Radarr, Sonarr and Lidarr remove it themselves once it stopped.
+        "max_ratio_enabled": sd["ratio"] > 0, "max_ratio": sd["ratio"] if sd["ratio"] > 0 else -1,
+        "max_seeding_time_enabled": sd["days"] > 0, "max_seeding_time": int(sd["days"] * 1440) if sd["days"] > 0 else -1,
+        "max_ratio_act": 0,
+        "current_network_interface": IFACE if os.path.exists(VPN_CONF) else "",
+    }
+    qb(sid, "/app/setPreferences", {"json": json.dumps(prefs)})
+    have = qb(sid, "/torrents/categories") or {}
+    for c in CATEGORIES:
+        qb(sid, "/torrents/editCategory" if c in have else "/torrents/createCategory", {"category": c, "savePath": root + "/complete/" + c})
+    return qb(sid, "/app/version")
+
+
+def set_clients(on):
+    """qBittorrent in Radarr, Sonarr, Lidarr and Prowlarr: on or off with torrents."""
+    missing = []
+    for t in ("radarr", "sonarr", "lidarr", "prowlarr"):
+        if t not in SERVICES:
+            continue
+        clients = [c for c in ok(*arr(t, "GET", "/downloadclient"), t) if c.get("implementation") == "QBittorrent"]
+        if not clients:
+            missing.append(t)
+        for c in clients:
+            if bool(c.get("enable")) != on:
+                c["enable"] = on
+                ok(*arr(t, "PUT", "/downloadclient/%d?forceSave=true" % c["id"], c, timeout=60), t)
+    return missing
+
+
+def torrents_view(st):
+    v = {"enabled": torrents_on(), "status": "off", "message": "", "seeding": seeding(st), "vpn": vpn_view(st)}
+    if not QB_URL:
+        v["message"] = "qBittorrent isn't on this box."
+        return v
+    if v["enabled"]:
+        try:
+            qb_login(timeout=5)
+            v["status"] = "ok"
+        except Down as e:
+            v.update(status="error", message=str(e) + ".")
+        last = st.get("torrents") or {}
+        if v["status"] == "ok" and last.get("status") == "error":
+            v.update(status="error", message=last.get("message", ""))
+        if v["status"] == "ok" and v["vpn"]["status"] == "down":
+            v.update(status="error", message="The VPN is down, so torrents can't reach the internet (on purpose).")
+    return v
+
+
+def put_torrents(b):
+    if not QB_URL:
+        raise Problem("qBittorrent isn't on this box.")
+    if not isinstance(b.get("enabled"), bool):
+        raise Problem("enabled must be true or false")
+    st = state()
+    if b.get("seeding") is not None:
+        sd = b["seeding"]
+        try:
+            ratio, days = float(sd.get("ratio", SEEDING["ratio"])), float(sd.get("days", SEEDING["days"]))
+        except (AttributeError, TypeError, ValueError):
+            raise Problem("seeding is {ratio, days} with numbers")
+        if not (0 <= ratio <= 100 and 0 <= days <= 365):
+            raise Problem("Seed up to a ratio between 0 and 100 and for 0 to 365 days (0 = no limit).")
+        st["seeding"] = {"ratio": round(ratio, 2), "days": days if days % 1 else int(days)}
+    if b["enabled"]:
+        with open(MARKER, "w"):
+            pass
+        st["torrents"] = {"status": "ok", "message": ""}
+        try:
+            r = run(T["systemctl"], "start", "qbittorrent.service", check=False, timeout=120)
+            if r.returncode != 0:
+                raise Down("qBittorrent didn't start: " + (r.stderr or r.stdout).strip()[-160:])
+            version = apply_qb(st)
+            missing = set_clients(True)
+            if missing:
+                st["torrents"] = {"status": "error", "message": "qBittorrent isn't connected to " + ", ".join(missing) + " yet; restart the box once."}
+            log("torrents: on, qBittorrent", version)
+        except Down as e:
+            st["torrents"] = {"status": "error", "message": str(e)}
+            log("torrents: on, but", e)
+    else:
+        set_clients(False)
+        run(T["systemctl"], "stop", "qbittorrent.service", check=False, timeout=300)
+        if os.path.exists(MARKER):
+            os.remove(MARKER)
+        st["torrents"] = {"status": "off", "message": ""}
+        log("torrents: off")
+    save_state(st)
+    return view()
+
+
+# ---- the VPN for torrents (WireGuard) ----
+
+WG_KEY = re.compile(r"^[A-Za-z0-9+/]{42}[AEIMQUYcgkosw480]=$")
+ENDPOINT = re.compile(r"^(\[[0-9A-Fa-f:.]+\]|[A-Za-z0-9.-]+):(\d{1,5})$")
+
+
+def parse_wg(text):
+    """A wg-quick config: [Interface] PrivateKey, Address, DNS?, MTU?; one [Peer] PublicKey, Endpoint,
+    AllowedIPs?, PresharedKey?, PersistentKeepalive?. Scripts (PostUp…) are not run."""
+    iface, peers, cur = {}, [], None
+    for raw in text.splitlines():
+        line = raw.split("#", 1)[0].strip()
+        if not line:
+            continue
+        if line.lower() == "[interface]":
+            cur = iface
+            continue
+        if line.lower() == "[peer]":
+            cur = {}
+            peers.append(cur)
+            continue
+        if "=" not in line or cur is None:
+            raise Problem("This doesn't look like a WireGuard config (a line outside [Interface] or [Peer]: %s)." % line[:40])
+        k, v = (x.strip() for x in line.split("=", 1))
+        cur[k.lower()] = (cur[k.lower()] + "," + v) if k.lower() in cur and k.lower() in ("address", "dns", "allowedips") else v
+    if not WG_KEY.match(iface.get("privatekey", "")):
+        raise Problem("The config has no valid PrivateKey under [Interface].")
+    addrs = [a.strip() for a in iface.get("address", "").split(",") if a.strip()]
+    if not addrs:
+        raise Problem("The config has no Address under [Interface].")
+    for a in addrs:
+        try:
+            socket.inet_pton(socket.AF_INET6 if ":" in a else socket.AF_INET, a.split("/")[0])
+        except OSError:
+            raise Problem("The Address %s isn't an IP address." % a[:40])
+    if len(peers) != 1:
+        raise Problem("The config needs exactly one [Peer] (the VPN server).")
+    peer = peers[0]
+    if not WG_KEY.match(peer.get("publickey", "")):
+        raise Problem("The [Peer] has no valid PublicKey.")
+    if peer.get("presharedkey") and not WG_KEY.match(peer["presharedkey"]):
+        raise Problem("The [Peer]'s PresharedKey isn't valid.")
+    if not ENDPOINT.match(peer.get("endpoint", "")):
+        raise Problem("The [Peer] needs an Endpoint like vpn.example.com:51820.")
+    dns = []
+    for d in iface.get("dns", "").split(","):
+        d = d.strip()
+        try:
+            socket.inet_pton(socket.AF_INET6 if ":" in d else socket.AF_INET, d)
+            dns.append(d)
+        except OSError:
+            pass
+    mtu = iface.get("mtu", "1420")
+    if not mtu.isdigit() or not 1280 <= int(mtu) <= 9000:
+        raise Problem("MTU must be a number from 1280 to 9000.")
+    return {"private_key": iface["privatekey"], "addresses": addrs, "dns": dns, "mtu": mtu,
+            "public_key": peer["publickey"], "preshared_key": peer.get("presharedkey", ""), "endpoint": peer["endpoint"],
+            "allowed_ips": peer.get("allowedips", "0.0.0.0/0, ::/0"), "keepalive": peer.get("persistentkeepalive", "25")}
+
+
+def read_vpn():
+    try:
+        with open(VPN_CONF) as f:
+            return parse_wg(f.read())
+    except FileNotFoundError:
+        return None
+    except Problem as e:
+        log("vpn config:", e)
+        return None
+
+
+def apply_vpn():
+    """pocket-box-vpn: the kill switch and the tunnel from the saved config, or nothing without one."""
+    run(T["ip"], "link", "del", IFACE, check=False)
+    for fam in ("-4", "-6"):
+        for _ in range(10):
+            if run(T["ip"], fam, "rule", "del", "priority", RULE_PRIORITY, check=False).returncode != 0:
+                break
+        run(T["ip"], fam, "route", "flush", "table", TABLE, check=False)
+    c = read_vpn()
+    if not c:
+        if os.path.exists(VPN_RESOLV):
+            os.remove(VPN_RESOLV)
+        log("vpn: none")
+        return
+    uid = pwd.getpwnam(CONFIG["qbittorrent_user"]).pw_uid
+    # First the way out that isn't one: whatever qBittorrent's user sends goes by this table, and the
+    # table ends in unreachable, so nothing leaves while the tunnel is down.
+    for fam in ("-4", "-6"):
+        run(T["ip"], fam, "route", "replace", "unreachable", "default", "metric", "4096", "table", TABLE, check=fam == "-4")
+        run(T["ip"], fam, "rule", "add", "priority", RULE_PRIORITY, "uidrange", "%d-%d" % (uid, uid), "lookup", TABLE, check=fam == "-4")
+    with open(VPN_RESOLV + ".tmp", "w") as f:
+        f.write("".join("nameserver %s\n" % d for d in (c["dns"] or ["1.1.1.1", "9.9.9.9"])))
+    os.chmod(VPN_RESOLV + ".tmp", 0o644)
+    os.replace(VPN_RESOLV + ".tmp", VPN_RESOLV)
+    wgconf = os.path.join(VPN_DIR, "wg-setconf.conf")
+    try:
+        with open(os.open(wgconf, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600), "w") as f:
+            f.write("[Interface]\nPrivateKey = %s\n\n[Peer]\nPublicKey = %s\nEndpoint = %s\nAllowedIPs = %s\nPersistentKeepalive = %s\n%s" % (
+                c["private_key"], c["public_key"], c["endpoint"], c["allowed_ips"], c["keepalive"],
+                ("PresharedKey = %s\n" % c["preshared_key"]) if c["preshared_key"] else ""))
+        run(T["ip"], "link", "add", IFACE, "type", "wireguard")
+        run(T["wg"], "setconf", IFACE, wgconf)
+        for a in c["addresses"]:
+            run(T["ip"], "-6" if ":" in a else "-4", "address", "add", a, "dev", IFACE)
+        run(T["ip"], "link", "set", "dev", IFACE, "mtu", c["mtu"], "up")
+        for fam in ("-4", "-6"):
+            if any((":" in a) == (fam == "-6") for a in c["addresses"]):
+                run(T["ip"], fam, "route", "replace", "default", "dev", IFACE, "table", TABLE)
+        log("vpn: tunnel set up to", c["endpoint"])
+    except subprocess.CalledProcessError as e:
+        # The kill switch above stays: qBittorrent simply has no way out.
+        log("vpn: tunnel not up:", (e.stderr or e.stdout or str(e)).strip()[:200])
+    finally:
+        if os.path.exists(wgconf):
+            os.remove(wgconf)
+
+
+def handshake_age():
+    r = run(T["wg"], "show", IFACE, "latest-handshakes", check=False)
+    if r.returncode != 0:
+        return None
+    stamps = [int(x.split()[-1]) for x in r.stdout.splitlines() if x.split() and x.split()[-1].isdigit()]
+    return (time.time() - max(stamps)) if stamps and max(stamps) > 0 else None
+
+
+def public_ip(as_qbittorrent):
+    """What the internet sees: the box's own address, or (as qBittorrent's user) the tunnel's."""
+    host = "api.ipify.org"
+    try:
+        ip = socket.getaddrinfo(host, 443, socket.AF_INET, socket.SOCK_STREAM)[0][4][0]
+    except OSError:
+        return None
+    cmd = [T["curl"], "-s", "-4", "-m", "15", "--resolve", "%s:443:%s" % (host, ip), "https://" + host]
+    if as_qbittorrent:
+        u = pwd.getpwnam(CONFIG["qbittorrent_user"])
+        cmd = [T["setpriv"], "--reuid=%d" % u.pw_uid, "--regid=%d" % u.pw_gid, "--clear-groups"] + cmd
+    r = run(*cmd, check=False, timeout=30)
+    out = r.stdout.strip()
+    return out if r.returncode == 0 and re.match(r"^[0-9.]+$", out) else None
+
+
+def vpn_view(st):
+    c = read_vpn() if VPN_DIR else None
+    if not c:
+        return {"configured": False, "status": "none", "message": "", "endpoint": ""}
+    age = handshake_age()
+    last = st.get("vpn") or {}
+    if age is not None and age < 300:
+        return {"configured": True, "status": "up", "message": "", "endpoint": c["endpoint"]}
+    msg = last.get("message") if last.get("status") == "down" else ""
+    return {"configured": True, "status": "down", "endpoint": c["endpoint"],
+            "message": msg or "The VPN isn't answering (no handshake with %s). Torrents can't reach the internet until it does." % c["endpoint"]}
+
+
+def restart_qb(st):
+    if torrents_on():
+        run(T["systemctl"], "restart", "qbittorrent.service", check=False, timeout=300)
+        try:
+            apply_qb(st)
+        except Down as e:
+            log("torrents after a VPN change:", e)
+
+
+def put_vpn(b):
+    if not QB_URL:
+        raise Problem("qBittorrent isn't on this box.")
+    text = b.get("wireguard")
+    if not isinstance(text, str) or not text.strip():
+        raise Problem("Paste the WireGuard config from your VPN provider (a .conf file).")
+    if len(text) > 8000:
+        raise Problem("That's too long for a WireGuard config.")
+    c = parse_wg(text)
+    os.makedirs(VPN_DIR, mode=0o700, exist_ok=True)
+    with open(os.open(VPN_CONF + ".tmp", os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600), "w") as f:
+        f.write(text)
+    os.replace(VPN_CONF + ".tmp", VPN_CONF)
+    run(T["systemctl"], "restart", "pocket-box-vpn.service", check=False, timeout=120)
+    st = state()
+    status, message = "down", ""
+    for _ in range(20):
+        if handshake_age() is not None:
+            break
+        time.sleep(1)
+    if handshake_age() is None:
+        message = "The VPN didn't answer (no handshake with %s within 20 seconds). Check the config, or get a new one from your VPN provider." % c["endpoint"]
+    else:
+        home, tunnel = public_ip(False), public_ip(True)
+        if not tunnel:
+            message = "The tunnel is up, but nothing gets through it to the internet. Check the config's Address and DNS."
+        elif home and tunnel == home:
+            message = "Traffic through the VPN still shows the home address (%s)." % home
+        else:
+            status = "up"
+    st["vpn"] = {"status": status, "message": message, "at": int(time.time())}
+    save_state(st)
+    log("vpn:", c["endpoint"], status, message[:120])
+    restart_qb(st)
+    return view()
+
+
+def delete_vpn():
+    for p in (VPN_CONF, VPN_RESOLV):
+        if os.path.exists(p):
+            os.remove(p)
+    run(T["systemctl"], "restart", "pocket-box-vpn.service", check=False, timeout=120)
+    st = state()
+    st.pop("vpn", None)
+    save_state(st)
+    log("vpn: removed")
+    restart_qb(st)
     return view()
 
 
@@ -536,6 +1062,12 @@ class Handler(BaseHTTPRequestHandler):
                 return delete_indexer(int(mi.group(1)))
             if p == "/v1/downloads/subtitles" and m == "PUT":
                 return put_subtitles(self.body())
+            if p == "/v1/downloads/torrents" and m == "PUT":
+                return put_torrents(self.body())
+            if p == "/v1/downloads/vpn" and m == "PUT":
+                return put_vpn(self.body())
+            if p == "/v1/downloads/vpn" and m == "DELETE":
+                return delete_vpn()
         raise LookupError("not found")
 
     def dispatch(self):
@@ -548,7 +1080,7 @@ class Handler(BaseHTTPRequestHandler):
         except Down as e:
             log("error:", e)
             self.reply(502, {"error": "A download service isn't answering: " + str(e)[:200]})
-        except (KeyError, IndexError, TypeError, ValueError, OSError) as e:
+        except (KeyError, IndexError, TypeError, ValueError, OSError, subprocess.SubprocessError) as e:
             log("error:", repr(e))
             self.reply(500, {"error": "Something went wrong on the box: " + str(e)[:200]})
 
@@ -579,4 +1111,7 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    if sys.argv[2:] == ["vpn"]:
+        apply_vpn()
+    else:
+        main()

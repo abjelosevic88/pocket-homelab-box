@@ -213,6 +213,16 @@ while time.time() < end and len(accounts) < len(backends):
 for backend, app in backends.items():
     if backend not in accounts:
         failed.append(f"{backend} account")
+        # What Core says about it, so a failure here is readable.
+        sv = next((x for x in services if x.get("type") == backend), None)
+        if not sv:
+            print(f"{backend}: not among Core's services:", [x.get("type") for x in services], flush=True)
+        else:
+            rows = https("core", f"/api/v1/services/{sv['id']}/connector/accounts").stdout
+            conn = https("core", f"/api/v1/services/{sv['id']}/connector").stdout
+            print(f"{backend} service:", json.dumps({k: sv.get(k) for k in ("id", "url", "public_url", "enabled", "audience")}), flush=True)
+            print(f"{backend} connector:", conn[:400], flush=True)
+            print(f"{backend} accounts:", rows[:600], flush=True)
         continue
     https(app, "/api/v1/auth/oidc/start", "-L", "-o", "/dev/null")
     try:

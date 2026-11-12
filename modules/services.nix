@@ -36,8 +36,69 @@ let
   # The download services: keys made by the box, kept root-only in keysDir.
   keysDir = "/var/lib/pocket-box/media-keys";
   downloads = "${media}/downloads";
-  arrPorts = { radarr = 7878; sonarr = 8989; lidarr = 8686; prowlarr = 9696; sabnzbd = 8085; bazarr = 6767; };
-  arrTypes = lib.filter (t: cfg.${t}.enable) [ "sabnzbd" "radarr" "sonarr" "lidarr" "prowlarr" "bazarr" ];
+  arrPorts = { radarr = 7878; sonarr = 8989; lidarr = 8686; prowlarr = 9696; sabnzbd = 8085; bazarr = 6767; qbittorrent = 8090; };
+  arrTypes = lib.filter (t: cfg.${t}.enable) [ "sabnzbd" "radarr" "sonarr" "lidarr" "prowlarr" "bazarr" "qbittorrent" ];
+  # Torrents: qBittorrent runs only while the owner has them on (Core → Downloads), and with a VPN its
+  # traffic leaves only through the tunnel (pocket-box-vpn: policy routing by its user, an unreachable
+  # default when the tunnel is down).
+  dlState = "/var/lib/pocket-box-downloads";
+  torrentsMarker = "${dlState}/torrents-on";
+  vpnDir = "${dlState}/vpn";
+  torrentDir = "${downloads}/torrents";
+  qbProfile = "/var/lib/qBittorrent";
+  # The box's own settings in qBittorrent.conf before each start: loopback, the box's login, no UPnP.
+  qbPrestart = pkgs.writers.writePython3 "pocket-box-qbittorrent-config" { flakeIgnore = [ "E501" ]; } ''
+    import base64
+    import hashlib
+    import json
+    import os
+    import pwd
+    import re
+
+    conf = "${qbProfile}/qBittorrent/config/qBittorrent.conf"
+    password = json.load(open("${keysDir}/keys.json"))["qbittorrent"]
+    text = open(conf).read() if os.path.exists(conf) else ""
+    m = re.search(r"^WebUI\\Password_PBKDF2=\"?@ByteArray\(([^:]+):([^)]+)\)", text, re.M)
+    salt = base64.b64decode(m.group(1)) if m else os.urandom(16)
+    digest = hashlib.pbkdf2_hmac("sha512", password.encode(), salt, 100000, 64)
+    want = {
+        "LegalNotice": {"Accepted": "true"},
+        "Preferences": {
+            "WebUI\\Address": "127.0.0.1",
+            "WebUI\\Port": "${toString arrPorts.qbittorrent}",
+            "WebUI\\Username": "pocket-box",
+            "WebUI\\Password_PBKDF2": '"@ByteArray(%s:%s)"' % (base64.b64encode(salt).decode(), base64.b64encode(digest).decode()),
+            "WebUI\\LocalHostAuth": "true",
+            "WebUI\\UseUPnP": "false",
+            "Connection\\UPnP": "false",
+            "General\\Locale": "en",
+        },
+    }
+    sections, order, cur = {}, [], None
+    for line in text.splitlines():
+        h = re.match(r"^\[(.+)\]$", line)
+        if h:
+            cur = h.group(1)
+            if cur not in sections:
+                sections[cur] = []
+                order.append(cur)
+        elif cur is not None and line.strip():
+            sections[cur].append(line)
+    for sec, kv in want.items():
+        if sec not in sections:
+            sections[sec] = []
+            order.append(sec)
+        lines = [ln for ln in sections[sec] if ln.split("=", 1)[0] not in kv]
+        sections[sec] = lines + ["%s=%s" % (k, v) for k, v in kv.items()]
+    out = "\n".join("[%s]\n%s\n" % (sec, "\n".join(sections[sec])) for sec in order)
+    os.makedirs(os.path.dirname(conf), exist_ok=True)
+    with open(conf + ".tmp", "w") as f:
+        f.write(out)
+    u = pwd.getpwnam("qbittorrent")
+    os.chown(conf + ".tmp", u.pw_uid, u.pw_gid)
+    os.chmod(conf + ".tmp", 0o600)
+    os.replace(conf + ".tmp", conf)
+  '';
   # Radarr, Sonarr and Lidarr: loopback, the box's key, a login for the web UI (set by pocket-box-backends).
   arrSettings = name: {
     server = { bindaddress = "127.0.0.1"; port = arrPorts.${name}; };
@@ -61,6 +122,10 @@ let
       printf '{"radarr":"%s","sonarr":"%s","lidarr":"%s","prowlarr":"%s","sabnzbd":"%s","sabnzbd_nzb":"%s","bazarr":"%s","password":"%s"}\n' \
         "$(hex)" "$(hex)" "$(hex)" "$(hex)" "$(hex)" "$(hex)" "$(hex)" "$(pw)" > "$d/keys.json.tmp"
       mv "$d/keys.json.tmp" "$d/keys.json"
+    fi
+    # Keys added by later releases.
+    if [ "$(jq -r '.qbittorrent // ""' "$d/keys.json")" = "" ]; then
+      jq --arg v "$(pw)" '.qbittorrent = $v' "$d/keys.json" > "$d/keys.json.tmp" && mv "$d/keys.json.tmp" "$d/keys.json"
     fi
     k() { jq -r ".$1" "$d/keys.json"; }
     w() { printf '%s\n' "$2" > "$d/$1.tmp"; mv "$d/$1.tmp" "$d/$1"; }
@@ -87,6 +152,7 @@ let
     inherit (box) domain;
     services = map (s: { inherit (s) type; url = localUrl s.port; public_url = if s.site or true then url.site s.type else ""; }) managed;
     keys_file = "${keysDir}/keys.json";
+    torrents_marker = torrentsMarker;
     inherit downloads;
     # Where the arr apps reach each other (and Prowlarr reaches them).
     ports = arrPorts;
@@ -101,6 +167,19 @@ let
     keys_file = "${keysDir}/keys.json";
     installed = lib.any hasApp [ "watch" "requests" "subtitles" ];
     services = lib.genAttrs arrTypes (t: localUrl arrPorts.${t});
+    torrents_marker = torrentsMarker;
+    vpn_dir = vpnDir;
+    torrent_dir = torrentDir;
+    vpn_interface = "wg-pocket";
+    vpn_table = 51820;
+    qbittorrent_user = "qbittorrent";
+    tools = {
+      systemctl = "${pkgs.systemd}/bin/systemctl";
+      ip = "${pkgs.iproute2}/bin/ip";
+      wg = "${pkgs.wireguard-tools}/bin/wg";
+      setpriv = "${pkgs.util-linux}/bin/setpriv";
+      curl = "${pkgs.curl}/bin/curl";
+    };
   });
   downloadsService = pkgs.writers.writePython3 "pocket-box-downloads" { flakeIgnore = [ "E501" ]; } (builtins.readFile ./downloads.py);
   bootstrap = pkgs.writers.writePython3 "pocket-box-backends" { flakeIgnore = [ "E501" ]; }
@@ -125,6 +204,7 @@ in
     prowlarr.enable = lib.mkOption { type = lib.types.bool; default = lib.any hasApp [ "watch" "requests" ]; defaultText = lib.literalExpression ''any of watch, requests in config.pocket.box.apps''; description = "Prowlarr, the NZB indexers for Radarr, Sonarr and Lidarr."; };
     sabnzbd.enable = lib.mkOption { type = lib.types.bool; default = lib.any hasApp [ "watch" "requests" ]; defaultText = lib.literalExpression ''any of watch, requests in config.pocket.box.apps''; description = "SABnzbd, the Usenet downloader."; };
     lidarr.enable = lib.mkOption { type = lib.types.bool; default = hasApp "requests" && hasApp "music"; defaultText = lib.literalExpression ''requests and music in config.pocket.box.apps''; description = "Lidarr (albums), for Pocket Requests with Pocket Music."; };
+    qbittorrent.enable = lib.mkOption { type = lib.types.bool; default = lib.any hasApp [ "watch" "requests" ]; defaultText = lib.literalExpression ''any of watch, requests in config.pocket.box.apps''; description = "qBittorrent, for torrents; it runs only once the owner switches torrents on in Pocket Core → Downloads."; };
     bazarr.enable = lib.mkOption { type = lib.types.bool; default = hasApp "subtitles"; defaultText = lib.literalExpression ''lib.elem "subtitles" config.pocket.box.apps''; description = "Bazarr, which finds the subtitles Pocket Subtitles re-times."; };
   };
 
@@ -435,6 +515,39 @@ in
       systemd.tmpfiles.settings."10-pocket-media-downloads" = lib.genAttrs ([ downloads "${downloads}/incomplete" "${downloads}/complete" ]
         ++ map (c: "${downloads}/complete/${c}") [ "movies" "tv" "music" "books" ])
         (_: { d = { mode = "2775"; user = "root"; group = "pocket-media"; }; });
+    })
+
+    (lib.mkIf cfg.qbittorrent.enable {
+      services.qbittorrent = { enable = true; webuiPort = arrPorts.qbittorrent; profileDir = qbProfile; };
+      users.users.qbittorrent.extraGroups = [ "pocket-media" ];
+      systemd.services.qbittorrent = {
+        # Off until the owner switches torrents on (pocket-box-downloads makes the marker and starts it).
+        unitConfig.ConditionPathExists = torrentsMarker;
+        # Requires: no qBittorrent unless the kill switch (with a VPN) is in place.
+        after = [ "pocket-box-media-keys.service" "pocket-box-vpn.service" ];
+        requires = [ "pocket-box-media-keys.service" "pocket-box-vpn.service" ];
+        serviceConfig = {
+          ExecStartPre = [ "+${qbPrestart}" ];
+          PrivateUsers = lib.mkForce false;
+          SupplementaryGroups = [ "pocket-media" ];
+          UMask = "0002";
+          # With a VPN: the tunnel's DNS (pocket-box-vpn writes it; without a VPN the box's own).
+          BindReadOnlyPaths = [ "-${vpnDir}/resolv.conf:/etc/resolv.conf" ];
+        };
+      };
+      systemd.tmpfiles.settings."10-pocket-media-torrents" = lib.genAttrs ([ torrentDir "${torrentDir}/incomplete" "${torrentDir}/complete" ]
+        ++ map (c: "${torrentDir}/complete/${c}") [ "movies" "tv" "music" "books" ])
+        (_: { d = { mode = "2775"; user = "root"; group = "pocket-media"; }; });
+
+      # The kill switch and the tunnel, from the owner's WireGuard config (if any), before qBittorrent.
+      systemd.services.pocket-box-vpn = {
+        description = "Pocket Box VPN for torrents (WireGuard, qBittorrent's traffic only)";
+        wantedBy = [ "multi-user.target" ];
+        after = [ "network-online.target" ];
+        wants = [ "network-online.target" ];
+        before = [ "qbittorrent.service" ];
+        serviceConfig = { Type = "oneshot"; RemainAfterExit = true; ExecStart = "${downloadsService} ${downloadsConfig} vpn"; };
+      };
     })
 
     (lib.mkIf cfg.radarr.enable {

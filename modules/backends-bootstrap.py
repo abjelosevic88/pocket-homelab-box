@@ -10,7 +10,8 @@ The download services (SABnzbd, Radarr, Sonarr, Lidarr, Prowlarr, Bazarr) have k
 before their first start (KEYS_FILE). Here they are wired to each other, again at every boot and
 only where something is missing: root folders, SABnzbd as the download client (one category each),
 Prowlarr's applications (full sync) and download client, Bazarr's default language profile, a login
-for their web UIs. They have no per-person accounts, so Core gets them for admins only, without a
+for their web UIs, and qBittorrent as the second download client (off until the owner switches
+torrents on). They have no per-person accounts, so Core gets them for admins only, without a
 connector; Pocket Requests, Watch and Subtitles reach them through Core as the box owner.
 
 A service that does not come up in time is left out of the file (and tried again next boot);
@@ -195,6 +196,19 @@ def arr_sabnzbd(t, extra):
     log(t, "download client: SABnzbd")
 
 
+def arr_qbittorrent(t, extra):
+    """qBittorrent as the second download client (after SABnzbd), switched off: it is switched on with
+    torrents in Core → Downloads (pocket-box-downloads)."""
+    if "qbittorrent" not in CONFIG["arr"] or any(c.get("implementation") == "QBittorrent" for c in arr(t, "GET", "/downloadclient")):
+        return
+    item = next(x for x in arr(t, "GET", "/downloadclient/schema") if x.get("implementation") == "QBittorrent")
+    set_fields(item, {"host": "127.0.0.1", "port": PORTS["qbittorrent"], "useSsl": False, "urlBase": "",
+                      "username": ADMIN, "password": KEYS["qbittorrent"], **extra})
+    item.update({"name": "qBittorrent", "enable": False, "priority": 2, "removeCompletedDownloads": True, "removeFailedDownloads": True})
+    arr(t, "POST", "/downloadclient?forceSave=true", item)
+    log(t, "download client: qBittorrent (off until torrents are switched on)")
+
+
 def media_app(t):
     """Radarr, Sonarr, Lidarr: library folder, SABnzbd with its own category, naming and a 1080p default."""
     st = load(t) or {}
@@ -212,6 +226,7 @@ def media_app(t):
         arr(t, "POST", "/rootfolder", body)
         log(t, "root folder:", root)
     arr_sabnzbd(t, {cat_field: folder})
+    arr_qbittorrent(t, {cat_field: folder})
     if not st.get("naming"):
         naming = arr(t, "GET", "/config/naming")
         naming[{"radarr": "renameMovies", "sonarr": "renameEpisodes", "lidarr": "renameTracks"}[t]] = True
@@ -262,6 +277,7 @@ def prowlarr(base):
         log("prowlarr application:", TITLE[t])
     # Prowlarr's own grabs (picked by hand there) go to SABnzbd's default category.
     arr_sabnzbd("prowlarr", {"category": ""})
+    arr_qbittorrent("prowlarr", {"category": ""})
     save("prowlarr", st)
     return {"API_KEY": KEYS["prowlarr"]}
 
@@ -305,6 +321,11 @@ os.makedirs(STATE, mode=0o700, exist_ok=True)
 entries = []
 for svc in CONFIG["services"]:
     name, base = svc["type"], svc["url"]
+    if name == "qbittorrent":
+        # Runs only while torrents are on; Core gets its login either way (Pocket Requests: books).
+        entries.append({"type": name, "url": base, "public_url": "", "fields": {"USERNAME": ADMIN, "PASSWORD": KEYS["qbittorrent"]},
+                        "audience": "admins", "connector": {"enabled": False, "provision_on_create": False}, "owner_credential": True})
+        continue
     setup, probe = SETUP[name]
     if not wait(base + probe):
         log(name, "did not answer in time; left out until the next boot")

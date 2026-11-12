@@ -102,7 +102,9 @@ jobs:
           path: |
             .installtest/*.log
             .installtest-lite/*.log
-          if-no-files-found: ignore
+          # upload-artifact v4 leaves out dot-directories unless told
+          include-hidden-files: true
+          if-no-files-found: warn
 
       - name: Commit the new releases
         if: steps.bump.outputs.changed == 'true'
