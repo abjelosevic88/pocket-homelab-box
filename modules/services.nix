@@ -9,6 +9,14 @@
 #   Chromium   → Pocket Lookout (pages that need JavaScript)  127.0.0.1:9222
 #   guacd      → Pocket Remote  (VNC, RDP and SSH)            127.0.0.1:4822
 #   LibreTranslate → Pocket Translate (offline engine, off by default) 127.0.0.1:5000
+# The download services behind Pocket Watch, Requests and Subtitles, loopback only and without a site
+# (Pocket Requests shows what the owner needs of them; Core → Settings → System → Downloads sets them up):
+#   Radarr 7878, Sonarr 8989, Prowlarr 9696, SABnzbd 8085   with watch or requests
+#   Lidarr 8686                                             with requests and music
+#   Bazarr 6767                                             with subtitles
+# Their API keys are made by the box (pocket-box-media-keys) before they first start, so the box knows
+# every key; pocket-box-backends wires them to each other, pocket-box-downloads (modules/downloads.py)
+# takes the owner's Usenet provider, indexers and subtitle languages from Core.
 # On first boot pocket-box-backends makes a box administrator and key in Jellyfin, Navidrome and
 # Immich and hands them to Pocket Core (SERVICES_FILE), whose connectors then give every person
 # their own account and key there, which Pocket Watch, Music and Photos use.
@@ -25,19 +33,76 @@ let
   searxEnv = "/var/lib/pocket-box/searx.env";
   hasApp = slug: lib.elem slug box.apps;
 
+  # The download services: keys made by the box, kept root-only in keysDir.
+  keysDir = "/var/lib/pocket-box/media-keys";
+  downloads = "${media}/downloads";
+  arrPorts = { radarr = 7878; sonarr = 8989; lidarr = 8686; prowlarr = 9696; sabnzbd = 8085; bazarr = 6767; };
+  arrTypes = lib.filter (t: cfg.${t}.enable) [ "sabnzbd" "radarr" "sonarr" "lidarr" "prowlarr" "bazarr" ];
+  # Radarr, Sonarr and Lidarr: loopback, the box's key, a login for the web UI (set by pocket-box-backends).
+  arrSettings = name: {
+    server = { bindaddress = "127.0.0.1"; port = arrPorts.${name}; };
+    auth = { method = "Forms"; required = "Enabled"; };
+    app.instancename = lib.toUpper (lib.substring 0 1 name) + lib.substring 1 (-1) name;
+  };
+  # They write into /srv/media: the media group, group-writable files, and no private user namespace
+  # (it would hide the supplementary group).
+  mediaWriter = {
+    serviceConfig = { PrivateUsers = lib.mkForce false; UMask = lib.mkForce "0002"; SupplementaryGroups = [ "pocket-media" ]; };
+    after = [ "pocket-box-media-keys.service" ];
+    requires = [ "pocket-box-media-keys.service" ];
+  };
+  mediaKeys = pkgs.writeShellScript "pocket-box-media-keys" ''
+    set -eu
+    d=${keysDir}
+    install -d -m 0700 "$d"
+    hex() { head -c 16 /dev/urandom | od -An -tx1 | tr -d ' \n'; }
+    pw() { head -c 32 /dev/urandom | base64 | tr -dc 'A-Za-z0-9' | head -c 32; }
+    if [ ! -s "$d/keys.json" ]; then
+      printf '{"radarr":"%s","sonarr":"%s","lidarr":"%s","prowlarr":"%s","sabnzbd":"%s","sabnzbd_nzb":"%s","bazarr":"%s","password":"%s"}\n' \
+        "$(hex)" "$(hex)" "$(hex)" "$(hex)" "$(hex)" "$(hex)" "$(hex)" "$(pw)" > "$d/keys.json.tmp"
+      mv "$d/keys.json.tmp" "$d/keys.json"
+    fi
+    k() { jq -r ".$1" "$d/keys.json"; }
+    w() { printf '%s\n' "$2" > "$d/$1.tmp"; mv "$d/$1.tmp" "$d/$1"; }
+    for a in radarr sonarr lidarr prowlarr; do
+      w "$a.env" "$(echo "$a" | tr a-z A-Z)__AUTH__APIKEY=$(k "$a")"
+    done
+    w sabnzbd.ini "$(printf '[misc]\napi_key = %s\nnzb_key = %s\nusername = pocket-box\npassword = %s' "$(k sabnzbd)" "$(k sabnzbd_nzb)" "$(k password)")"
+    w bazarr-apikey "$(k bazarr)"
+    w bazarr-password "$(printf %s "$(k password)" | md5sum | cut -d' ' -f1)"
+    w radarr-apikey "$(k radarr)"
+    w sonarr-apikey "$(k sonarr)"
+  '';
+
   servicesFile = "/var/lib/pocket-box/core-services.json";
   managed = lib.filter (s: s.enable) [
     { type = "jellyfin"; port = 8096; unit = "jellyfin.service"; enable = cfg.jellyfin.enable; }
     { type = "navidrome"; port = 4533; unit = "navidrome.service"; enable = cfg.navidrome.enable; }
     { type = "immich"; port = 2283; unit = "immich-server.service"; enable = cfg.immich.enable; }
-  ];
+  ] ++ map (t: { type = t; port = arrPorts.${t}; unit = "${t}.service"; enable = true; site = false; }) arrTypes;
   bootstrapConfig = pkgs.writeText "pocket-box-backends.json" (builtins.toJSON {
     state_dir = "/var/lib/pocket-box/backends";
     services_file = servicesFile;
     media_dir = media;
     inherit (box) domain;
-    services = map (s: { inherit (s) type; url = localUrl s.port; public_url = url.site s.type; }) managed;
+    services = map (s: { inherit (s) type; url = localUrl s.port; public_url = if s.site or true then url.site s.type else ""; }) managed;
+    keys_file = "${keysDir}/keys.json";
+    inherit downloads;
+    # Where the arr apps reach each other (and Prowlarr reaches them).
+    ports = arrPorts;
+    arr = arrTypes;
   });
+  # Core → Settings → System → Downloads: the owner's Usenet provider, indexers and subtitle languages.
+  downloadsSocket = "/run/pocket-box-downloads/downloads.sock";
+  downloadsConfig = pkgs.writeText "pocket-box-downloads.json" (builtins.toJSON {
+    socket = downloadsSocket;
+    group = "pocket-box-agent";
+    state_dir = "/var/lib/pocket-box-downloads";
+    keys_file = "${keysDir}/keys.json";
+    installed = lib.any hasApp [ "watch" "requests" "subtitles" ];
+    services = lib.genAttrs arrTypes (t: localUrl arrPorts.${t});
+  });
+  downloadsService = pkgs.writers.writePython3 "pocket-box-downloads" { flakeIgnore = [ "E501" ]; } (builtins.readFile ./downloads.py);
   bootstrap = pkgs.writers.writePython3 "pocket-box-backends" { flakeIgnore = [ "E501" ]; }
     (builtins.readFile ./backends-bootstrap.py);
 in
@@ -54,6 +119,13 @@ in
     # Off by default: it brings PyTorch (about 3.5 GiB) into the system and downloads its language models
     # on the first start. Without it Pocket Translate translates with Pocket AI.
     libretranslate.enable = lib.mkOption { type = lib.types.bool; default = false; description = "LibreTranslate, the offline engine for Pocket Translate."; };
+    # The download services: Usenet only (no torrents).
+    radarr.enable = lib.mkOption { type = lib.types.bool; default = lib.any hasApp [ "watch" "requests" ]; defaultText = lib.literalExpression ''any of watch, requests in config.pocket.box.apps''; description = "Radarr (films), for Pocket Requests and Watch."; };
+    sonarr.enable = lib.mkOption { type = lib.types.bool; default = lib.any hasApp [ "watch" "requests" ]; defaultText = lib.literalExpression ''any of watch, requests in config.pocket.box.apps''; description = "Sonarr (shows), for Pocket Requests and Watch."; };
+    prowlarr.enable = lib.mkOption { type = lib.types.bool; default = lib.any hasApp [ "watch" "requests" ]; defaultText = lib.literalExpression ''any of watch, requests in config.pocket.box.apps''; description = "Prowlarr, the NZB indexers for Radarr, Sonarr and Lidarr."; };
+    sabnzbd.enable = lib.mkOption { type = lib.types.bool; default = lib.any hasApp [ "watch" "requests" ]; defaultText = lib.literalExpression ''any of watch, requests in config.pocket.box.apps''; description = "SABnzbd, the Usenet downloader."; };
+    lidarr.enable = lib.mkOption { type = lib.types.bool; default = hasApp "requests" && hasApp "music"; defaultText = lib.literalExpression ''requests and music in config.pocket.box.apps''; description = "Lidarr (albums), for Pocket Requests with Pocket Music."; };
+    bazarr.enable = lib.mkOption { type = lib.types.bool; default = hasApp "subtitles"; defaultText = lib.literalExpression ''lib.elem "subtitles" config.pocket.box.apps''; description = "Bazarr, which finds the subtitles Pocket Subtitles re-times."; };
   };
 
   config = lib.mkIf box.enable (lib.mkMerge [
@@ -83,6 +155,35 @@ in
         wants = [ "pocket-box-backends.service" ];
         environment.SERVICES_FILE = "%d/services.json";
         serviceConfig.LoadCredential = [ "services.json:${servicesFile}" ];
+      };
+    }
+
+    {
+      systemd.services.pocket-box-downloads = {
+        description = "Pocket Box downloads (Usenet provider, indexers and subtitles for Pocket Core)";
+        wantedBy = [ "multi-user.target" ];
+        after = [ "network.target" "pocket-box-media-keys.service" ];
+        before = [ "pocket-core.service" ];
+        serviceConfig = {
+          ExecStart = "${downloadsService} ${downloadsConfig}";
+          RuntimeDirectory = "pocket-box-downloads";
+          RuntimeDirectoryMode = "0750";
+          StateDirectory = "pocket-box-downloads";
+          StateDirectoryMode = "0700";
+          Group = "pocket-box-agent";
+          UMask = "0007";
+          Restart = "on-failure";
+          RestartSec = 3;
+          NoNewPrivileges = true;
+          ProtectHome = true;
+          PrivateTmp = true;
+          ProtectSystem = "strict";
+        };
+      };
+      systemd.services.pocket-core = {
+        wants = [ "pocket-box-downloads.service" ];
+        after = [ "pocket-box-downloads.service" ];
+        environment.BOX_DOWNLOADS = downloadsSocket;
       };
     }
 
@@ -292,6 +393,98 @@ in
     (lib.mkIf cfg.guacd.enable {
       services.guacamole-server = { enable = true; host = "127.0.0.1"; port = 4822; };
       systemd.services.pocket-remote = lib.mkIf (hasApp "remote") { after = [ "guacamole-server.service" ]; wants = [ "guacamole-server.service" ]; };
+    })
+
+    (lib.mkIf (arrTypes != [ ]) {
+      # Every key the download services use, made on the first boot (root only, in keysDir).
+      systemd.services.pocket-box-media-keys = {
+        description = "API keys for the Pocket Box's download services";
+        wantedBy = [ "multi-user.target" ];
+        before = map (t: "${t}.service") arrTypes;
+        serviceConfig = { Type = "oneshot"; RemainAfterExit = true; ExecStart = mediaKeys; UMask = "0077"; };
+        path = [ pkgs.coreutils pkgs.jq ];
+      };
+    })
+
+    (lib.mkIf cfg.sabnzbd.enable {
+      # unrar is unfree but redistributable; SABnzbd can't unpack most Usenet posts without it.
+      nixpkgs.config.allowUnfreePredicate = pkg: lib.getName pkg == "unrar";
+      services.sabnzbd = {
+        enable = true;
+        # The box's own settings win at every start; the Usenet servers Core adds stay in the file.
+        allowConfigWrite = true;
+        secretFiles = [ "/run/credentials/sabnzbd.service/keys.ini" ];
+        settings = {
+          misc = {
+            host = "127.0.0.1";
+            port = arrPorts.sabnzbd;
+            download_dir = "${downloads}/incomplete";
+            complete_dir = "${downloads}/complete";
+            permissions = "775";
+          };
+          categories = lib.listToAttrs (lib.imap1 (i: c: lib.nameValuePair c { name = c; dir = c; order = i; }) [ "movies" "tv" "music" "books" ]);
+        };
+      };
+      users.users.sabnzbd.extraGroups = [ "pocket-media" ];
+      systemd.services.sabnzbd = {
+        after = [ "pocket-box-media-keys.service" ];
+        requires = [ "pocket-box-media-keys.service" ];
+        serviceConfig = { LoadCredential = [ "keys.ini:${keysDir}/sabnzbd.ini" ]; UMask = "0002"; };
+      };
+      # The category folders too, so Radarr, Sonarr and Lidarr see them before the first download.
+      systemd.tmpfiles.settings."10-pocket-media-downloads" = lib.genAttrs ([ downloads "${downloads}/incomplete" "${downloads}/complete" ]
+        ++ map (c: "${downloads}/complete/${c}") [ "movies" "tv" "music" "books" ])
+        (_: { d = { mode = "2775"; user = "root"; group = "pocket-media"; }; });
+    })
+
+    (lib.mkIf cfg.radarr.enable {
+      services.radarr = { enable = true; settings = arrSettings "radarr"; environmentFiles = [ "${keysDir}/radarr.env" ]; };
+      users.users.radarr.extraGroups = [ "pocket-media" ];
+      systemd.services.radarr = mediaWriter;
+    })
+
+    (lib.mkIf cfg.sonarr.enable {
+      services.sonarr = { enable = true; settings = arrSettings "sonarr"; environmentFiles = [ "${keysDir}/sonarr.env" ]; };
+      users.users.sonarr.extraGroups = [ "pocket-media" ];
+      systemd.services.sonarr = mediaWriter;
+    })
+
+    (lib.mkIf cfg.lidarr.enable {
+      services.lidarr = { enable = true; settings = arrSettings "lidarr"; environmentFiles = [ "${keysDir}/lidarr.env" ]; };
+      users.users.lidarr.extraGroups = [ "pocket-media" ];
+      systemd.services.lidarr = mediaWriter;
+    })
+
+    (lib.mkIf cfg.prowlarr.enable {
+      services.prowlarr = { enable = true; settings = arrSettings "prowlarr"; environmentFiles = [ "${keysDir}/prowlarr.env" ]; };
+      systemd.services.prowlarr = { after = [ "pocket-box-media-keys.service" ]; requires = [ "pocket-box-media-keys.service" ]; };
+    })
+
+    (lib.mkIf cfg.bazarr.enable {
+      services.bazarr = {
+        enable = true;
+        # What the box owns (set again at every start); languages and providers are saved through its API.
+        settings = {
+          general = {
+            ip = "127.0.0.1";
+            use_radarr = cfg.radarr.enable;
+            use_sonarr = cfg.sonarr.enable;
+          };
+          auth = {
+            type = "form";
+            username = "pocket-box";
+            apikey._secret = "${keysDir}/bazarr-apikey";
+            password._secret = "${keysDir}/bazarr-password";
+          };
+        } // lib.optionalAttrs cfg.radarr.enable {
+          radarr = { ip = "127.0.0.1"; port = arrPorts.radarr; base_url = "/"; ssl = false; apikey._secret = "${keysDir}/radarr-apikey"; };
+        } // lib.optionalAttrs cfg.sonarr.enable {
+          sonarr = { ip = "127.0.0.1"; port = arrPorts.sonarr; base_url = "/"; ssl = false; apikey._secret = "${keysDir}/sonarr-apikey"; };
+        };
+      };
+      users.users.bazarr.extraGroups = [ "pocket-media" ];
+      # Subtitles go next to the films and episodes in /srv/media.
+      systemd.services.bazarr = mediaWriter;
     })
 
     (lib.mkIf cfg.libretranslate.enable {

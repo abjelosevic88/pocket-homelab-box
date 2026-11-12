@@ -122,6 +122,12 @@ And the third-party services some of them sit on top of, from the NixOS modules 
 | Headless Chromium | loopback only (`127.0.0.1:9222`) | Pocket Lookout (pages that need JavaScript) |
 | guacd (Apache Guacamole) | loopback only (`127.0.0.1:4822`) | Pocket Remote (VNC, RDP and SSH) |
 | LibreTranslate | loopback only (`127.0.0.1:5000`), **off by default** | Pocket Translate (offline translation) |
+| Radarr (films) | loopback only (`127.0.0.1:7878`) | Pocket Requests, Pocket Watch |
+| Sonarr (shows) | loopback only (`127.0.0.1:8989`) | Pocket Requests, Pocket Watch |
+| Prowlarr (NZB indexers) | loopback only (`127.0.0.1:9696`) | Radarr, Sonarr, Lidarr |
+| SABnzbd (Usenet downloads) | loopback only (`127.0.0.1:8085`) | Radarr, Sonarr, Lidarr, Pocket Requests |
+| Lidarr (albums) | loopback only (`127.0.0.1:8686`), with Requests **and** Music | Pocket Requests |
+| Bazarr (subtitles) | loopback only (`127.0.0.1:6767`) | Pocket Subtitles |
 
 LibreTranslate brings PyTorch (about 3.5 GiB) and downloads its language models on the first start, so it's off unless you set `pocket.box.services.libretranslate.enable = true`. Without it Pocket Translate translates with Pocket AI.
 
@@ -131,6 +137,14 @@ Nobody has to open these services' setup screens:
 - **Each person's own account:** the owner's first-run account in Core, and everyone added later, gets an account and key in each service. Watch, Music and Photos use those keys, so each person has their own resume points, playlists and photos.
 
 Pocket Office and OnlyOffice share a JWT secret that is generated on the first boot, and so is SearXNG's secret key.
+
+**Downloads** (Usenet only, no torrents). Radarr, Sonarr, Prowlarr and SABnzbd come with Pocket Watch or Requests, Lidarr with Requests and Music together, Bazarr with Pocket Subtitles. All of them run on loopback with no site: Pocket Requests shows their queues, health and disk space, so the owner doesn't need their own pages. Core has no sign-in for third-party pages yet, and they aren't put on the network without one.
+- **Keys:** `pocket-box-media-keys` makes every API key before the services first start (`/var/lib/pocket-box/media-keys/`, root only) and hands them over as environment (`RADARR__AUTH__APIKEY`…), SABnzbd's secret ini and Bazarr's settings. Their web UIs need a login (`pocket-box` and a password in the same file).
+- **Wiring:** `pocket-box-backends` connects them on every boot, only where something is missing: root folders `/srv/media/{movies,tv,music}`, SABnzbd as the download client (categories `movies`, `tv`, `music`, `books`), Radarr, Sonarr and Lidarr as Prowlarr's applications (full sync, so indexers added once reach all three), SABnzbd in Prowlarr, Bazarr on Radarr and Sonarr with a default language profile. New films and shows get HD-1080p (the lower profiles are removed on a fresh install, as Pocket Requests takes the first), and files are renamed in the usual way.
+- **Folders:** downloads land in `/srv/media/downloads/{incomplete,complete}`, on the same disk as the library, so importing is an instant move. The services join `pocket-media` and write group-writable files.
+- **Handing them to Core:** they go into `core-services.json` too, for admins only and without a connector (there are no per-person accounts), with `owner_credential` so Core gives the box's key to the owner. Requests, Watch and Subtitles get them from Core as the box owner.
+- **What the owner types in:** Core → Settings → System → **Downloads** (and a step in the setup wizard) talks to `pocket-box-downloads` (`modules/downloads.py`) on `/run/pocket-box-downloads/downloads.sock`, which only Core's group can open. It takes the Usenet provider (saved in SABnzbd and tested), NZB indexers (added to Prowlarr as Newznab and tested; one that fails stays switched off) and subtitle languages with an optional OpenSubtitles.com login (Bazarr). It has presets for well-known providers and indexers, and never sends a password or key back.
+- **SABnzbd needs unrar,** which is unfree but redistributable, so the box allows that one package.
 
 Every app runs as its own systemd service (`pocket-<slug>`) under a dynamic user, with its data in `/var/lib/pocket-<slug>`. The exceptions:
 - **Backups and Database run as root.** They need to read the whole disk and every app's database.
@@ -246,7 +260,7 @@ Apps update with the box, not one by one. Descriptions and icons come from the p
 - If this release's app builds are gone from the cache (a box that hasn't updated in a long time), `pocket-box-apply` takes the newest release instead, which also updates the box, rather than compiling apps on the box.
 - On Lite, choosing "all" lists every app explicitly, so the box downloads them all; without a list a box counts as "every app the release has", which only the full ISO carries. CI also installs the Lite ISO with its base apps (`LITE=1 TPM=0 scripts/install-test.sh`).
 - The nightly update builds the box's list too, so a box never grows apps it didn't choose. Remove takes an app off the list, and the next update leaves it out.
-- Jellyfin, Navidrome, Immich and ONLYOFFICE run only with the apps that use them, so a small box stays small (Lite's system is about 3.3 GiB against 11.4 GiB for every app).
+- Jellyfin, Navidrome, Immich, ONLYOFFICE and the download services run only with the apps that use them, so a small box stays small (Lite's system is about 3.3 GiB against 11.4 GiB for every app).
 
 ## Updates
 
@@ -314,8 +328,9 @@ modules/screen.py     the address, QR code and console login shown on the box's 
 modules/system.nix    NetworkManager, Tailscale, console account, the box agent
 modules/agent.py      the box agent (time zone, Wi-Fi, Tailscale, console password, disk status, updates)
 modules/updates.nix   nightly updates; modules/updater.py does the switch, health check and rollback
-modules/services.nix  Jellyfin, Navidrome, Immich, OnlyOffice, SearXNG, Chromium; first-boot accounts for Core
-modules/backends-bootstrap.py  the first-boot setup of those services
+modules/services.nix  Jellyfin, Navidrome, Immich, OnlyOffice, SearXNG, Chromium, the download services; first-boot accounts for Core
+modules/backends-bootstrap.py  the first-boot setup of those services, and the download services' wiring
+modules/downloads.py  Usenet provider, indexers and subtitle languages for Core's Downloads settings
 hosts/box.nix         the installed system (hardware-agnostic, file systems by label)
 hosts/encrypted.nix   the encrypted variant: LUKS2 root unlocked by the TPM
 hosts/installer.nix   the ISO and pocket-install
@@ -330,7 +345,9 @@ tests/                NixOS VM tests: Pocket AI's jail, SearXNG and Chromium (ni
 - Boot counting: a release that doesn't boot at all still needs someone to pick the previous one in the boot menu. aarch64 images.
 - The apps on the move: the public name points at the box's home address, so it works at home. Tailscale gets the box onto your tailnet, but the names don't follow you there yet.
 - "Sign in with Pocket Core" inside Immich and Jellyfin themselves. The Pocket apps already sign in for you; Jellyfin's needs the SSO plugin.
-- Collabora as a second Office engine, and Bazarr plus the arr apps (Radarr, Sonarr, Lidarr) for Subtitles, Watch and Requests. Pocket Requests is on the box, but needs arr apps you run yourself until then.
+- Collabora as a second Office engine.
+- Bazarr's post-processing hook into Pocket Subtitles: the hook needs a Pocket Subtitles token, which the box can't make yet, so the owner pastes the command from Subtitles → Settings → Integrations into Bazarr once.
+- Sites for Radarr, Sonarr, SABnzbd and the rest behind Core's admin sign-in.
 - Secure Boot (lanzaboote), which would make the TPM binding mean more.
 
 ## License

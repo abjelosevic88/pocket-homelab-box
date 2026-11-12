@@ -685,7 +685,7 @@ in
     input = "pocket-requests";
     version = "0.9.1";
     port = 8210;
-    # Requests go to Radarr, Sonarr and Lidarr, which are not on the box yet: connect your own.
+    # Requests go to the box's Radarr, Sonarr and Lidarr (modules/services.nix), through Pocket Core.
     vendorHash = "sha256-orX8b2RbbV3XoLZ4WAfqSgQF/AYRinb4n6V4okSMbCk=";
     npmDepsHash = "sha256-EF7X8qk+fReog1pzFKCgFN56Ud0bDVmN8DlH0Z73gso=";
   };

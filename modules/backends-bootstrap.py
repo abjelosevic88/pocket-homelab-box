@@ -6,6 +6,13 @@ writes SERVICES_FILE for Core: where the service is, the administrator's credent
 connector that makes an account for every person. Core then gives each person their own
 account and key, which Pocket Watch, Music and Photos use.
 
+The download services (SABnzbd, Radarr, Sonarr, Lidarr, Prowlarr, Bazarr) have keys the box made
+before their first start (KEYS_FILE). Here they are wired to each other, again at every boot and
+only where something is missing: root folders, SABnzbd as the download client (one category each),
+Prowlarr's applications (full sync) and download client, Bazarr's default language profile, a login
+for their web UIs. They have no per-person accounts, so Core gets them for admins only, without a
+connector; Pocket Requests, Watch and Subtitles reach them through Core as the box owner.
+
 A service that does not come up in time is left out of the file (and tried again next boot);
 Core starts either way.
 """
@@ -28,7 +35,7 @@ except FileNotFoundError:
     PUBLIC_NAME = ""
 if PUBLIC_NAME:
     for _svc in CONFIG["services"]:
-        _svc["public_url"] = _svc["public_url"].replace("." + CONFIG["domain"], "." + PUBLIC_NAME)
+        _svc["public_url"] = _svc["public_url"] and _svc["public_url"].replace("." + CONFIG["domain"], "." + PUBLIC_NAME)
 ADMIN = "pocket-box"
 JF_AUTH = 'MediaBrowser Client="Pocket Box", Device="pocket-box", DeviceId="pocket-box", Version="1"'
 
@@ -142,7 +149,157 @@ def immich(base):
     return {"API_KEY": cred["api_key"]}
 
 
-SETUP = {"jellyfin": (jellyfin, "/System/Info/Public"), "navidrome": (navidrome, "/ping"), "immich": (immich, "/api/server/ping")}
+# ---- the download services ----
+
+KEYS = json.load(open(CONFIG["keys_file"])) if CONFIG.get("arr") else {}
+PORTS = CONFIG.get("ports", {})
+API = {"radarr": "/api/v3", "sonarr": "/api/v3", "lidarr": "/api/v1", "prowlarr": "/api/v1"}
+TITLE = {"radarr": "Radarr", "sonarr": "Sonarr", "lidarr": "Lidarr", "prowlarr": "Prowlarr"}
+# Where each one's downloads and library go.
+LIBRARY = {"radarr": ("movies", "movieCategory"), "sonarr": ("tv", "tvCategory"), "lidarr": ("music", "musicCategory")}
+
+
+def local(t):
+    return "http://127.0.0.1:%d" % PORTS[t]
+
+
+def arr(t, method, path, body=None, raw=False):
+    return call(method, local(t) + API[t] + path, body, {"X-Api-Key": KEYS[t]}, raw=raw)
+
+
+def set_fields(item, values):
+    for f in item.get("fields", []):
+        if f.get("name") in values:
+            f["value"] = values[f["name"]]
+
+
+def arr_login(t, st):
+    """A login for the web UI (Forms, required everywhere), once; the password stays in KEYS_FILE."""
+    if st.get("login"):
+        return
+    host = arr(t, "GET", "/config/host")
+    host.update({"authenticationMethod": "forms", "authenticationRequired": "enabled", "username": ADMIN,
+                 "password": KEYS["password"], "passwordConfirmation": KEYS["password"]})
+    arr(t, "PUT", "/config/host/%s" % host.get("id", 1), host)
+    st["login"] = True
+
+
+def arr_sabnzbd(t, extra):
+    """SABnzbd as the download client, unless there is one already."""
+    if "sabnzbd" not in CONFIG["arr"] or any(c.get("implementation") == "Sabnzbd" for c in arr(t, "GET", "/downloadclient")):
+        return
+    item = next(x for x in arr(t, "GET", "/downloadclient/schema") if x.get("implementation") == "Sabnzbd")
+    set_fields(item, {"host": "127.0.0.1", "port": PORTS["sabnzbd"], "useSsl": False, "urlBase": "", "apiKey": KEYS["sabnzbd"], **extra})
+    item.update({"name": "SABnzbd", "enable": True, "priority": 1})
+    arr(t, "POST", "/downloadclient?forceSave=true", item)
+    log(t, "download client: SABnzbd")
+
+
+def media_app(t):
+    """Radarr, Sonarr, Lidarr: library folder, SABnzbd with its own category, naming and a 1080p default."""
+    st = load(t) or {}
+    arr_login(t, st)
+    folder, cat_field = LIBRARY[t]
+    root = CONFIG["media_dir"] + "/" + folder
+    if not any(r.get("path", "").rstrip("/") == root for r in arr(t, "GET", "/rootfolder")):
+        body = {"path": root}
+        if t == "lidarr":
+            quality = {p["name"]: p["id"] for p in arr(t, "GET", "/qualityprofile")}
+            meta = arr(t, "GET", "/metadataprofile")
+            body.update({"name": "Music", "defaultQualityProfileId": quality.get("Standard", min(quality.values())),
+                         "defaultMetadataProfileId": next((m["id"] for m in meta if m["name"] == "Standard"), meta[0]["id"]),
+                         "defaultMonitorOption": "all", "defaultNewItemMonitorOption": "all", "defaultTags": []})
+        arr(t, "POST", "/rootfolder", body)
+        log(t, "root folder:", root)
+    arr_sabnzbd(t, {cat_field: folder})
+    if not st.get("naming"):
+        naming = arr(t, "GET", "/config/naming")
+        naming[{"radarr": "renameMovies", "sonarr": "renameEpisodes", "lidarr": "renameTracks"}[t]] = True
+        arr(t, "PUT", "/config/naming/%s" % naming.get("id", 1), naming)
+        st["naming"] = True
+    if t in ("radarr", "sonarr") and not st.get("profiles"):
+        # Pocket Requests takes the first quality profile unless told otherwise: make that HD-1080p
+        # (the ones below it only on a fresh install, while nothing uses them).
+        profiles = arr(t, "GET", "/qualityprofile")
+        if any(p["name"] == "HD-1080p" for p in profiles):
+            for p in profiles:
+                if p["name"] in ("Any", "SD", "HD-720p"):
+                    try:
+                        arr(t, "DELETE", "/qualityprofile/%d" % p["id"], raw=True)
+                    except urllib.error.HTTPError as e:
+                        log(t, "kept quality profile", p["name"], e.code)
+        st["profiles"] = True
+    save(t, st)
+    return {"API_KEY": KEYS[t]}
+
+
+def radarr(base):
+    return media_app("radarr")
+
+
+def sonarr(base):
+    return media_app("sonarr")
+
+
+def lidarr(base):
+    return media_app("lidarr")
+
+
+def prowlarr(base):
+    """Radarr, Sonarr and Lidarr as Prowlarr's applications (full sync), SABnzbd as its download client."""
+    st = load("prowlarr") or {}
+    arr_login("prowlarr", st)
+    have = {a.get("implementation") for a in arr("prowlarr", "GET", "/applications")}
+    schema = None
+    for t in ("radarr", "sonarr", "lidarr"):
+        if t not in CONFIG["arr"] or TITLE[t] in have:
+            continue
+        schema = schema or arr("prowlarr", "GET", "/applications/schema")
+        item = next(x for x in schema if x.get("implementation") == TITLE[t])
+        set_fields(item, {"prowlarrUrl": local("prowlarr"), "baseUrl": local(t), "apiKey": KEYS[t]})
+        item.update({"name": TITLE[t], "syncLevel": "fullSync"})
+        arr("prowlarr", "POST", "/applications?forceSave=true", item)
+        log("prowlarr application:", TITLE[t])
+    # Prowlarr's own grabs (picked by hand there) go to SABnzbd's default category.
+    arr_sabnzbd("prowlarr", {"category": ""})
+    save("prowlarr", st)
+    return {"API_KEY": KEYS["prowlarr"]}
+
+
+def sabnzbd(base):
+    # The key is the box's (secretFiles); this only checks SABnzbd takes it.
+    q = urllib.parse.urlencode({"mode": "get_config", "section": "misc", "keyword": "api_key", "output": "json", "apikey": KEYS["sabnzbd"]})
+    if "config" not in call("GET", base + "/api?" + q):
+        raise RuntimeError("SABnzbd doesn't take the box's key")
+    return {"API_KEY": KEYS["sabnzbd"]}
+
+
+def bazarr(base):
+    """Radarr and Sonarr come from its settings (services.nix); here a default language profile, once."""
+    hdr = {"X-API-KEY": KEYS["bazarr"]}
+    st = load("bazarr") or {}
+    if not st.get("profile"):
+        profiles = call("GET", base + "/api/system/languages/profiles", headers=hdr)
+        if not profiles:
+            profile = {"profileId": 1, "name": "Pocket Box", "cutoff": None, "mustContain": [], "mustNotContain": [], "originalFormat": None, "tag": None,
+                       "items": [{"id": 1, "language": "en", "audio_exclude": "False", "audio_only_include": "False", "hi": "False", "forced": "False"}]}
+            form = [("languages-enabled", "en"), ("languages-profiles", json.dumps([profile])),
+                    ("settings-general-serie_default_enabled", "true"), ("settings-general-serie_default_profile", "1"),
+                    ("settings-general-movie_default_enabled", "true"), ("settings-general-movie_default_profile", "1")]
+            req = urllib.request.Request(base + "/api/system/settings", data=urllib.parse.urlencode(form).encode(), method="POST", headers=hdr)
+            urllib.request.urlopen(req, timeout=60).read()
+            log("bazarr: default language profile (English)")
+        st["profile"] = True
+        save("bazarr", st)
+    return {"API_KEY": KEYS["bazarr"]}
+
+
+SETUP = {"jellyfin": (jellyfin, "/System/Info/Public"), "navidrome": (navidrome, "/ping"), "immich": (immich, "/api/server/ping"),
+         "sabnzbd": (sabnzbd, "/api?mode=version&output=json"), "radarr": (radarr, "/ping"), "sonarr": (sonarr, "/ping"),
+         "lidarr": (lidarr, "/ping"), "prowlarr": (prowlarr, "/ping"), "bazarr": (bazarr, "/")}
+# Household tools without per-person accounts: admins only, no connector (Core's arr connector only
+# carries events; an admin can switch it on).
+BOX_ONLY = {"sabnzbd", "radarr", "sonarr", "lidarr", "prowlarr", "bazarr"}
 
 os.makedirs(STATE, mode=0o700, exist_ok=True)
 entries = []
@@ -154,17 +311,20 @@ for svc in CONFIG["services"]:
         continue
     try:
         fields = setup(base)
-    except (urllib.error.URLError, OSError, KeyError, IndexError, RuntimeError, ValueError) as e:
+    except (urllib.error.URLError, OSError, KeyError, IndexError, RuntimeError, ValueError, StopIteration, TypeError) as e:
         detail = e.read().decode()[:200] if isinstance(e, urllib.error.HTTPError) else ""
         log(name, "setup failed:", e, detail)
         continue
+    box_only = name in BOX_ONLY
     entries.append({
         "type": name,
         "url": base,
         "public_url": svc["public_url"],
         "fields": fields,
-        "audience": "all",
-        "connector": {"enabled": True, "provision_on_create": True},
+        "audience": "admins" if box_only else "all",
+        "connector": {"enabled": not box_only, "provision_on_create": not box_only},
+        # Core (0.37.9+) copies the box key to the owner and admins as their own credential.
+        **({"owner_credential": True} if box_only else {}),
     })
     log(name, "ready")
 
