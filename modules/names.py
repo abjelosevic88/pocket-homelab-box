@@ -98,12 +98,45 @@ class Rejected(Exception):
 
 
 class Waiting(Exception):
-    """Pocket Names knows the box but holds it back for now (approval, or a limit); it asks again."""
+    """Pocket Names knows the box but holds it back for now (approval, or busy); it asks again."""
+
+
+class Limited(Exception):
+    """Pocket Names turned the box away because of one of its limits (HTTP 429); it asks again, but
+    the owner should hear which limit it was and how long it lasts."""
+
+
+# What each of Pocket Names' limits means for the owner, by the start of its error text.
+LIMITS = [
+    ("too many new names from this address",
+     "Pocket Names gives each home internet address 3 new box names a day, and this address has used them "
+     "today (installing the box again counts as a new name). The box asks again by itself and gets its name "
+     "as soon as one frees up, within a day at most."),
+    ("too many new names today",
+     "Pocket Names has given out all of today's new names. The box asks again by itself and gets its name "
+     "tomorrow at the latest."),
+    ("too many new boxes this week",
+     "Pocket Names has reached this week's limit for new certificates. The box asks again by itself and "
+     "gets its padlock in a few days."),
+    ("too many certificate attempts",
+     "This box asked for its certificate too often this week. It asks again by itself in a few days."),
+]
+
+
+def limit_message(detail):
+    try:
+        text = str(json.loads(detail).get("error") or detail)
+    except (ValueError, AttributeError):
+        text = detail
+    for start, message in LIMITS:
+        if text.startswith(start):
+            return message
+    return "Pocket Names is holding new names back for now (" + text.strip()[:120] + "). The box asks again by itself."
 
 
 def status(state, message=""):
     """How far getting the name got, for the landing page: choose | asking | certificate | waiting |
-    offline | failed | ready | own-ca | off. Only until the box has its name; renewals later (and a
+    limited | offline | failed | ready | own-ca | off. Only until the box has its name; renewals later (and a
     switch to another name, while the old one still works) don't show here."""
     if state not in ("ready", "own-ca") and os.path.exists(DOMAIN_FILE):
         return
@@ -140,7 +173,9 @@ def api(method, path, body=None, account=None):
         detail = e.read().decode(errors="replace")[:300]
         if e.code == 401:
             raise Rejected(detail)
-        if e.code in (403, 429, 503):
+        if e.code == 429:
+            raise Limited(limit_message(detail))
+        if e.code in (403, 503):
             raise Waiting(f"Pocket Names {method} {path}: HTTP {e.code} {detail}")
         raise RuntimeError(f"Pocket Names {method} {path}: HTTP {e.code} {detail}")
 
@@ -375,7 +410,7 @@ def pocket_forget():
     try:
         api("DELETE", "/v1/box", None, json.load(open(ACCOUNT)))
         log("gave the Pocket name back")
-    except (RuntimeError, Rejected, Waiting, urllib.error.URLError, OSError) as e:
+    except (RuntimeError, Rejected, Waiting, Limited, urllib.error.URLError, OSError) as e:
         log("couldn't give the Pocket name back now:", e)
         return
     for f in (ACCOUNT, SENT):
@@ -496,17 +531,21 @@ def main():
         problem("signin", msg)
         if os.path.exists(DOMAIN_FILE):
             write_etc_hosts()
-    except (RuntimeError, urllib.error.URLError, OSError, subprocess.TimeoutExpired, Rejected, Waiting, KeyError, ValueError) as e:
+    except (RuntimeError, urllib.error.URLError, OSError, subprocess.TimeoutExpired, Rejected, Waiting, Limited, KeyError, ValueError) as e:
         # No internet, Pocket Names or Cloudflare down or holding the box back, Let's Encrypt busy: the
         # box keeps working on its current address and a timer tries again.
         log("not this time:", e)
-        if isinstance(e, Waiting):
-            status("waiting", "Pocket Names will give this box its name shortly; it asks again every few minutes.")
+        if isinstance(e, Limited):
+            status("limited", str(e))
+            problem("limited", str(e))
+        elif isinstance(e, Waiting):
+            status("waiting", "Pocket Names hasn't let this box in yet; it asks again every few minutes.")
         elif isinstance(e, urllib.error.URLError) and not isinstance(e, urllib.error.HTTPError):
             status("offline", "The box can't reach the internet yet.")
         else:
             status("failed", "Getting the name didn't work this time; the box tries again in a few minutes.")
-        problem("failed", str(e)[:300])
+        if not isinstance(e, Limited):
+            problem("failed", str(e)[:300])
         if os.path.exists(DOMAIN_FILE):
             write_etc_hosts()
 

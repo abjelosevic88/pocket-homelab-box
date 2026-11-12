@@ -507,13 +507,21 @@
       if ($("getting").hidden) show("getting");
     } else if (!gaveUp) {
       if ($("steps").hidden) show("steps");
-      if (st && fresh && st.message && (["offline", "failed", "signin"].includes(st.state) || tooLong)) {
+      if (st && fresh && st.message && st.state === "limited") {
+        // A Pocket Names limit: say which one and how long, then the way in that works today.
+        const head = document.createElement("b");
+        head.textContent = "Your box can't get its secure address yet. ";
+        const text = document.createElement("span");  // one flex item beside the "!" badge
+        text.append(head, st.message + " Until then, use the box with its own certificate: the two steps below.");
+        $("why").replaceChildren(text);
+        $("why").hidden = false;
+      } else if (st && fresh && st.message && (["offline", "failed", "signin"].includes(st.state) || tooLong)) {
         $("why").textContent = st.message + " Until then, use the steps below; the page moves on by itself once the box has its address.";
         $("why").hidden = false;
       }
     }
     // Keep looking while the box may still get its name (no status yet: it has only just started).
-    if (!st || ["asking", "certificate", "waiting", "offline", "failed", "signin", "choose"].includes(st.state)) {
+    if (!st || ["asking", "certificate", "waiting", "limited", "offline", "failed", "signin", "choose"].includes(st.state)) {
       polling = true;
       setTimeout(check, 4000);
     }
