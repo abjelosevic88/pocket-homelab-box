@@ -25,7 +25,7 @@ in
     title = "Pocket Core";
     pname = "pocket-core";
     input = "pocket-core";
-    version = "0.37.13";
+    version = "0.37.12";
     port = 8179;
     vendorHash = "sha256-AmQl4eumT1+KUEk3jsBDJpAV1h2efmwUL+gcfg4IrIE=";
     npmDepsHash = "sha256-B6hwAJzFxJG6iSPCb/vrsQrF8lzORM95hK7vslmlGm0=";
@@ -35,7 +35,7 @@ in
     title = "Pocket AI";
     pname = "pocket-ai";
     input = "pocket-ai";
-    version = "0.94.1";
+    version = "0.94.2";
     port = 8195;
     vendorHash = "sha256-st3Jp8Qh9ZGI32Tsg1EVT0bZBu6tDtYHnLhAhvI/aMM=";
     npmDepsHash = "sha256-Ec6TFzNOyDaPrpcaUpLi5OMusbth/qK3LLDEE+V92jw=";
@@ -49,7 +49,7 @@ in
     title = "Pocket Alerts";
     pname = "pocket-alerts";
     input = "pocket-alerts";
-    version = "0.2.1";
+    version = "0.3.0";
     port = 8217;
     vendorHash = "sha256-orX8b2RbbV3XoLZ4WAfqSgQF/AYRinb4n6V4okSMbCk=";
     npmDepsHash = "sha256-AzYQcVW6vaXzAYwgmfjaUJjjslwFHpUjiPxeDlc1J2Y=";
@@ -190,7 +190,7 @@ in
     title = "Pocket Day";
     pname = "pocket-day";
     input = "pocket-day";
-    version = "0.46.0";
+    version = "0.47.0";
     port = 8177;
     vendorHash = "sha256-orX8b2RbbV3XoLZ4WAfqSgQF/AYRinb4n6V4okSMbCk=";
     npmDepsHash = "sha256-07TBbsJyyXCVTdl+037o3Uop2Be/yswTrRL/PDF92v8=";
@@ -704,7 +704,7 @@ in
     title = "Pocket Search";
     pname = "pocket-search";
     input = "pocket-search";
-    version = "0.19.0";
+    version = "0.20.0";
     port = 8225;
     vendorHash = "sha256-gzWT5q/Hy4LInKVGQxBkNQCNaipGA9Jk7MbANyBVKJ0=";
     npmDepsHash = "sha256-P92MslwmlPt8N95dSjIZitFvWpSn8FTaNxltAMAEcEg=";
@@ -726,7 +726,7 @@ in
     title = "Pocket Split";
     pname = "pocket-split";
     input = "pocket-split";
-    version = "0.8.0";
+    version = "0.8.1";
     port = 8172;
     vendorHash = "sha256-NAkS3wnN14V7t5vyEAyFrdfxcZROSHOEWZBlkq4h10I=";
     npmDepsHash = "sha256-xPq4EltB1pyx8Lm9g0/PRsVqqwriA6IKNZ7ce4jkD/w=";
