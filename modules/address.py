@@ -1,6 +1,6 @@
 """pocket-box-address: how the box gets its padlock, as the owner chose it.
 
-  pocket      Pocket's free address, <random>.box.pockethomelab.com (Pocket Names)
+  pocket      Pocket's free address, <random>.box.pockethomelab.net (Pocket Names)
   cloudflare  the owner's own domain on Cloudflare, <sub>.<their zone>
   own-ca      no public name: the box's own certificate, installed on each device
 

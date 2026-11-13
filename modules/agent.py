@@ -236,7 +236,7 @@ def encryption():
 
 
 def public_name():
-    """The box's name under box.pockethomelab.com (modules/names.nix), once it has its certificate."""
+    """The box's name under box.pockethomelab.net (modules/names.nix), once it has its certificate."""
     try:
         return open("/var/lib/pocket-box-name/domain").read().strip()
     except FileNotFoundError:
