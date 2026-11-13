@@ -16,7 +16,7 @@
 
 ---
 
-Boot the installer from a USB stick, pick a disk, reboot. Open `http://pocket.local` from a phone or laptop on the same network and choose how the box gets its padlock: **Pocket's free address** (recommended; within a minute the box is at a name like `x7k2m9.box.pockethomelab.com`, with a Let's Encrypt certificate every browser already trusts), **your own domain on Cloudflare** (sign in with Cloudflare, and the box sets up `pocket.yourdomain` itself), or **the box's own certificate** (installed once on each device; no name on the internet). The page then takes you on to Pocket Core.
+Boot the installer from a USB stick, pick a disk, reboot. Open `http://pocket.local` from a phone or laptop on the same network and choose how the box gets its padlock: **Pocket's free address** (recommended; within a minute the box is at a name like `x7k2m9.box.pockethomelab.net`, with a Let's Encrypt certificate every browser already trusts), **your own domain on Cloudflare** (sign in with Cloudflare, and the box sets up `pocket.yourdomain` itself), or **the box's own certificate** (installed once on each device; no name on the internet). The page then takes you on to Pocket Core.
 
 The whole system is declared in this flake. The installer ISO already contains the finished system, so installing needs no network.
 
@@ -179,7 +179,7 @@ Caddy is the only thing listening on the network (ports 80 and 443). The apps an
 
 Switching moves the box over once the new address works, then lets the old one go: the Pocket name is given back, the old Cloudflare records are removed. The landing page may only make the first choice, and only from that page (it must send `X-Pocket-Box`, which other sites can't add without asking); Core, as an admin, may change it any time.
 
-**Pocket's free address.** Each box gets a name of its own from Pocket Names (`names.pockethomelab.com`), like `x7k2m9.box.pockethomelab.com`, and a Let's Encrypt certificate for it and every app under it. `pocket-box-name` (`modules/names.{nix,py}`) does this on a timer:
+**Pocket's free address.** Each box gets a name of its own from Pocket Names (`names.pockethomelab.com`), like `x7k2m9.box.pockethomelab.net`, and a Let's Encrypt certificate for it and every app under it. `pocket-box-name` (`modules/names.{nix,py}`) does this on a timer:
 - **Asks as soon as it's chosen,** then every 3 minutes until the box has its name. In a VM against the live service the name and certificate were there 46 seconds after boot.
 - **Points the name at the box's home address** (its address on the home network), again when it changes and twice a day as a sign of life.
 - **Gets the certificate over DNS-01:** Pocket Names only answers Let's Encrypt's DNS check; the private key never leaves the box. It renews 30 days before the end.

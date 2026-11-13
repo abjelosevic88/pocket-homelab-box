@@ -10,7 +10,7 @@ Nothing happens until there is a choice (a new box doesn't tell Pocket Names its
 the owner picked that). Switching moves the box over once the new name works, then lets the old one go.
 
 Pocket's free address. Each run:
-  1. registers with Pocket Names once (a random name like x7k2m9.box.pockethomelab.com and a token),
+  1. registers with Pocket Names once (a random name like x7k2m9.box.pockethomelab.net and a token),
   2. points that name and *.name at the box's home address, again when it changes and twice a day
      as a sign of life (names of boxes that go quiet for months are given back),
   3. gets a Let's Encrypt certificate for name and *.name over DNS-01 (lego's httpreq provider talks

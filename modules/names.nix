@@ -1,4 +1,4 @@
-# The box's public name: <random>.box.pockethomelab.com with a Let's Encrypt certificate, so phones
+# The box's public name: <random>.box.pockethomelab.net with a Let's Encrypt certificate, so phones
 # and laptops open the apps without installing the box's own certificate first. Pocket Names
 # (github.com/abjelosevic88/pocket-homelab-names) hands out the name, points it at the box's home
 # address and answers Let's Encrypt's DNS check; pocket-box-name (modules/names.py) does the rest on a
