@@ -5,7 +5,7 @@
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
 
     # App sources, pinned in flake.lock. Each has its own entry in apps.nix.
-    pocket-core = { url = "github:abjelosevic88/pocket-homelab-core/v0.37.12"; flake = false; };
+    pocket-core = { url = "github:abjelosevic88/pocket-homelab-core/v0.40.1"; flake = false; };
     pocket-ai = { url = "github:abjelosevic88/pocket-homelab-ai/v0.94.2"; flake = false; };
     pocket-alerts = { url = "github:abjelosevic88/pocket-homelab-alerts/v0.3.0"; flake = false; };
     pocket-audiobooks = { url = "github:abjelosevic88/pocket-homelab-audiobooks/v1.6.1"; flake = false; };
@@ -25,7 +25,7 @@
     pocket-draw = { url = "github:abjelosevic88/pocket-homelab-draw/v0.4.1"; flake = false; };
     pocket-errors = { url = "github:abjelosevic88/pocket-homelab-errors/v0.2.3"; flake = false; };
     pocket-family = { url = "github:abjelosevic88/pocket-homelab-family/v0.1.1"; flake = false; };
-    pocket-files = { url = "github:abjelosevic88/pocket-homelab-files/v0.13.1"; flake = false; };
+    pocket-files = { url = "github:abjelosevic88/pocket-homelab-files/v0.13.2"; flake = false; };
     pocket-fitness = { url = "github:abjelosevic88/pocket-homelab-fitness/v0.1.1"; flake = false; };
     pocket-flows = { url = "github:abjelosevic88/pocket-homelab-flows/v0.7.0"; flake = false; };
     pocket-forms = { url = "github:abjelosevic88/pocket-homelab-forms/v0.2.0"; flake = false; };
@@ -64,7 +64,7 @@
     pocket-projects = { url = "github:abjelosevic88/pocket-homelab-projects/v0.40.4"; flake = false; };
     pocket-radio = { url = "github:abjelosevic88/pocket-homelab-radio/v0.1.2"; flake = false; };
     pocket-reader = { url = "github:abjelosevic88/pocket-homelab-reader/v0.1.2"; flake = false; };
-    pocket-remote = { url = "github:abjelosevic88/pocket-homelab-remote/v0.3.0"; flake = false; };
+    pocket-remote = { url = "github:abjelosevic88/pocket-homelab-remote/v0.3.1"; flake = false; };
     pocket-renewals = { url = "github:abjelosevic88/pocket-homelab-renewals/v0.6.0"; flake = false; };
     pocket-rentals = { url = "github:abjelosevic88/pocket-homelab-rentals/v0.1.1"; flake = false; };
     pocket-requests = { url = "github:abjelosevic88/pocket-homelab-requests/v0.10.1"; flake = false; };

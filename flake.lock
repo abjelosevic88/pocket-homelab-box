@@ -223,16 +223,16 @@
     "pocket-core": {
       "flake": false,
       "locked": {
-        "lastModified": 1794512769,
-        "narHash": "sha256-vkvCnCQRn/b17dJMuQtacwoWsQVXav+QTWtd/XaT3BE=",
+        "lastModified": 1794594245,
+        "narHash": "sha256-xupFJuQ/DIvBaFdIeqjj7lNq+HsunJVh3NwsvuXIpQI=",
         "owner": "abjelosevic88",
         "repo": "pocket-homelab-core",
-        "rev": "233b09cbc427ec1ebe069fea29a1d112a58d1f19",
+        "rev": "005baf2fb42e66615a62cf3648c1e6a07169971c",
         "type": "github"
       },
       "original": {
         "owner": "abjelosevic88",
-        "ref": "v0.37.12",
+        "ref": "v0.40.1",
         "repo": "pocket-homelab-core",
         "type": "github"
       }
@@ -359,16 +359,16 @@
     "pocket-files": {
       "flake": false,
       "locked": {
-        "lastModified": 1794061171,
-        "narHash": "sha256-WJIuu17h5PbhcVDCybAa2qzxYSkevxhPFWK7XUQ4fGY=",
+        "lastModified": 1794568171,
+        "narHash": "sha256-Jn0QSjK5vc1p3Ad12SF9qHtg9KkhdGWK8xydP9Nu0pc=",
         "owner": "abjelosevic88",
         "repo": "pocket-homelab-files",
-        "rev": "e45d7b62ef4a6ee2b1dde51b1936c64c8f160597",
+        "rev": "2152f2924b821fd507447b1c7eb39d9007e01efd",
         "type": "github"
       },
       "original": {
         "owner": "abjelosevic88",
-        "ref": "v0.13.1",
+        "ref": "v0.13.2",
         "repo": "pocket-homelab-files",
         "type": "github"
       }
@@ -1022,16 +1022,16 @@
     "pocket-remote": {
       "flake": false,
       "locked": {
-        "lastModified": 1794205853,
-        "narHash": "sha256-NVLisfYQWYzcR4lIh8S+So89etnyDXYoTNlTR/A3w0U=",
+        "lastModified": 1794576500,
+        "narHash": "sha256-BNPLJnWK55I1rQSmJj/f4FPNJfG3d2nsgbz9ELWgV4g=",
         "owner": "abjelosevic88",
         "repo": "pocket-homelab-remote",
-        "rev": "28415bbf17c7637ab31e1db33fd99d1831087369",
+        "rev": "5ee6cae7dcad7f0e706d0c3c592c86cf69621b9a",
         "type": "github"
       },
       "original": {
         "owner": "abjelosevic88",
-        "ref": "v0.3.0",
+        "ref": "v0.3.1",
         "repo": "pocket-homelab-remote",
         "type": "github"
       }
