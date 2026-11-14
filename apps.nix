@@ -25,9 +25,9 @@ in
     title = "Pocket Core";
     pname = "pocket-core";
     input = "pocket-core";
-    version = "0.37.12";
+    version = "0.40.1";
     port = 8179;
-    vendorHash = "sha256-AmQl4eumT1+KUEk3jsBDJpAV1h2efmwUL+gcfg4IrIE=";
+    vendorHash = "sha256-huJmNurz4us0yapuZk5Tc37zUx1yysMDAxd0aytrTuY=";
     npmDepsHash = "sha256-B6hwAJzFxJG6iSPCb/vrsQrF8lzORM95hK7vslmlGm0=";
   };
 
@@ -247,7 +247,7 @@ in
     title = "Pocket Files";
     pname = "pocket-files";
     input = "pocket-files";
-    version = "0.13.1";
+    version = "0.13.2";
     port = 8187;
     vendorHash = "sha256-lw9YgzVdlaLP9qYTAUrWqP85YmbQX5DehOvppMKfk9E=";
     npmDepsHash = "sha256-3X9Vyi6iZSLpDVksIdv2YEZBP4hzRGW53eTY+jQdtvY=";
@@ -651,7 +651,7 @@ in
     title = "Pocket Remote";
     pname = "pocket-remote";
     input = "pocket-remote";
-    version = "0.3.0";
+    version = "0.3.1";
     port = 8259;
     vendorHash = "sha256-+uDc+UC9z7QTsGhfbml1Z/B3VVbeHbjcccm0de8RxRI=";
     npmDepsHash = "sha256-C/eL2qrSr8IunXu5eLF6aYQQZWwjUx0Bxe5oWepwSPM=";
