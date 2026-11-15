@@ -33,7 +33,7 @@
     pocket-garage = { url = "github:abjelosevic88/pocket-homelab-garage/v0.11.6"; flake = false; };
     pocket-guitar = { url = "github:abjelosevic88/pocket-homelab-guitar/v0.6.3"; flake = false; };
     pocket-habits = { url = "github:abjelosevic88/pocket-homelab-habit-tracker/v0.4.7"; flake = false; };
-    pocket-health = { url = "github:abjelosevic88/pocket-homelab-health/v0.5.1"; flake = false; };
+    pocket-health = { url = "github:abjelosevic88/pocket-homelab-health/v0.6.0"; flake = false; };
     pocket-home = { url = "github:abjelosevic88/pocket-homelab-home/v0.3.0"; flake = false; };
     pocket-horoscope = { url = "github:abjelosevic88/pocket-homelab-horoscope/v0.3.5"; flake = false; };
     pocket-hub = { url = "github:abjelosevic88/pocket-homelab-hub/v0.7.0"; flake = false; };

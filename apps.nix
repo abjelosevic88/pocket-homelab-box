@@ -330,7 +330,7 @@ in
     title = "Pocket Health";
     pname = "pocket-health";
     input = "pocket-health";
-    version = "0.5.1";
+    version = "0.6.0";
     port = 8199;
     vendorHash = "sha256-orX8b2RbbV3XoLZ4WAfqSgQF/AYRinb4n6V4okSMbCk=";
     npmDepsHash = "sha256-3PqYDUqWiVuCtIewmMp/Zhx3aK1d+Sn+hkoPgkLY1fA=";

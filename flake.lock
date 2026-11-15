@@ -495,16 +495,16 @@
     "pocket-health": {
       "flake": false,
       "locked": {
-        "lastModified": 1794119467,
-        "narHash": "sha256-d8QfFxs7tECoximyJgNeDDf06e4CnhaLDF5RW7Gsclk=",
+        "lastModified": 1794651957,
+        "narHash": "sha256-m4gAh5ZVsgdDLsf9Daichamb9LaykVGm8SCZLFC/udM=",
         "owner": "abjelosevic88",
         "repo": "pocket-homelab-health",
-        "rev": "1cd646bdf8b54dcc1106052e8f2074dfb391ecc7",
+        "rev": "abbb596a3e0adfebebf0e5945ef87d6cfdaed8e1",
         "type": "github"
       },
       "original": {
         "owner": "abjelosevic88",
-        "ref": "v0.5.1",
+        "ref": "v0.6.0",
         "repo": "pocket-homelab-health",
         "type": "github"
       }
