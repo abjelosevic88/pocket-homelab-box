@@ -25,7 +25,7 @@ in
     title = "Pocket Core";
     pname = "pocket-core";
     input = "pocket-core";
-    version = "0.40.5";
+    version = "0.40.6";
     port = 8179;
     vendorHash = "sha256-huJmNurz4us0yapuZk5Tc37zUx1yysMDAxd0aytrTuY=";
     npmDepsHash = "sha256-B6hwAJzFxJG6iSPCb/vrsQrF8lzORM95hK7vslmlGm0=";
@@ -113,6 +113,16 @@ in
     npmDepsHash = "sha256-FGjpcDpJH73C5O7i85sSuLfwvhq6kE7U16vrJiF2XJM=";
   };
 
+  booking = {
+    title = "Pocket Booking";
+    pname = "pocket-booking";
+    input = "pocket-booking";
+    version = "0.1.0";
+    port = 8279;
+    vendorHash = "sha256-TPQpT1A6qnwvvBOaVTIsDY1Ga9O8rmKPlp3+yqnCuLw=";
+    npmDepsHash = "sha256-8GxXcpHhlCNl1Y0ouwb3zI3Tw7X5ZcpwbyxJNDTQvmA=";
+  };
+
   bookshelf = {
     title = "Pocket Bookshelf";
     pname = "pocket-bookshelf";
@@ -131,6 +141,28 @@ in
     port = 8190;
     vendorHash = "sha256-1wpEEUBtUVTVyjYHga9x4N0A+uRfz3RcOPIaYhP0ap4=";
     npmDepsHash = "sha256-1z9sg27zun7MmuqajpA5zCRCgh++G/vjIC+cLvU4an4=";
+  };
+
+  cameras = {
+    title = "Pocket Cameras";
+    pname = "pocket-cameras";
+    input = "pocket-cameras";
+    version = "0.1.1";
+    port = 8280;
+    vendorHash = "sha256-jUG1HwWIzBAd2fZFBD3shpKQT4Zju3P3nKJnCqY1glY=";
+    npmDepsHash = "sha256-YiVzc33Fr9TubK5g78mYoYjANIpx41R7P2G0JAQG4Qk=";
+    # Live view, motion and recordings: ffmpeg/ffprobe from PATH (FFMPEG/FFPROBE override).
+    runtime = pkgs: with pkgs; [ ffmpeg-headless ];
+  };
+
+  capsule = {
+    title = "Pocket Capsule";
+    pname = "pocket-capsule";
+    input = "pocket-capsule";
+    version = "0.1.0";
+    port = 8268;
+    vendorHash = "sha256-1/LTOKtXEt+81fwrckRkWA3lraCT8vdTNAVfzdlmxi4=";
+    npmDepsHash = "sha256-YiVzc33Fr9TubK5g78mYoYjANIpx41R7P2G0JAQG4Qk=";
   };
 
   chat = {
@@ -157,7 +189,7 @@ in
     title = "Pocket Contacts";
     pname = "pocket-contacts";
     input = "pocket-contacts";
-    version = "0.7.0";
+    version = "0.7.1";
     port = 8191;
     vendorHash = "sha256-Yyl3Ok8RserzSVw7NC7Sa8MpjKBSk13Ptl3b3BzvPRs=";
     npmDepsHash = "sha256-ftYKsNBA4mWf3tCEYocLfSQ3vnJUH2C5kgtJ/yiLMcw=";
@@ -283,6 +315,26 @@ in
     npmDepsHash = "sha256-i8h+RPefc0yUf45rVvyQczKMa3dnBWx1gX/NY1ukheU=";
   };
 
+  forum = {
+    title = "Pocket Forum";
+    pname = "pocket-forum";
+    input = "pocket-forum";
+    version = "0.1.0";
+    port = 8267;
+    vendorHash = "sha256-ccj09I99dgBPbPCKNwm80teMfZv20QAabbho/dL6/28=";
+    npmDepsHash = "sha256-YiVzc33Fr9TubK5g78mYoYjANIpx41R7P2G0JAQG4Qk=";
+  };
+
+  gamebuilder = {
+    title = "Pocket Game Builder";
+    pname = "pocket-gamebuilder";
+    input = "pocket-gamebuilder";
+    version = "0.1.1";
+    port = 8275;
+    vendorHash = "sha256-1/LTOKtXEt+81fwrckRkWA3lraCT8vdTNAVfzdlmxi4=";
+    npmDepsHash = "sha256-YiVzc33Fr9TubK5g78mYoYjANIpx41R7P2G0JAQG4Qk=";
+  };
+
   games = {
     title = "Pocket Games";
     pname = "pocket-games";
@@ -360,7 +412,7 @@ in
     title = "Pocket Hub";
     pname = "pocket-hub";
     input = "pocket-hub";
-    version = "0.7.0";
+    version = "0.7.1";
     port = 8185;
     vendorHash = "sha256-orX8b2RbbV3XoLZ4WAfqSgQF/AYRinb4n6V4okSMbCk=";
     npmDepsHash = "sha256-QBq7YjC5hiKoyyXKvTq1sEh3dvqwpoV3i+1WmKIOD4Q=";
@@ -386,6 +438,16 @@ in
     npmDepsHash = "sha256-B6jZTFFZUl2SQQpGHEXkm0Fk4L2LlnyS1DZ56XRaU+Y=";
   };
 
+  jam = {
+    title = "Pocket Jam";
+    pname = "pocket-jam";
+    input = "pocket-jam";
+    version = "0.7.0";
+    port = 8278;
+    vendorHash = "sha256-pH1LWgsDFrNwl8Pgg3mLtwJTEig+y06JVU3eKM5jPIc=";
+    npmDepsHash = "sha256-YiVzc33Fr9TubK5g78mYoYjANIpx41R7P2G0JAQG4Qk=";
+  };
+
   jobs = {
     title = "Pocket Jobs";
     pname = "pocket-jobs";
@@ -394,6 +456,19 @@ in
     port = 8261;
     vendorHash = "sha256-czmaak0Anph/bKzWuexQBN0XPRuQK7otZx6KZOB77Fw=";
     npmDepsHash = "sha256-Bx7xgEFK6E71G0qtrjVg1FQOcEjPGzefOxlti069n68=";
+  };
+
+  karaoke = {
+    title = "Pocket Karaoke";
+    pname = "pocket-karaoke";
+    input = "pocket-karaoke";
+    version = "0.1.2";
+    port = 8273;
+    vendorHash = "sha256-1/LTOKtXEt+81fwrckRkWA3lraCT8vdTNAVfzdlmxi4=";
+    npmDepsHash = "sha256-YiVzc33Fr9TubK5g78mYoYjANIpx41R7P2G0JAQG4Qk=";
+    # Song files: ffmpeg/ffprobe. YouTube copies: yt-dlp (the app keeps its own newer copy in its data
+    # folder when it can) with deno for YouTube's signature puzzles, the same as Pocket Podcasts.
+    runtime = pkgs: with pkgs; [ ffmpeg-headless yt-dlp deno python3 ];
   };
 
   kitchen = {
@@ -470,6 +545,16 @@ in
     npmDepsHash = "sha256-U+exrYitvtCMA5ncGMwnU8OHJnfK9M3pvelXlowPRKs=";
   };
 
+  math = {
+    title = "Pocket Math";
+    pname = "pocket-math";
+    input = "pocket-math";
+    version = "0.1.0";
+    port = 8272;
+    vendorHash = "sha256-1/LTOKtXEt+81fwrckRkWA3lraCT8vdTNAVfzdlmxi4=";
+    npmDepsHash = "sha256-spe3aru2VBZt5ZUzv7QtqMpOGwsMV+tDfU51Tm8FvXw=";
+  };
+
   money = {
     title = "Pocket Money";
     pname = "pocket-money";
@@ -529,7 +614,7 @@ in
     title = "Pocket Notes";
     pname = "pocket-notes";
     input = "pocket-notes";
-    version = "0.11.1";
+    version = "0.14.1";
     port = 8182;
     vendorHash = "sha256-UM7ZCv25k1FfOl04WsQnyY47YZQVIjJIXGAYWcj5RZM=";
     npmDepsHash = "sha256-/5yuEn1YUPoCpoqPQO6hr967U6I7PhjDU4QXEu+IH6Y=";
@@ -573,6 +658,16 @@ in
     port = 8232;
     vendorHash = "sha256-czmaak0Anph/bKzWuexQBN0XPRuQK7otZx6KZOB77Fw=";
     npmDepsHash = "sha256-JcBLYNm42iT6skz1Tf8q1RjGJS9T1L2C6AspL5yl+Ig=";
+  };
+
+  photolab = {
+    title = "Pocket Photo Lab";
+    pname = "pocket-photolab";
+    input = "pocket-photolab";
+    version = "0.2.0";
+    port = 8262;
+    vendorHash = "sha256-hzsue/oVFGjKOCOpHFVvOJochJuMPy9Vw0q3K4CVbLY=";
+    npmDepsHash = "sha256-Cujn59FyT0LjYJYgIMGaBxuCTD1TxvTsCIfkvnLzfQE=";
   };
 
   photos = {
@@ -621,10 +716,30 @@ in
     title = "Pocket Projects";
     pname = "pocket-projects";
     input = "pocket-projects";
-    version = "0.40.4";
+    version = "0.40.9";
     port = 8196;
     vendorHash = "sha256-vgbrGDE4zwZV5EdR6LjQIWtyXGd/CQbjAlEAiSM/3tc=";
     npmDepsHash = "sha256-4BkXWQ/ye82pdmw9IfumQ+jWT3CTXysxOpA6cI8hLRM=";
+  };
+
+  puzzlecraft = {
+    title = "Pocket Puzzlecraft";
+    pname = "pocket-puzzlecraft";
+    input = "pocket-puzzlecraft";
+    version = "0.1.0";
+    port = 8266;
+    vendorHash = "sha256-ccj09I99dgBPbPCKNwm80teMfZv20QAabbho/dL6/28=";
+    npmDepsHash = "sha256-0knVY/28qshtBpd9W5sY5wfN35yxnUOsm83ozeEVP+A=";
+  };
+
+  quest = {
+    title = "Pocket Quest";
+    pname = "pocket-quest";
+    input = "pocket-quest";
+    version = "0.1.0";
+    port = 8264;
+    vendorHash = "sha256-czmaak0Anph/bKzWuexQBN0XPRuQK7otZx6KZOB77Fw=";
+    npmDepsHash = "sha256-SvhcbM3vzeTCSM2j7viJ3ICpwG4TXReWatrkjVNu914=";
   };
 
   radio = {
@@ -700,6 +815,16 @@ in
     npmDepsHash = "sha256-R4VBjT/PtdtzLzOrxaY63Fg3qlIMO2qbjbxWTibAaY8=";
   };
 
+  rooms = {
+    title = "Pocket Rooms";
+    pname = "pocket-rooms";
+    input = "pocket-rooms";
+    version = "0.1.0";
+    port = 8265;
+    vendorHash = "sha256-czmaak0Anph/bKzWuexQBN0XPRuQK7otZx6KZOB77Fw=";
+    npmDepsHash = "sha256-xMmUcBhHsft6OF3AZ8LbUqzEvG96AsW2rXWJlG9TCyQ=";
+  };
+
   search = {
     title = "Pocket Search";
     pname = "pocket-search";
@@ -720,6 +845,26 @@ in
     port = 8234;
     vendorHash = "sha256-8La76XnF19Kl0EF/x9LE0QaOgWzNP0QkmYyZ/eYIUDc=";
     npmDepsHash = "sha256-bXZD7OQBezcE8caXpO9mXDNXbd+3meXFI/xTC4gAdGU=";
+  };
+
+  sky = {
+    title = "Pocket Sky";
+    pname = "pocket-sky";
+    input = "pocket-sky";
+    version = "0.6.2";
+    port = 8277;
+    vendorHash = "sha256-A/6psJtyXU6cMIWbRVMHYUNYu0/ihTJyjSdv/GCM9jg=";
+    npmDepsHash = "sha256-gdJGeC2/yKxASHODiVBa2hQOHTSXunt83FfF52OcnEo=";
+  };
+
+  slides = {
+    title = "Pocket Slides";
+    pname = "pocket-slides";
+    input = "pocket-slides";
+    version = "0.1.0";
+    port = 8269;
+    vendorHash = "sha256-1/LTOKtXEt+81fwrckRkWA3lraCT8vdTNAVfzdlmxi4=";
+    npmDepsHash = "sha256-YiVzc33Fr9TubK5g78mYoYjANIpx41R7P2G0JAQG4Qk=";
   };
 
   split = {
@@ -838,6 +983,16 @@ in
     npmDepsHash = "sha256-1DgCVRSoFk8jcO5i+NgPIs5R1wfGFKaUnKd5BbexmhI=";
   };
 
+  vault = {
+    title = "Pocket Vault";
+    pname = "pocket-vault";
+    input = "pocket-vault";
+    version = "0.2.0";
+    port = 8271;
+    vendorHash = "sha256-HY3CeI+RSP45Zl0lBKf+pATaIvfG4hBUVoDgPzzFTCE=";
+    npmDepsHash = "sha256-RzTTNkDnnN9vHEF/RuJVepAZdXgIx2M9uM8WHC5Xhcw=";
+  };
+
   voice = {
     title = "Pocket Voice";
     pname = "pocket-voice";
@@ -899,6 +1054,16 @@ in
     port = 8239;
     vendorHash = "sha256-pFu6MiQCLMvN6M/3VDWBGDhyGDH7m15lQ+s9SjoMYrs=";
     npmDepsHash = "sha256-gdJGeC2/yKxASHODiVBa2hQOHTSXunt83FfF52OcnEo=";
+  };
+
+  whiteboard = {
+    title = "Pocket Whiteboard";
+    pname = "pocket-whiteboard";
+    input = "pocket-whiteboard";
+    version = "0.4.3";
+    port = 8270;
+    vendorHash = "sha256-1/LTOKtXEt+81fwrckRkWA3lraCT8vdTNAVfzdlmxi4=";
+    npmDepsHash = "sha256-/bMFz5bpQ0rHmO8lVKO7SZTuKKtLRkEBSsI/53rvHt4=";
   };
 
   wishlist = {
