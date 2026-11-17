@@ -19,16 +19,16 @@
     "pocket-ai": {
       "flake": false,
       "locked": {
-        "lastModified": 1794908698,
-        "narHash": "sha256-ipPbPe/CGvf50X3MiVVAeM8Vro9qsWVlCn6/DN9zV4E=",
+        "lastModified": 1794919098,
+        "narHash": "sha256-NjQ5QXTVCuDOv1+pA0esVnktPX+YMOVBexdD7AxXX9c=",
         "owner": "abjelosevic88",
         "repo": "pocket-homelab-ai",
-        "rev": "ef8c27304d7a3ddde7c20e11c23c812a71ed25af",
+        "rev": "8c22cf0636e748af648dd211a07bce60c7e98db9",
         "type": "github"
       },
       "original": {
         "owner": "abjelosevic88",
-        "ref": "v0.102.3",
+        "ref": "v0.103.0",
         "repo": "pocket-homelab-ai",
         "type": "github"
       }
