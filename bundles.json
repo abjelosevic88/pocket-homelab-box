@@ -5,32 +5,32 @@
     {
       "id": "essentials",
       "name": "Essentials",
-      "description": "The everyday basics for a household: notes, tasks, a shared calendar and contacts, files and photos, private search and a home page.",
-      "apps": ["notes", "tasks", "calendar", "contacts", "files", "photos", "search", "hub", "day"]
+      "description": "The everyday basics for a household: notes, tasks, a shared calendar and contacts, files and photos, passwords, private search and a home page.",
+      "apps": ["notes", "tasks", "calendar", "contacts", "files", "photos", "search", "hub", "day", "vault"]
     },
     {
       "id": "office",
       "name": "Office",
-      "description": "Documents, email and paperwork: edit Word, Excel and PowerPoint files, scan and file papers, sign, invoice, run tables and forms, track time.",
-      "apps": ["office", "documents", "mail", "calendar", "contacts", "tasks", "notes", "files", "sign", "invoicing", "tables", "forms", "time", "boards", "draw"]
+      "description": "Documents, email and paperwork: edit Word, Excel and PowerPoint files, scan and file papers, sign, invoice, run tables and forms, slides and whiteboards, bookings, maths, track time.",
+      "apps": ["office", "documents", "mail", "calendar", "contacts", "tasks", "notes", "files", "sign", "invoicing", "tables", "forms", "time", "boards", "draw", "slides", "whiteboard", "booking", "math"]
     },
     {
       "id": "developer",
       "name": "Developer",
-      "description": "For people who build software and run servers: issues and roadmaps, code and pull-request review, error tracking, monitoring, databases, remote desktops and automations.",
-      "apps": ["projects", "review", "pr-review", "blueprint", "errors", "monitoring", "database", "network", "remote", "flows", "lookout", "notes", "draw", "time"]
+      "description": "For people who build software and run servers: issues and roadmaps, code and pull-request review, error tracking, monitoring, databases, remote desktops, whiteboards, passwords and automations.",
+      "apps": ["projects", "review", "pr-review", "blueprint", "errors", "monitoring", "database", "network", "remote", "flows", "lookout", "notes", "draw", "time", "whiteboard", "vault"]
     },
     {
       "id": "media",
       "name": "Media",
-      "description": "Films, shows, music, photos, books, audiobooks, podcasts, radio and games for the whole household.",
-      "apps": ["photos", "watch", "music", "audiobooks", "podcasts", "radio", "library", "bookshelf", "reader", "requests", "subtitles", "games"]
+      "description": "Films, shows, music, photos, books, audiobooks, podcasts, radio and games for the whole household, plus karaoke, a jam recorder, a photo editor, puzzles, tabletop adventures and your own games.",
+      "apps": ["photos", "watch", "music", "audiobooks", "podcasts", "radio", "library", "bookshelf", "reader", "requests", "subtitles", "games", "karaoke", "jam", "photolab", "gamebuilder", "puzzlecraft", "quest"]
     },
     {
       "id": "family",
       "name": "Home & family",
-      "description": "Run the household: who picks up the children, the week's meals and shopping, chores, chat, shared costs, the house, the pets and gift lists.",
-      "apps": ["family", "calendar", "tasks", "kitchen", "chat", "split", "home", "pets", "wishlist", "parcels", "renewals", "photos"]
+      "description": "Run the household: who picks up the children, the week's meals and shopping, chores, chat and a family forum, shared costs, the house, its rooms and cameras, the pets, gift lists and time capsules.",
+      "apps": ["family", "calendar", "tasks", "kitchen", "chat", "split", "home", "pets", "wishlist", "parcels", "renewals", "photos", "capsule", "forum", "rooms", "cameras"]
     },
     {
       "id": "money",
@@ -41,8 +41,8 @@
     {
       "id": "health",
       "name": "Health & outdoors",
-      "description": "Your health data, training, food, habits, breathing and meditation, hikes and trips, and the weather for your places.",
-      "apps": ["health", "fitness", "nutrition", "habits", "still", "trails", "weather", "places", "travel", "map", "movement"]
+      "description": "Your health data, training, food, habits, breathing and meditation, hikes and trips, the weather for your places and the night sky.",
+      "apps": ["health", "fitness", "nutrition", "habits", "still", "trails", "weather", "places", "travel", "map", "movement", "sky"]
     }
   ]
 }

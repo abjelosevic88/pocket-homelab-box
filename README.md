@@ -3,7 +3,7 @@
 </p>
 <h1 align="center">Pocket Box</h1>
 <p align="center">
-  A NixOS appliance that turns a spare PC into a home server running <a href="https://github.com/abjelosevic88/pocket-homelab-core">Pocket Core</a> and all 82 Pocket apps: HTTPS on every app, one sign-in, Jellyfin, Navidrome, Immich and ONLYOFFICE set up on first boot, TPM disk encryption, and nightly updates that roll themselves back.<br>
+  A NixOS appliance that turns a spare PC into a home server running <a href="https://github.com/abjelosevic88/pocket-homelab-core">Pocket Core</a> and all 98 Pocket apps: HTTPS on every app, one sign-in, Jellyfin, Navidrome, Immich and ONLYOFFICE set up on first boot, TPM disk encryption, and nightly updates that roll themselves back.<br>
   <b>Boot the USB stick · pick a disk · open pocket.local.</b>
 </p>
 <p align="center">
@@ -22,7 +22,7 @@ The whole system is declared in this flake. The installer ISO already contains t
 
 ## What's on the box
 
-All 82 Pocket apps and Pocket Core, each at `https://<slug>.<the box's name>` (and `https://<slug>.pocket.local`; the port is where it listens on loopback). [pockethomelab.com/apps](https://pockethomelab.com/apps) has a page for every one of them.
+All 98 Pocket apps and Pocket Core, each at `https://<slug>.<the box's name>` (and `https://<slug>.pocket.local`; the port is where it listens on loopback). [pockethomelab.com/apps](https://pockethomelab.com/apps) has a page for every one of them.
 
 | App | Port |
 |---|---|
@@ -34,8 +34,11 @@ All 82 Pocket apps and Pocket Core, each at `https://<slug>.<the box's name>` (a
 | Pocket Blog | 8246 |
 | Pocket Blueprint | 8222 |
 | Pocket Boards | 8223 |
+| Pocket Booking | 8279 |
 | Pocket Bookshelf | 8171 |
 | Pocket Calendar | 8190 |
+| Pocket Cameras | 8280 |
+| Pocket Capsule | 8268 |
 | Pocket Chat | 8247 |
 | Pocket Clips | 8173 |
 | Pocket Contacts | 8191 |
@@ -50,6 +53,8 @@ All 82 Pocket apps and Pocket Core, each at `https://<slug>.<the box's name>` (a
 | Pocket Fitness | 8240 |
 | Pocket Flows | 8212 |
 | Pocket Forms | 8248 |
+| Pocket Forum | 8267 |
+| Pocket Game Builder | 8275 |
 | Pocket Games | 8226 |
 | Pocket Garage | 8175 |
 | Pocket Guitar | 8214 |
@@ -60,7 +65,9 @@ All 82 Pocket apps and Pocket Core, each at `https://<slug>.<the box's name>` (a
 | Pocket Hub | 8185 |
 | Pocket Inventory | 8170 |
 | Pocket Invoicing | 8168 |
+| Pocket Jam | 8278 |
 | Pocket Jobs | 8261 |
+| Pocket Karaoke | 8273 |
 | Pocket Kitchen | 8176 |
 | Pocket League | 8250 |
 | Pocket Learn | 8218 |
@@ -68,6 +75,7 @@ All 82 Pocket apps and Pocket Core, each at `https://<slug>.<the box's name>` (a
 | Pocket Lookout | 8224 |
 | Pocket Mail | 8208 |
 | Pocket Map | 8255 |
+| Pocket Math | 8272 |
 | Pocket Money | 8178 |
 | Pocket Monitoring | 8192 |
 | Pocket Movement | 8197 |
@@ -78,11 +86,14 @@ All 82 Pocket apps and Pocket Core, each at `https://<slug>.<the box's name>` (a
 | Pocket Office | 8186 |
 | Pocket Parcels | 8233 |
 | Pocket Pets | 8232 |
+| Pocket Photo Lab | 8262 |
 | Pocket Photos | 8194 |
 | Pocket Places | 8236 |
 | Pocket Podcasts | 8181 |
 | Pocket PR Review | 8220 |
 | Pocket Projects | 8196 |
+| Pocket Puzzlecraft | 8266 |
+| Pocket Quest | 8264 |
 | Pocket Radio | 8216 |
 | Pocket Reader | 8211 |
 | Pocket Remote | 8259 |
@@ -90,8 +101,11 @@ All 82 Pocket apps and Pocket Core, each at `https://<slug>.<the box's name>` (a
 | Pocket Rentals | 8253 |
 | Pocket Requests | 8210 |
 | Pocket Review | 8180 |
+| Pocket Rooms | 8265 |
 | Pocket Search | 8225 |
 | Pocket Sign | 8234 |
+| Pocket Sky | 8277 |
+| Pocket Slides | 8269 |
 | Pocket Sphere | 8227 |
 | Pocket Split | 8172 |
 | Pocket Still | 8206 |
@@ -102,12 +116,14 @@ All 82 Pocket apps and Pocket Core, each at `https://<slug>.<the box's name>` (a
 | Pocket Trails | 8254 |
 | Pocket Translate | 8251 |
 | Pocket Travel | 8174 |
+| Pocket Vault | 8271 |
 | Pocket Voice | 8237 |
 | Pocket Wallet | 8238 |
 | Pocket Wardrobe | 8258 |
 | Pocket Watch | 8201 |
 | Pocket Wealth | 8231 |
 | Pocket Weather | 8239 |
+| Pocket Whiteboard | 8270 |
 | Pocket Wishlist | 8198 |
 
 And the third-party services some of them sit on top of, from the NixOS modules in nixpkgs (each one can be switched off under `pocket.box.services`):
@@ -161,6 +177,8 @@ Tools the apps shell out to are put on their PATH:
 - **Documents:** ocrmypdf, plus Tesseract with 16 languages
 - **Translate:** poppler and the same Tesseract
 - **Podcasts:** yt-dlp, deno and ffmpeg
+- **Karaoke:** ffmpeg, yt-dlp, deno and python3 (for the newer yt-dlp it keeps in its own folder)
+- **Cameras:** ffmpeg
 - **Subtitles:** ffsubsync and alass
 - **Backups:** restic and rclone
 - **Pocket AI:** codex. Claude Code is unfree, so it is not in the image.
@@ -192,7 +210,7 @@ Until that has worked once (no internet, say), nothing changes: the box stays on
 - **`http://pocket.local`:** stays plain http on purpose. It's the landing page: first it asks how the box should get its padlock (above); while the box gets its name it shows "Getting your box's secure address…" and moves on by itself once the name works. If this network can't reach the name (some routers block names that point into the home network) or there is no internet, it shows how to install the box's CA once, with steps for iPhone, Mac, Android and Windows, and links to Core.
 - **`https://pocket.local`:** redirects to Core.
 
-`pocket.local` and all 87 names are announced over mDNS. `pocket-box-mdns-aliases` follows address changes and spreads the records over several Avahi groups, because Avahi allows 32 entries per group.
+`pocket.local` and all 103 names are announced over mDNS. `pocket-box-mdns-aliases` follows address changes and spreads the records over several Avahi groups, because Avahi allows 32 entries per group.
 - **Apple devices and Linux with Avahi:** resolve these multi-label `.local` names.
 - **Android and some Windows versions:** may not.
 

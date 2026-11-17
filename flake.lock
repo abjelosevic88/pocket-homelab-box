@@ -135,6 +135,23 @@
         "type": "github"
       }
     },
+    "pocket-booking": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1794860364,
+        "narHash": "sha256-7ZWOcfx+HQGzqY+hByrmsFTbh71C5eEOW0f7bLAjsQk=",
+        "owner": "abjelosevic88",
+        "repo": "pocket-homelab-booking",
+        "rev": "352f4f49575f868f7f76e2bca914175e7ae2622c",
+        "type": "github"
+      },
+      "original": {
+        "owner": "abjelosevic88",
+        "ref": "v0.1.0",
+        "repo": "pocket-homelab-booking",
+        "type": "github"
+      }
+    },
     "pocket-bookshelf": {
       "flake": false,
       "locked": {
@@ -166,6 +183,40 @@
         "owner": "abjelosevic88",
         "ref": "v0.7.4",
         "repo": "pocket-homelab-calendar",
+        "type": "github"
+      }
+    },
+    "pocket-cameras": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1794868468,
+        "narHash": "sha256-+BtBBWfqNkgOah37xBNvdNQcJeRJsnlriv3O96iLnQg=",
+        "owner": "abjelosevic88",
+        "repo": "pocket-homelab-cameras",
+        "rev": "aa1b60e792cbe625d964ac16525041ddf585fe04",
+        "type": "github"
+      },
+      "original": {
+        "owner": "abjelosevic88",
+        "ref": "v0.1.1",
+        "repo": "pocket-homelab-cameras",
+        "type": "github"
+      }
+    },
+    "pocket-capsule": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1794319487,
+        "narHash": "sha256-OnGCjjLGFYU9boyY0BsHCX3It0MMCu4sSePjFcKoPNg=",
+        "owner": "abjelosevic88",
+        "repo": "pocket-homelab-capsule",
+        "rev": "d657b38377ced1536b754bb843b30c91aa6af49b",
+        "type": "github"
+      },
+      "original": {
+        "owner": "abjelosevic88",
+        "ref": "v0.1.0",
+        "repo": "pocket-homelab-capsule",
         "type": "github"
       }
     },
@@ -206,16 +257,16 @@
     "pocket-contacts": {
       "flake": false,
       "locked": {
-        "lastModified": 1794858009,
-        "narHash": "sha256-vQizvhK9V84B/+EAyV47yC7LdISfO6n0QNm1dqtkz74=",
+        "lastModified": 1794910330,
+        "narHash": "sha256-NZJQbvTtKoYvm3UrRtgcVs+L69/XcPZ1GXIZaT3rK/k=",
         "owner": "abjelosevic88",
         "repo": "pocket-homelab-contacts",
-        "rev": "b7c09a464dd5f95f12e664cc2102d10eb297fad2",
+        "rev": "b93853206fd4828dfab58a2e86dc9058d4e0f339",
         "type": "github"
       },
       "original": {
         "owner": "abjelosevic88",
-        "ref": "v0.7.0",
+        "ref": "v0.7.1",
         "repo": "pocket-homelab-contacts",
         "type": "github"
       }
@@ -223,16 +274,16 @@
     "pocket-core": {
       "flake": false,
       "locked": {
-        "lastModified": 1794868509,
-        "narHash": "sha256-5I1fbzUIoGPgL3bxEC8H3HiFADLK8VoZ4N7khKrtpag=",
+        "lastModified": 1794908614,
+        "narHash": "sha256-V2zeSeM3WHCIQ8u5O06FAJlsBHC+Bgd1CjWfoEOQqik=",
         "owner": "abjelosevic88",
         "repo": "pocket-homelab-core",
-        "rev": "938551fa704e05fd3c9e49d0caa0c10933e371ef",
+        "rev": "8a035edd26cc041824a71655257536b29173155f",
         "type": "github"
       },
       "original": {
         "owner": "abjelosevic88",
-        "ref": "v0.40.5",
+        "ref": "v0.40.6",
         "repo": "pocket-homelab-core",
         "type": "github"
       }
@@ -424,6 +475,40 @@
         "type": "github"
       }
     },
+    "pocket-forum": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1794307661,
+        "narHash": "sha256-k1rhQMq6JHCSSHZWcqmGPnY2ckxy8NuAWMKcYXcFVvI=",
+        "owner": "abjelosevic88",
+        "repo": "pocket-homelab-forum",
+        "rev": "38e35fd543530139e4a865c935ddf7784d085a46",
+        "type": "github"
+      },
+      "original": {
+        "owner": "abjelosevic88",
+        "ref": "v0.1.0",
+        "repo": "pocket-homelab-forum",
+        "type": "github"
+      }
+    },
+    "pocket-gamebuilder": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1794437387,
+        "narHash": "sha256-NpxVdFMSqo/vO9Sud6gNN+ZS5QejV9RRIuiSZST0tj4=",
+        "owner": "abjelosevic88",
+        "repo": "pocket-homelab-game-builder",
+        "rev": "219d3d412089923d5205e813e798b2c737051a03",
+        "type": "github"
+      },
+      "original": {
+        "owner": "abjelosevic88",
+        "ref": "v0.1.1",
+        "repo": "pocket-homelab-game-builder",
+        "type": "github"
+      }
+    },
     "pocket-games": {
       "flake": false,
       "locked": {
@@ -546,16 +631,16 @@
     "pocket-hub": {
       "flake": false,
       "locked": {
-        "lastModified": 1794408090,
-        "narHash": "sha256-Dx0NqhHjXidTTwemskktyVQW1boTX7sGWooXK4lGYrE=",
+        "lastModified": 1794908664,
+        "narHash": "sha256-zn5kQUsUb4FcUCGeSGdZw12EjOkisrEC7ia0jRJJx7Q=",
         "owner": "abjelosevic88",
         "repo": "pocket-homelab-hub",
-        "rev": "bc966ec42bb9191d90d5547a910cf95844c8c731",
+        "rev": "6110aa04ffc91685885bd57f8dafea138a0fa883",
         "type": "github"
       },
       "original": {
         "owner": "abjelosevic88",
-        "ref": "v0.7.0",
+        "ref": "v0.7.1",
         "repo": "pocket-homelab-hub",
         "type": "github"
       }
@@ -594,6 +679,23 @@
         "type": "github"
       }
     },
+    "pocket-jam": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1794916927,
+        "narHash": "sha256-H443kCPaEHoKB+nTLBIhQO8rZcCdxESgbU6MneKOIu8=",
+        "owner": "abjelosevic88",
+        "repo": "pocket-homelab-jam",
+        "rev": "c2eb16131fd3cbbfc330aa564a60fe9296ba1a4f",
+        "type": "github"
+      },
+      "original": {
+        "owner": "abjelosevic88",
+        "ref": "v0.7.0",
+        "repo": "pocket-homelab-jam",
+        "type": "github"
+      }
+    },
     "pocket-jobs": {
       "flake": false,
       "locked": {
@@ -608,6 +710,23 @@
         "owner": "abjelosevic88",
         "ref": "v0.1.0",
         "repo": "pocket-homelab-jobs",
+        "type": "github"
+      }
+    },
+    "pocket-karaoke": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1794411074,
+        "narHash": "sha256-j8PAULSELyG1DKDG+GBKdUMy1wPGpBa4d3zFw0i+eH4=",
+        "owner": "abjelosevic88",
+        "repo": "pocket-homelab-karaoke",
+        "rev": "4baf663c4de31e249e144ae2fd8d06c5ae905933",
+        "type": "github"
+      },
+      "original": {
+        "owner": "abjelosevic88",
+        "ref": "v0.1.2",
+        "repo": "pocket-homelab-karaoke",
         "type": "github"
       }
     },
@@ -730,6 +849,23 @@
         "type": "github"
       }
     },
+    "pocket-math": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1794396797,
+        "narHash": "sha256-A4usIesLV0SQEXdqu0ZiBsGjf42BeACG7l7m4lNZjME=",
+        "owner": "abjelosevic88",
+        "repo": "pocket-homelab-math",
+        "rev": "7ab5e4679dc7d9fe74e94552ada6afb0f4fc75a1",
+        "type": "github"
+      },
+      "original": {
+        "owner": "abjelosevic88",
+        "ref": "v0.1.0",
+        "repo": "pocket-homelab-math",
+        "type": "github"
+      }
+    },
     "pocket-money": {
       "flake": false,
       "locked": {
@@ -818,16 +954,16 @@
     "pocket-notes": {
       "flake": false,
       "locked": {
-        "lastModified": 1793871691,
-        "narHash": "sha256-nXX44woOUwynj9P0i+IXBPIl97cTcwBv9IIH8uxamLk=",
+        "lastModified": 1794908546,
+        "narHash": "sha256-zZEcPB7T3e2oPmeVPDSmEo0ndIndFb0oOXs8KxagvNA=",
         "owner": "abjelosevic88",
         "repo": "pocket-homelab-notes",
-        "rev": "db5f9d8fe0f6a708c5ce129a1563806d7a773157",
+        "rev": "8c7334f5d45d9e7e28e2830909c448d02bb4d142",
         "type": "github"
       },
       "original": {
         "owner": "abjelosevic88",
-        "ref": "v0.11.1",
+        "ref": "v0.14.1",
         "repo": "pocket-homelab-notes",
         "type": "github"
       }
@@ -897,6 +1033,23 @@
         "owner": "abjelosevic88",
         "ref": "v0.1.1",
         "repo": "pocket-homelab-pets",
+        "type": "github"
+      }
+    },
+    "pocket-photolab": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1794230421,
+        "narHash": "sha256-9z6zxZ7+OhGtTKsjSQziwt0YxfwyK5cBlWioHK2SfH0=",
+        "owner": "abjelosevic88",
+        "repo": "pocket-homelab-photo-lab",
+        "rev": "d36daec75a256a7d999d0b69e18442cca95192ec",
+        "type": "github"
+      },
+      "original": {
+        "owner": "abjelosevic88",
+        "ref": "v0.2.0",
+        "repo": "pocket-homelab-photo-lab",
         "type": "github"
       }
     },
@@ -971,17 +1124,51 @@
     "pocket-projects": {
       "flake": false,
       "locked": {
-        "lastModified": 1794397145,
-        "narHash": "sha256-N2RmxrH1102fmAk0vZ/h0dRtDDkqGcW/lDsS5evn278=",
+        "lastModified": 1794915918,
+        "narHash": "sha256-l8HAcVRSUIeKJ4zDaOvB9ZBkFVFWlo3ZfITeX0yIU44=",
         "owner": "abjelosevic88",
         "repo": "pocket-homelab-projects",
-        "rev": "a93007e0d66ea8ac27279b8b27ee6cf96ebed8c1",
+        "rev": "bc60dc21467d4e8f2c50282ea7907e9f4b7d8f2b",
         "type": "github"
       },
       "original": {
         "owner": "abjelosevic88",
-        "ref": "v0.40.4",
+        "ref": "v0.40.9",
         "repo": "pocket-homelab-projects",
+        "type": "github"
+      }
+    },
+    "pocket-puzzlecraft": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1794303282,
+        "narHash": "sha256-GBkruvK5XTjNtKHWcUdaBNh8LZqJEqQW0ZcWwt2TyLQ=",
+        "owner": "abjelosevic88",
+        "repo": "pocket-homelab-puzzlecraft",
+        "rev": "f4f99888d1cc1ceb6babb84b3146bf5270c7fd00",
+        "type": "github"
+      },
+      "original": {
+        "owner": "abjelosevic88",
+        "ref": "v0.1.0",
+        "repo": "pocket-homelab-puzzlecraft",
+        "type": "github"
+      }
+    },
+    "pocket-quest": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1794261714,
+        "narHash": "sha256-gqqNv3XRBNGM1Zir8ZL/Ing12qUDKvr+7aItHZqaZ+M=",
+        "owner": "abjelosevic88",
+        "repo": "pocket-homelab-quest",
+        "rev": "24b8d9a5b2b663e2260b0f168ca15f70959a53d1",
+        "type": "github"
+      },
+      "original": {
+        "owner": "abjelosevic88",
+        "ref": "v0.1.0",
+        "repo": "pocket-homelab-quest",
         "type": "github"
       }
     },
@@ -1104,6 +1291,23 @@
         "type": "github"
       }
     },
+    "pocket-rooms": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1794266351,
+        "narHash": "sha256-WQhhCg4SDLU0eo2ZIsVrs1OAAUPzeG0ADDNzjVWjC+I=",
+        "owner": "abjelosevic88",
+        "repo": "pocket-homelab-rooms",
+        "rev": "c9c6d99e4abcb37a051df906d4ba7e63870148c2",
+        "type": "github"
+      },
+      "original": {
+        "owner": "abjelosevic88",
+        "ref": "v0.1.0",
+        "repo": "pocket-homelab-rooms",
+        "type": "github"
+      }
+    },
     "pocket-search": {
       "flake": false,
       "locked": {
@@ -1135,6 +1339,40 @@
         "owner": "abjelosevic88",
         "ref": "v0.1.0",
         "repo": "pocket-homelab-sign",
+        "type": "github"
+      }
+    },
+    "pocket-sky": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1794518030,
+        "narHash": "sha256-bNiEs1MyOo5Z6T975nRe2GcOcA5B84GL3UQIX12pp54=",
+        "owner": "abjelosevic88",
+        "repo": "pocket-homelab-sky",
+        "rev": "4222db7eb1ba607ad9fcf37982ef484ace91ed4d",
+        "type": "github"
+      },
+      "original": {
+        "owner": "abjelosevic88",
+        "ref": "v0.6.2",
+        "repo": "pocket-homelab-sky",
+        "type": "github"
+      }
+    },
+    "pocket-slides": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1794343525,
+        "narHash": "sha256-6QC17FdVDfH+SASSb+PW+eN0o9r9ZRMXjuokaEbipLM=",
+        "owner": "abjelosevic88",
+        "repo": "pocket-homelab-slides",
+        "rev": "2ed464553285d138029401aeee2915bfe465bc5c",
+        "type": "github"
+      },
+      "original": {
+        "owner": "abjelosevic88",
+        "ref": "v0.1.0",
+        "repo": "pocket-homelab-slides",
         "type": "github"
       }
     },
@@ -1308,6 +1546,23 @@
         "type": "github"
       }
     },
+    "pocket-vault": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1794430885,
+        "narHash": "sha256-JVnMr1TLEqQ/YXDCeD3pUcvsnFgclxoITlnIQWBe5J8=",
+        "owner": "abjelosevic88",
+        "repo": "pocket-homelab-vault",
+        "rev": "bcf666891207bd9fdd3067ac7c910eedf0f6ffeb",
+        "type": "github"
+      },
+      "original": {
+        "owner": "abjelosevic88",
+        "ref": "v0.2.0",
+        "repo": "pocket-homelab-vault",
+        "type": "github"
+      }
+    },
     "pocket-voice": {
       "flake": false,
       "locked": {
@@ -1410,6 +1665,23 @@
         "type": "github"
       }
     },
+    "pocket-whiteboard": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1794387207,
+        "narHash": "sha256-rRnzYV+Apcqku4oubUaZskLDYtjYJz303x3RF5PtO54=",
+        "owner": "abjelosevic88",
+        "repo": "pocket-homelab-whiteboard",
+        "rev": "67347e3ea6dc74ca40be38defe6e3f3509600d6a",
+        "type": "github"
+      },
+      "original": {
+        "owner": "abjelosevic88",
+        "ref": "v0.4.3",
+        "repo": "pocket-homelab-whiteboard",
+        "type": "github"
+      }
+    },
     "pocket-wishlist": {
       "flake": false,
       "locked": {
@@ -1437,8 +1709,11 @@
         "pocket-blog": "pocket-blog",
         "pocket-blueprint": "pocket-blueprint",
         "pocket-boards": "pocket-boards",
+        "pocket-booking": "pocket-booking",
         "pocket-bookshelf": "pocket-bookshelf",
         "pocket-calendar": "pocket-calendar",
+        "pocket-cameras": "pocket-cameras",
+        "pocket-capsule": "pocket-capsule",
         "pocket-chat": "pocket-chat",
         "pocket-clips": "pocket-clips",
         "pocket-contacts": "pocket-contacts",
@@ -1454,6 +1729,8 @@
         "pocket-fitness": "pocket-fitness",
         "pocket-flows": "pocket-flows",
         "pocket-forms": "pocket-forms",
+        "pocket-forum": "pocket-forum",
+        "pocket-gamebuilder": "pocket-gamebuilder",
         "pocket-games": "pocket-games",
         "pocket-garage": "pocket-garage",
         "pocket-guitar": "pocket-guitar",
@@ -1464,7 +1741,9 @@
         "pocket-hub": "pocket-hub",
         "pocket-inventory": "pocket-inventory",
         "pocket-invoicing": "pocket-invoicing",
+        "pocket-jam": "pocket-jam",
         "pocket-jobs": "pocket-jobs",
+        "pocket-karaoke": "pocket-karaoke",
         "pocket-kitchen": "pocket-kitchen",
         "pocket-league": "pocket-league",
         "pocket-learn": "pocket-learn",
@@ -1472,6 +1751,7 @@
         "pocket-lookout": "pocket-lookout",
         "pocket-mail": "pocket-mail",
         "pocket-map": "pocket-map",
+        "pocket-math": "pocket-math",
         "pocket-money": "pocket-money",
         "pocket-monitoring": "pocket-monitoring",
         "pocket-movement": "pocket-movement",
@@ -1482,11 +1762,14 @@
         "pocket-office": "pocket-office",
         "pocket-parcels": "pocket-parcels",
         "pocket-pets": "pocket-pets",
+        "pocket-photolab": "pocket-photolab",
         "pocket-photos": "pocket-photos",
         "pocket-places": "pocket-places",
         "pocket-podcasts": "pocket-podcasts",
         "pocket-pr-review": "pocket-pr-review",
         "pocket-projects": "pocket-projects",
+        "pocket-puzzlecraft": "pocket-puzzlecraft",
+        "pocket-quest": "pocket-quest",
         "pocket-radio": "pocket-radio",
         "pocket-reader": "pocket-reader",
         "pocket-remote": "pocket-remote",
@@ -1494,8 +1777,11 @@
         "pocket-rentals": "pocket-rentals",
         "pocket-requests": "pocket-requests",
         "pocket-review": "pocket-review",
+        "pocket-rooms": "pocket-rooms",
         "pocket-search": "pocket-search",
         "pocket-sign": "pocket-sign",
+        "pocket-sky": "pocket-sky",
+        "pocket-slides": "pocket-slides",
         "pocket-sphere": "pocket-sphere",
         "pocket-split": "pocket-split",
         "pocket-still": "pocket-still",
@@ -1506,12 +1792,14 @@
         "pocket-trails": "pocket-trails",
         "pocket-translate": "pocket-translate",
         "pocket-travel": "pocket-travel",
+        "pocket-vault": "pocket-vault",
         "pocket-voice": "pocket-voice",
         "pocket-wallet": "pocket-wallet",
         "pocket-wardrobe": "pocket-wardrobe",
         "pocket-watch": "pocket-watch",
         "pocket-wealth": "pocket-wealth",
         "pocket-weather": "pocket-weather",
+        "pocket-whiteboard": "pocket-whiteboard",
         "pocket-wishlist": "pocket-wishlist"
       }
     }
