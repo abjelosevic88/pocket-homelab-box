@@ -25,7 +25,7 @@ in
     title = "Pocket Core";
     pname = "pocket-core";
     input = "pocket-core";
-    version = "0.40.6";
+    version = "0.41.2";
     port = 8179;
     vendorHash = "sha256-huJmNurz4us0yapuZk5Tc37zUx1yysMDAxd0aytrTuY=";
     npmDepsHash = "sha256-B6hwAJzFxJG6iSPCb/vrsQrF8lzORM95hK7vslmlGm0=";
@@ -35,7 +35,7 @@ in
     title = "Pocket AI";
     pname = "pocket-ai";
     input = "pocket-ai";
-    version = "0.103.0";
+    version = "0.104.4";
     port = 8195;
     vendorHash = "sha256-st3Jp8Qh9ZGI32Tsg1EVT0bZBu6tDtYHnLhAhvI/aMM=";
     npmDepsHash = "sha256-Ec6TFzNOyDaPrpcaUpLi5OMusbth/qK3LLDEE+V92jw=";
@@ -49,9 +49,9 @@ in
     title = "Pocket Alerts";
     pname = "pocket-alerts";
     input = "pocket-alerts";
-    version = "0.3.0";
+    version = "0.3.1";
     port = 8217;
-    vendorHash = "sha256-orX8b2RbbV3XoLZ4WAfqSgQF/AYRinb4n6V4okSMbCk=";
+    vendorHash = "sha256-bGc4GQwGgeBA+GfMxEPXl1nC8WlEI5zaupVBxcqopsM=";
     npmDepsHash = "sha256-AzYQcVW6vaXzAYwgmfjaUJjjslwFHpUjiPxeDlc1J2Y=";
   };
 
@@ -259,9 +259,9 @@ in
     title = "Pocket Errors";
     pname = "pocket-errors";
     input = "pocket-errors";
-    version = "0.2.3";
+    version = "0.2.4";
     port = 8256;
-    vendorHash = "sha256-czmaak0Anph/bKzWuexQBN0XPRuQK7otZx6KZOB77Fw=";
+    vendorHash = "sha256-bGc4GQwGgeBA+GfMxEPXl1nC8WlEI5zaupVBxcqopsM=";
     npmDepsHash = "sha256-BoNk2rN98hUjXdy1xpEjtiwIYhHBvTUBYt7QpG4WAOQ=";
   };
 
@@ -580,7 +580,7 @@ in
     title = "Pocket Movement";
     pname = "pocket-movement";
     input = "pocket-movement";
-    version = "0.3.5";
+    version = "0.3.6";
     port = 8197;
     vendorHash = "sha256-Lq9WpVSSyiPx5jCT5I0P5gpmIHmkh7qpGjQBxjPnVS4=";
     npmDepsHash = "sha256-1DgCVRSoFk8jcO5i+NgPIs5R1wfGFKaUnKd5BbexmhI=";
@@ -706,7 +706,7 @@ in
     title = "Pocket PR Review";
     pname = "pocket-pr-review";
     input = "pocket-pr-review";
-    version = "0.3.0";
+    version = "0.5.2";
     port = 8220;
     vendorHash = "sha256-ju4olZm6rwdgCxUAkYCetwQxhbVgBc4E64+aN1CZyJE=";
     npmDepsHash = "sha256-gfXmenNLofgIweOhYE3usg4hHnh8OU//Wcilvt8CnWw=";
@@ -716,9 +716,9 @@ in
     title = "Pocket Projects";
     pname = "pocket-projects";
     input = "pocket-projects";
-    version = "0.40.9";
+    version = "0.45.1";
     port = 8196;
-    vendorHash = "sha256-vgbrGDE4zwZV5EdR6LjQIWtyXGd/CQbjAlEAiSM/3tc=";
+    vendorHash = "sha256-cKkEK78Hp8BbbcWAWerVOAmB1z45mPCXBIkib1brXdw=";
     npmDepsHash = "sha256-4BkXWQ/ye82pdmw9IfumQ+jWT3CTXysxOpA6cI8hLRM=";
   };
 
@@ -997,7 +997,7 @@ in
     title = "Pocket Voice";
     pname = "pocket-voice";
     input = "pocket-voice";
-    version = "0.7.12";
+    version = "0.8.0";
     port = 8237;
     # ffmpeg reads any recording; whisper.cpp (whisper-cli and parakeet-cli) writes it out on the box.
     # The speech models are downloaded into /var/lib/pocket-voice/models when first chosen.
