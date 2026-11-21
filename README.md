@@ -266,6 +266,7 @@ Every app ships in the box's system, each as its own service, and runs only whil
 - **Remove** stops it and drops the marker. Its data stays in `/var/lib/pocket-<slug>`, so installing it again brings everything back.
 - **New apps:** on the first boot every app the box carries is installed (or only the chosen ones, see [Bundles and Lite](#bundles-and-pocket-box-lite)). Apps that arrive with a later update start out not installed, ready in Core.
 - **An app the box doesn't carry** (Lite, or a box set up with bundles) is downloaded first; see below.
+- **Restart** (Core's app page, the Pocket Core phone app) runs `systemctl restart pocket-<slug>` and waits for the app to answer again; it runs next to an install, never two jobs on the same app. **Logs** reads `journalctl -u pocket-<slug> -n N -o short-iso` (at most 2000 lines, 1 MB). Core's `/system` meters get `/var/lib`'s disk and each app's memory (systemd's `MemoryCurrent`) from the installer too.
 
 Apps update with the box, not one by one. Descriptions and icons come from the public app catalog when the box is online.
 

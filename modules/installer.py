@@ -17,6 +17,9 @@ only Core's group can open, with a bearer token on top:
   POST /v1/install   {slug}  → a job
   POST /v1/uninstall {slug}  → a job
   POST /v1/update            refused: apps update with the box
+  POST /v1/restart   {slug}  → a job: systemctl restart pocket-<slug>, then waits for it to answer
+  GET  /v1/logs?slug=&lines= its recent journal (journalctl -u pocket-<slug>, at most 2000 lines)
+  GET  /v1/resources         /var/lib's disk and each app's memory (systemd's MemoryCurrent)
   GET  /v1/jobs/<id>
 """
 import hmac
@@ -28,6 +31,8 @@ import subprocess
 import sys
 import threading
 import time
+import urllib.error
+import urllib.parse
 import urllib.request
 from datetime import datetime, timezone
 from http.server import BaseHTTPRequestHandler
@@ -279,24 +284,119 @@ def uninstall(job):
     job.result = {"version": app["version"]}
 
 
+MAX_LOG_LINES, DEFAULT_LOG_LINES, MAX_LOG_BYTES = 2000, 200, 1 << 20
+
+
+def unit(slug):
+    return f"pocket-{slug}.service"
+
+
+def answers(port, timeout=90):
+    """Waits until the app answers /healthz on loopback (anything below 500 counts)."""
+    deadline = time.time() + timeout
+    while time.time() < deadline:
+        try:
+            with urllib.request.urlopen(f"http://127.0.0.1:{port}/healthz", timeout=4):
+                return True
+        except urllib.error.HTTPError as e:
+            if e.code < 500:
+                return True
+        except OSError:
+            pass
+        time.sleep(2)
+    return False
+
+
+def restart(job):
+    slug, app = job.slug, CATALOG[job.slug]
+    job.say(f"Restarting {app['title']}")
+    code, out = systemctl("restart", unit(slug), timeout=120)
+    if code != 0:
+        raise RuntimeError(f"{app['title']} did not restart: {out[-300:] or 'see journalctl -u pocket-' + slug}")
+    job.say("Waiting for it to answer")
+    if not answers(app["port"]):
+        raise RuntimeError(f"{app['title']} restarted but does not answer yet: see its log")
+    job.say(f"{app['title']} is up again")
+    job.result = {"port": app["port"], "version": app["version"]}
+
+
+def clamp_lines(raw):
+    try:
+        n = int(raw)
+    except (TypeError, ValueError):
+        return DEFAULT_LOG_LINES
+    return DEFAULT_LOG_LINES if n <= 0 else min(n, MAX_LOG_LINES)
+
+
+def logs(slug, lines):
+    """The app's recent journal lines, oldest first, the newest MAX_LOG_BYTES at most."""
+    if slug != "core" and slug not in CATALOG:
+        raise LookupError(f"there is no app {slug!r} on this box")
+    r = subprocess.run([T["journalctl"], "-u", unit(slug), "-n", str(lines), "-o", "short-iso", "--no-pager", "-q"],
+                       capture_output=True, text=True, timeout=20, errors="replace")
+    if r.returncode != 0:
+        raise RuntimeError((r.stderr or "journalctl failed").strip()[-300:])
+    out = r.stdout.rstrip("\n").split("\n") if r.stdout.strip() else []
+    out = out[-lines:]
+    size, cut = 0, False
+    for i in range(len(out) - 1, -1, -1):
+        size += len(out[i].encode()) + 1
+        if size > MAX_LOG_BYTES:
+            out, cut = out[i + 1:], True
+            break
+    return {"slug": slug, "source": f"journalctl -u {unit(slug)}", "lines": out, "truncated": cut}
+
+
+def resources():
+    """/var/lib's disk (where every app keeps its data) and the memory of each running app."""
+    res = {"apps": []}
+    try:
+        st = os.statvfs(CONFIG["data_root"])
+        res["disk"] = {"path": CONFIG["data_root"], "total_bytes": st.f_blocks * st.f_frsize,
+                       "free_bytes": st.f_bavail * st.f_frsize}
+    except OSError:
+        pass
+    slugs = ["core"] + sorted(CATALOG)
+    try:
+        r = subprocess.run([T["systemctl"], "show", "--property=Id,MemoryCurrent", *[unit(s) for s in slugs]],
+                           capture_output=True, text=True, timeout=10)
+    except (OSError, subprocess.SubprocessError):
+        return res
+    for block in r.stdout.split("\n\n"):
+        props = dict(line.split("=", 1) for line in block.splitlines() if "=" in line)
+        name, mem = props.get("Id", ""), props.get("MemoryCurrent", "")
+        if name.startswith("pocket-") and name.endswith(".service") and mem.isdigit() and int(mem) < 1 << 60:
+            res["apps"].append({"slug": name[len("pocket-"):-len(".service")], "memory_bytes": int(mem)})
+    return res
+
+
 def start(kind, body):
     slug = str(body.get("slug", ""))
     if slug == "core":
         raise PermissionError("Pocket Core is always on")
     if slug not in CATALOG:
         raise LookupError(f"there is no app {slug!r} on this box")
+    if kind == "restart" and not installed(slug):
+        raise FileExistsError(f"{CATALOG[slug]['title']} is not installed on this box")
     job = Job(kind, slug)
     with jobs_lock:
+        if any(j.slug == slug and j.state == "running" for j in jobs.values()):
+            raise FileExistsError(f"something else is being done to {CATALOG[slug]['title']} right now")
         jobs[job.id] = job
 
+    def run():
+        try:
+            {"install": install, "uninstall": uninstall, "restart": restart}[kind](job)
+            job.finish("done")
+        except Exception as e:  # noqa: BLE001 - every failure ends the job with its reason
+            job.say(str(e))
+            job.finish("failed", str(e))
+
     def go():
+        if kind == "restart":  # changes nothing on disk: runs next to an install, never on the same app
+            return run()
         with work_lock:
-            try:
-                (install if kind == "install" else uninstall)(job)
-                job.finish("done")
-            except Exception as e:  # noqa: BLE001 - every failure ends the job with its reason
-                job.say(str(e))
-                job.finish("failed", str(e))
+            run()
 
     threading.Thread(target=go, daemon=True).start()
     return job.view()
@@ -330,6 +430,13 @@ class Handler(BaseHTTPRequestHandler):
             return 202, start("install", self.body())
         if m == "POST" and p == "/v1/uninstall":
             return 202, start("uninstall", self.body())
+        if m == "POST" and p == "/v1/restart":
+            return 202, start("restart", self.body())
+        if m == "GET" and p == "/v1/logs":
+            q = urllib.parse.parse_qs(self.path.partition("?")[2])
+            return 200, logs(q.get("slug", [""])[0], clamp_lines(q.get("lines", [""])[0]))
+        if m == "GET" and p == "/v1/resources":
+            return 200, resources()
         if m == "POST" and p == "/v1/update":
             return 409, {"error": "Apps on a Pocket Box update with the box every night"}
         if m == "GET" and p.startswith("/v1/jobs/"):
@@ -354,6 +461,8 @@ class Handler(BaseHTTPRequestHandler):
             self.reply(409, {"error": str(e)})
         except ValueError as e:
             self.reply(400, {"error": str(e)})
+        except (RuntimeError, OSError, subprocess.SubprocessError) as e:
+            self.reply(502, {"error": str(e)})
 
     do_GET = do_POST = dispatch
 

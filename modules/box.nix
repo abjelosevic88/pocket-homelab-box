@@ -28,6 +28,7 @@ let
     platform = pkgs.stdenv.hostPlatform.system;
     catalog_url = "https://github.com/abjelosevic88/pocket-homelab-core/releases/download/catalog/apps.json";
     tools.systemctl = "${pkgs.systemd}/bin/systemctl";
+    tools.journalctl = "${pkgs.systemd}/bin/journalctl"; # Core → an app → Logs
     # Every app of this release, carried or not (a Lite box downloads the rest on Install).
     apps = lib.mapAttrs (_: app: { inherit (app) title version port; }) (lib.filterAttrs (slug: _: slug != "core") catalog);
     selection = "/var/lib/pocket-box/apps.json";
