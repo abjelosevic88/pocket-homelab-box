@@ -278,7 +278,7 @@
         "narHash": "sha256-xCQBiPwG/Roe3weZ4tsntJMgIyZ+AfiqeejqEKh/iR0=",
         "owner": "abjelosevic88",
         "repo": "pocket-homelab-core",
-        "rev": "104262c307acc247d717581a6615d1b41d99f44a",
+        "rev": "c3ec67ba487fce58ad3b0d2e4a5d21b01ea04d9d",
         "type": "github"
       },
       "original": {
@@ -686,7 +686,7 @@
         "narHash": "sha256-mQ025ZYphrtZ/tBHwkYXktfYVbi19+sSgGTUmh3OobU=",
         "owner": "abjelosevic88",
         "repo": "pocket-homelab-jam",
-        "rev": "d34a54af634591b269100f95219122990a91a36c",
+        "rev": "e43fff3a3b8903c1a028047dfdc1ad9c9a62bf57",
         "type": "github"
       },
       "original": {
@@ -1128,7 +1128,7 @@
         "narHash": "sha256-W81jICgVkEfR/TbOwVeTUKLpvgW7hW/D5DyieWUMTAo=",
         "owner": "abjelosevic88",
         "repo": "pocket-homelab-projects",
-        "rev": "6a6c8abaec5b893709257258ad80051635aa835d",
+        "rev": "6671d65c3de02df0638bf51cf78509fcbadaf69f",
         "type": "github"
       },
       "original": {
