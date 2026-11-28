@@ -224,14 +224,28 @@ for backend, app in backends.items():
             print(f"{backend} connector:", conn[:400], flush=True)
             print(f"{backend} accounts:", rows[:600], flush=True)
         continue
-    https(app, "/api/v1/auth/oidc/start", "-L", "-o", "/dev/null")
-    try:
-        conn = json.loads(https(app, "/api/v1/connection").stdout or "{}")
-    except ValueError:
-        conn = {}
+    # Right after the first boot a sign-in sometimes doesn't stick or the link isn't on yet (seen
+    # 11-23..11-28 on CI's slow nested VM, a different app each run, never on a fast host): try for
+    # two minutes like a person would, and if it never works print the app's own log.
+    conn, tries, end = {}, 0, time.time() + 120
+    while True:
+        tries += 1
+        https(app, "/api/v1/auth/oidc/start", "-L", "-o", "/dev/null")
+        try:
+            conn = json.loads(https(app, "/api/v1/connection").stdout or "{}")
+        except ValueError:
+            conn = {}
+        if conn.get("connected") is True or time.time() > end:
+            break
+        drain_log()
+        time.sleep(10)
+    if tries > 1:
+        print(f"{app} connection needed {tries} tries", flush=True)
     if conn.get("connected") is not True:
         failed.append(f"{app} → {backend}")
         print(f"{app} connection:", json.dumps(conn)[:300], flush=True)
+        logs = https("core", f"/api/v1/apps/{app}/logs?lines=40").stdout
+        print(f"{app} log:", logs[-3000:], flush=True)
 # The setup wizard, through Core: time zone and console password, the disk as installed, done.
 def api(method, path, body=None):
     args = ["-X", method, "-H", "Content-Type: application/json"] + (["-d", json.dumps(body)] if body is not None else [])
