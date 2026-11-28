@@ -5,26 +5,29 @@
   pocket-pick-apps CONFIG --menu                   → the bundles, for the typed question
   pocket-pick-apps CONFIG --choose OUT [--lite]    → a checklist on the terminal; writes the words to OUT
 
-Words are bundle ids (bundles.json), app slugs, "base" (nothing more) or "all". Unknown words fail with a
+Words are bundle ids (bundles.json), "flagship" (Tier 1, the default), app slugs, "base" (nothing more) or "all". Unknown words fail with a
 message, so a typo never silently drops an app. Prints nothing for "all" (every app the release has: no
 list is kept), except with --lite, where it lists every app so the box downloads them all.
 
 The checklist: bundles first (ticking one ticks its apps), then every app. ↑/↓ (PgUp/PgDn, Home/End)
 move, Space ticks, + ticks all, - none, a letter jumps to the next app starting with it, Enter is done,
-Esc goes back to the typed question (exit 3). The base apps stay ticked. On the full ISO everything
-starts ticked.
+Esc goes back to the typed question (exit 3). The base apps stay ticked. On the full ISO the flagship
+apps start ticked.
 """
 import json
 import sys
 
 CONFIG = json.load(open(sys.argv[1]))
-BUNDLES = {b["id"]: b for b in CONFIG["bundles"]["bundles"]}
 BASE = CONFIG["bundles"]["base"]
+# Tier 1: listed first, like a bundle, so it can be picked by name, ticked in the checklist and shown in --menu.
+FLAGSHIP = CONFIG["bundles"].get("flagship", [])
+ALL_BUNDLES = ([{"id": "flagship", "name": "Flagship (the daily drivers)", "apps": FLAGSHIP}] if FLAGSHIP else []) + CONFIG["bundles"]["bundles"]
+BUNDLES = {b["id"]: b for b in ALL_BUNDLES}
 APPS = CONFIG["apps"]  # slug -> title
 
 
 def menu():
-    for b in CONFIG["bundles"]["bundles"]:
+    for b in ALL_BUNDLES:
         print(f"  {b['id']:<11} {b['name']} ({len(b['apps'])} apps)")
 
 
@@ -69,10 +72,10 @@ def choose(out, lite):
 
     apps = sorted(APPS, key=lambda s: short(s).lower())
     rows = [("head", "Bundles: Space ticks all of a bundle's apps")]
-    rows += [("bundle", b["id"]) for b in CONFIG["bundles"]["bundles"]]
+    rows += [("bundle", b["id"]) for b in ALL_BUNDLES]
     rows += [("head", f"Apps ({len(apps)})")]
     rows += [("app", s) for s in apps]
-    picked = set(BASE) | (set() if lite else set(APPS))
+    picked = set(BASE) | (set() if lite else set(FLAGSHIP or APPS))
     pickable = [i for i, r in enumerate(rows) if r[0] != "head"]
     state = {"cur": pickable[0], "top": 0, "note": ""}
 

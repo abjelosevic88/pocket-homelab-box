@@ -19,16 +19,16 @@
     "pocket-ai": {
       "flake": false,
       "locked": {
-        "lastModified": 1795175799,
-        "narHash": "sha256-kB4yjN3OxeyAA9qQL/oTLlaydF7MJMT36INX3UD+7jc=",
+        "lastModified": 1795817090,
+        "narHash": "sha256-AIhwvFfUc9EdO0doxqrtF977hKePGdkLCyRRScsqoGM=",
         "owner": "abjelosevic88",
         "repo": "pocket-homelab-ai",
-        "rev": "09b14c31428dfc4f6e8291928e18b7abba8e55aa",
+        "rev": "39abeb60445a265ba1a1ae454522096befe339fe",
         "type": "github"
       },
       "original": {
         "owner": "abjelosevic88",
-        "ref": "v0.107.0",
+        "ref": "v0.130.1",
         "repo": "pocket-homelab-ai",
         "type": "github"
       }
@@ -36,16 +36,16 @@
     "pocket-alerts": {
       "flake": false,
       "locked": {
-        "lastModified": 1795167472,
-        "narHash": "sha256-uoveV5AnS3jmO0gmQX92PnBG2UuhL5QTJttN1tILx2o=",
+        "lastModified": 1795803719,
+        "narHash": "sha256-oQPedn09HQOw+Yk7p7SJNR4PSZ74gQNVO86nNAX9fSg=",
         "owner": "abjelosevic88",
         "repo": "pocket-homelab-alerts",
-        "rev": "5d29abf9d0a649d572f02eea6068d58ce47fd1b0",
+        "rev": "7d9c10a22afc63b79415c3948a7df0cc3249b612",
         "type": "github"
       },
       "original": {
         "owner": "abjelosevic88",
-        "ref": "v0.4.0",
+        "ref": "v0.5.0",
         "repo": "pocket-homelab-alerts",
         "type": "github"
       }
@@ -53,16 +53,16 @@
     "pocket-audiobooks": {
       "flake": false,
       "locked": {
-        "lastModified": 1795168090,
-        "narHash": "sha256-89XiPSDI/q5UTJ/rVFLCht06S0/T29h5VjDMgvb7m5w=",
+        "lastModified": 1795801307,
+        "narHash": "sha256-H2q271LumU65GU8xvTA5Wtpk+Ie9zg399B7/I7rFrN8=",
         "owner": "abjelosevic88",
         "repo": "pocket-homelab-audiobooks",
-        "rev": "3bb013f9a4f989553e294c6ec19d606e0275e378",
+        "rev": "abe08f08f30f15ac7149e4e6fd25f3b552624e4c",
         "type": "github"
       },
       "original": {
         "owner": "abjelosevic88",
-        "ref": "v1.7.0",
+        "ref": "v1.8.0",
         "repo": "pocket-homelab-audiobooks",
         "type": "github"
       }
@@ -70,16 +70,16 @@
     "pocket-backups": {
       "flake": false,
       "locked": {
-        "lastModified": 1794904477,
-        "narHash": "sha256-e/VJ2O1QDa1XKZGyCgC55ssDQ2yFRTG2AeXabqD51i0=",
+        "lastModified": 1795803896,
+        "narHash": "sha256-zwex1yYQdiAiWnr9rpVs4JSK4Ttnr+MGv0UkLbb7uq8=",
         "owner": "abjelosevic88",
         "repo": "pocket-homelab-backups",
-        "rev": "bffaffc9829cee1456e51dad70732046d6991ddd",
+        "rev": "71d0d1de353e2192ca2f053c3b1e97df6ca44ad8",
         "type": "github"
       },
       "original": {
         "owner": "abjelosevic88",
-        "ref": "v0.3.2",
+        "ref": "v0.4.0",
         "repo": "pocket-homelab-backups",
         "type": "github"
       }
@@ -155,16 +155,16 @@
     "pocket-bookshelf": {
       "flake": false,
       "locked": {
-        "lastModified": 1795125290,
-        "narHash": "sha256-a2GSXFREEckbBt1pjg9CG30+j9IF3hRjIY8dtgpfdns=",
+        "lastModified": 1795787979,
+        "narHash": "sha256-koCr0+vzSJTgJh4teM/hoWxC5FTyhYrnubrkvzCgbGo=",
         "owner": "abjelosevic88",
         "repo": "pocket-homelab-bookshelf",
-        "rev": "1032487b5128565f230746c318ebe55366fbd003",
+        "rev": "cd16c6ab3a08d2cc591a3d508b23cc5a2a161a29",
         "type": "github"
       },
       "original": {
         "owner": "abjelosevic88",
-        "ref": "v0.24.0",
+        "ref": "v0.25.0",
         "repo": "pocket-homelab-bookshelf",
         "type": "github"
       }
@@ -172,16 +172,16 @@
     "pocket-calendar": {
       "flake": false,
       "locked": {
-        "lastModified": 1795125178,
-        "narHash": "sha256-9rDyFQWAz20AAbvPH1GTjfU7dhMU6GrDQgYsrolcynk=",
+        "lastModified": 1795788098,
+        "narHash": "sha256-HaFNa0kyOsAFXsPmIgQlfau6yERruAD0eYCOy+XAxDk=",
         "owner": "abjelosevic88",
         "repo": "pocket-homelab-calendar",
-        "rev": "244b6beac8d59928c7dc92c152c5a96a1092b099",
+        "rev": "49fafe45ced0498e5f4d713ff856148af7549502",
         "type": "github"
       },
       "original": {
         "owner": "abjelosevic88",
-        "ref": "v0.8.0",
+        "ref": "v0.9.0",
         "repo": "pocket-homelab-calendar",
         "type": "github"
       }
@@ -189,16 +189,16 @@
     "pocket-cameras": {
       "flake": false,
       "locked": {
-        "lastModified": 1795169683,
-        "narHash": "sha256-OV4hkfBk9CDl3jKrVaC2XOQYuw/eu2wvVqsHrB4uCGw=",
+        "lastModified": 1795790495,
+        "narHash": "sha256-R+8r1hzWjnMedigx7T/IUNeDG9A0BEpmzjZ3ZM2rhnU=",
         "owner": "abjelosevic88",
         "repo": "pocket-homelab-cameras",
-        "rev": "27a0967f8a705e57679a07706bf21f06704823cb",
+        "rev": "7d0b1ecb4cace295f1c0fe08fce24ec1b4aee61b",
         "type": "github"
       },
       "original": {
         "owner": "abjelosevic88",
-        "ref": "v0.2.0",
+        "ref": "v0.4.0",
         "repo": "pocket-homelab-cameras",
         "type": "github"
       }
@@ -240,16 +240,16 @@
     "pocket-clips": {
       "flake": false,
       "locked": {
-        "lastModified": 1795169370,
-        "narHash": "sha256-nPD1m0IfyC8ZYQgbDLXVHZpcPY+6AbLTUQK6jGD1u1M=",
+        "lastModified": 1795802870,
+        "narHash": "sha256-w20wAv5uhinT+CbRUePOLOo6KPk9RU1vGpfMOkhDs7I=",
         "owner": "abjelosevic88",
         "repo": "pocket-homelab-clips",
-        "rev": "7b45c164ae4add710ca7d4b8c685fd15f7be3a03",
+        "rev": "c91561421544a80c857782cf09892f573252f96c",
         "type": "github"
       },
       "original": {
         "owner": "abjelosevic88",
-        "ref": "v0.3.0",
+        "ref": "v0.4.0",
         "repo": "pocket-homelab-clips",
         "type": "github"
       }
@@ -257,16 +257,16 @@
     "pocket-contacts": {
       "flake": false,
       "locked": {
-        "lastModified": 1795125368,
-        "narHash": "sha256-tSLkoXoutJgShQ1wtPi4D0pccij75ydMakNkKKTYhJQ=",
+        "lastModified": 1795787759,
+        "narHash": "sha256-6kH+Z3IaqPRV860EbfJ9TICeL1qEib9ytdQF8gly0Js=",
         "owner": "abjelosevic88",
         "repo": "pocket-homelab-contacts",
-        "rev": "4372dd07dec0ea89f6a0261eba4b1b3500c4e536",
+        "rev": "9d2e183c077a928a594292de0f7e773892160b7b",
         "type": "github"
       },
       "original": {
         "owner": "abjelosevic88",
-        "ref": "v0.8.0",
+        "ref": "v0.9.0",
         "repo": "pocket-homelab-contacts",
         "type": "github"
       }
@@ -274,16 +274,16 @@
     "pocket-core": {
       "flake": false,
       "locked": {
-        "lastModified": 1795329316,
-        "narHash": "sha256-xCQBiPwG/Roe3weZ4tsntJMgIyZ+AfiqeejqEKh/iR0=",
+        "lastModified": 1795816183,
+        "narHash": "sha256-wnVUeNvC9GxbPxJvxe4APynG/MsKORy1L5hZ1Ji9ckc=",
         "owner": "abjelosevic88",
         "repo": "pocket-homelab-core",
-        "rev": "c3ec67ba487fce58ad3b0d2e4a5d21b01ea04d9d",
+        "rev": "0bd999a066813b41d6b0fc9de5a57033fd494147",
         "type": "github"
       },
       "original": {
         "owner": "abjelosevic88",
-        "ref": "v0.43.2",
+        "ref": "v0.50.0",
         "repo": "pocket-homelab-core",
         "type": "github"
       }
@@ -325,33 +325,50 @@
     "pocket-day": {
       "flake": false,
       "locked": {
-        "lastModified": 1795125089,
-        "narHash": "sha256-N9EQEIEQxT1BIZ3hChDn12Jr3cud1OHL2epmRnfAelg=",
+        "lastModified": 1795788441,
+        "narHash": "sha256-PG2SFZW3Z9jo4tAS3UUsVlQmPLLZHu9uOnKWzH4yY2E=",
         "owner": "abjelosevic88",
         "repo": "pocket-homelab-day",
-        "rev": "0258fd55b4dc7eef795802e3ceb39236caed85cf",
+        "rev": "b9c1e04f7d21f99d8cc6b8a1b0eb4f13641b448f",
         "type": "github"
       },
       "original": {
         "owner": "abjelosevic88",
-        "ref": "v0.50.0",
+        "ref": "v0.51.1",
         "repo": "pocket-homelab-day",
+        "type": "github"
+      }
+    },
+    "pocket-devices": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1795530031,
+        "narHash": "sha256-qaUQEbcbWvhr2zaM3bG3ecwmKhd+ppRZSgbbF+hyYzM=",
+        "owner": "abjelosevic88",
+        "repo": "pocket-homelab-devices",
+        "rev": "7a0ff59f7d058d9e428267a4e8d400f875d39272",
+        "type": "github"
+      },
+      "original": {
+        "owner": "abjelosevic88",
+        "ref": "v0.3.0",
+        "repo": "pocket-homelab-devices",
         "type": "github"
       }
     },
     "pocket-documents": {
       "flake": false,
       "locked": {
-        "lastModified": 1795168318,
-        "narHash": "sha256-/N3gNZSdQtSPNsEc1huhiHmkz1Jk58u5jGJloz1BSOw=",
+        "lastModified": 1795787822,
+        "narHash": "sha256-pfNC2WgrA9J2+59PZ3XJJ/sslS+QdwxDQVsmCCzgaPI=",
         "owner": "abjelosevic88",
         "repo": "pocket-homelab-documents",
-        "rev": "2558715aca82fef232b819f672cc682c39bea6a8",
+        "rev": "f44b807938096fae655f087bebb8b90573f583d5",
         "type": "github"
       },
       "original": {
         "owner": "abjelosevic88",
-        "ref": "v0.9.0",
+        "ref": "v0.10.0",
         "repo": "pocket-homelab-documents",
         "type": "github"
       }
@@ -376,16 +393,16 @@
     "pocket-errors": {
       "flake": false,
       "locked": {
-        "lastModified": 1795167408,
-        "narHash": "sha256-re5sWA5i5bv8eEJyq5UDuQiMffvd25V9IFpD9NLH7tE=",
+        "lastModified": 1795803761,
+        "narHash": "sha256-hlmR7OwTjqQAHaQDY66HXt7E7tPIlcj9DvgLECZ+S98=",
         "owner": "abjelosevic88",
         "repo": "pocket-homelab-errors",
-        "rev": "98bf3705b4196e175bef0c71055d0ab06b0d5d2b",
+        "rev": "71c6d04eaadf8f32d5c2d1314259c79c899a71e7",
         "type": "github"
       },
       "original": {
         "owner": "abjelosevic88",
-        "ref": "v0.3.0",
+        "ref": "v0.4.0",
         "repo": "pocket-homelab-errors",
         "type": "github"
       }
@@ -410,16 +427,16 @@
     "pocket-files": {
       "flake": false,
       "locked": {
-        "lastModified": 1795125353,
-        "narHash": "sha256-Lkx9cHlFDoTZrno2SLtTxZ5u3wOr9T6cJ+M54KkQDHU=",
+        "lastModified": 1795788195,
+        "narHash": "sha256-NjZxusZeJEIZz9cSTqhQochbpNEf5jD6mBXKy88Nfsk=",
         "owner": "abjelosevic88",
         "repo": "pocket-homelab-files",
-        "rev": "b8da56346a6b23b00714271a0a060619a72c139a",
+        "rev": "e7b2cfad05c517983507be64c9bf247e94cd49e5",
         "type": "github"
       },
       "original": {
         "owner": "abjelosevic88",
-        "ref": "v0.14.0",
+        "ref": "v0.15.0",
         "repo": "pocket-homelab-files",
         "type": "github"
       }
@@ -512,16 +529,16 @@
     "pocket-games": {
       "flake": false,
       "locked": {
-        "lastModified": 1795167514,
-        "narHash": "sha256-bOkV+DXly/KoUO2Tj2YuVDn7oqETQ4NcNsqkM9M8QB4=",
+        "lastModified": 1795803788,
+        "narHash": "sha256-blQXl3gAxn6RJImhyMDUNt8szSSdcNOjqgJhHZmD2VI=",
         "owner": "abjelosevic88",
         "repo": "pocket-homelab-games",
-        "rev": "ce84223db01053f9f54a3fee2d7740e5af9d604e",
+        "rev": "f0d0a97cb135a90ead7352e9d646ac001e7b5d95",
         "type": "github"
       },
       "original": {
         "owner": "abjelosevic88",
-        "ref": "v0.3.0",
+        "ref": "v0.4.0",
         "repo": "pocket-homelab-games",
         "type": "github"
       }
@@ -529,16 +546,16 @@
     "pocket-garage": {
       "flake": false,
       "locked": {
-        "lastModified": 1795168031,
-        "narHash": "sha256-KeVMuqB0hUm8oCVEFEMcq58nLGFPRceonlUy2VB1NZ0=",
+        "lastModified": 1795801187,
+        "narHash": "sha256-0shWl65Epdiw3QPQIteETQHpli4kKJ27Xs3bN1Hjs+0=",
         "owner": "abjelosevic88",
         "repo": "pocket-homelab-garage",
-        "rev": "a9539a5a186da4d5d863227f984980a1f8ef01fb",
+        "rev": "a2215a6c3bfcbceab6e96ec3793750c33b7d514d",
         "type": "github"
       },
       "original": {
         "owner": "abjelosevic88",
-        "ref": "v0.12.0",
+        "ref": "v0.13.0",
         "repo": "pocket-homelab-garage",
         "type": "github"
       }
@@ -546,16 +563,16 @@
     "pocket-guitar": {
       "flake": false,
       "locked": {
-        "lastModified": 1795168258,
-        "narHash": "sha256-UILCZN0Zd62Ouna+YPEO8xlLqdpiEzgzK17eLkc8rmQ=",
+        "lastModified": 1795789341,
+        "narHash": "sha256-aYsXtO8UHK+XpGrvzEgpi3u2mJ7IC1BLzv4WqrJXjRI=",
         "owner": "abjelosevic88",
         "repo": "pocket-homelab-guitar",
-        "rev": "ec5def6110ece3d8950b01899d956004a7dd2a81",
+        "rev": "2383c1e0c1f13707eea0b1b5cf522c4e70a654d9",
         "type": "github"
       },
       "original": {
         "owner": "abjelosevic88",
-        "ref": "v0.7.0",
+        "ref": "v0.8.0",
         "repo": "pocket-homelab-guitar",
         "type": "github"
       }
@@ -563,16 +580,16 @@
     "pocket-habits": {
       "flake": false,
       "locked": {
-        "lastModified": 1795168464,
-        "narHash": "sha256-gRQMlXsaMa36LrBshWH3mrRFNnlb3u4xghIDtnCCWyw=",
+        "lastModified": 1795787921,
+        "narHash": "sha256-QUsI55JZ2wXHPE2Ibfmgbf62lO7UqM0l3jj2M6oQZ2A=",
         "owner": "abjelosevic88",
         "repo": "pocket-homelab-habit-tracker",
-        "rev": "9da84386a42f18408800715b1a1a9bc70690c97f",
+        "rev": "8a7ea13bdf200db08bc00b2fa15e388fdb8ad960",
         "type": "github"
       },
       "original": {
         "owner": "abjelosevic88",
-        "ref": "v0.5.0",
+        "ref": "v0.6.0",
         "repo": "pocket-homelab-habit-tracker",
         "type": "github"
       }
@@ -580,16 +597,16 @@
     "pocket-health": {
       "flake": false,
       "locked": {
-        "lastModified": 1795168803,
-        "narHash": "sha256-2ynTz9krP4ZAY5nPbZCGLpnCxZlMQ5C5sqKVswkTsCw=",
+        "lastModified": 1795801262,
+        "narHash": "sha256-A6We5q+DBx50dKwXauoxlQQulCWIh9eNjFNTsdkOkPE=",
         "owner": "abjelosevic88",
         "repo": "pocket-homelab-health",
-        "rev": "662a67b288e26df077b9d730f4be598809dd2ea3",
+        "rev": "f632782a49c1a855180fd1f9a5e2d8d11d564ea8",
         "type": "github"
       },
       "original": {
         "owner": "abjelosevic88",
-        "ref": "v0.7.0",
+        "ref": "v0.8.0",
         "repo": "pocket-homelab-health",
         "type": "github"
       }
@@ -597,16 +614,16 @@
     "pocket-home": {
       "flake": false,
       "locked": {
-        "lastModified": 1795169137,
-        "narHash": "sha256-yZRQMVWQNT+0rU0Kk/VQpiQQJlCGZwema8aUCVVovBg=",
+        "lastModified": 1795801329,
+        "narHash": "sha256-s3wGfnJA8G4lUnruuCFAJEykholMmdEpEVy5Z9qyIRc=",
         "owner": "abjelosevic88",
         "repo": "pocket-homelab-home",
-        "rev": "fef05dc4c6a23997d99278b6b93d64d3973a447a",
+        "rev": "0db2abe106146e226b931bde6e1902c16d2a2118",
         "type": "github"
       },
       "original": {
         "owner": "abjelosevic88",
-        "ref": "v0.4.0",
+        "ref": "v0.5.0",
         "repo": "pocket-homelab-home",
         "type": "github"
       }
@@ -614,16 +631,16 @@
     "pocket-horoscope": {
       "flake": false,
       "locked": {
-        "lastModified": 1795169261,
-        "narHash": "sha256-93tXIo+0E6xpWQPXrSSKtnF1isfC0fxI+6JHnbEja3c=",
+        "lastModified": 1795803744,
+        "narHash": "sha256-Z66g/c2l6iDtHxv1FhwGQsQSlq9c7QHKUMxA8RoleU4=",
         "owner": "abjelosevic88",
         "repo": "pocket-homelab-horoscope",
-        "rev": "3c58c6320d83d6a2c80050fc4fdee4421d5f4edd",
+        "rev": "fb3f2bf702f0ea5aed3c0a41707ef298694a4b9b",
         "type": "github"
       },
       "original": {
         "owner": "abjelosevic88",
-        "ref": "v0.4.0",
+        "ref": "v0.5.0",
         "repo": "pocket-homelab-horoscope",
         "type": "github"
       }
@@ -631,16 +648,16 @@
     "pocket-hub": {
       "flake": false,
       "locked": {
-        "lastModified": 1794908664,
-        "narHash": "sha256-zn5kQUsUb4FcUCGeSGdZw12EjOkisrEC7ia0jRJJx7Q=",
+        "lastModified": 1795805177,
+        "narHash": "sha256-VUUDLKzrYzG14F3fAc9Cr6qSn8d+scombWlmA5SN46E=",
         "owner": "abjelosevic88",
         "repo": "pocket-homelab-hub",
-        "rev": "6110aa04ffc91685885bd57f8dafea138a0fa883",
+        "rev": "86ff7038bd3fe2b69abe2c9b7ae4afe509e94851",
         "type": "github"
       },
       "original": {
         "owner": "abjelosevic88",
-        "ref": "v0.7.1",
+        "ref": "v0.9.0",
         "repo": "pocket-homelab-hub",
         "type": "github"
       }
@@ -648,16 +665,16 @@
     "pocket-inventory": {
       "flake": false,
       "locked": {
-        "lastModified": 1795169418,
-        "narHash": "sha256-vp7tcZQ/QigeqXckH+8LFQ1dR9TT9BCitLNQ9/fMQtE=",
+        "lastModified": 1795789573,
+        "narHash": "sha256-qs+tgDn7bUSbsdNj8gFknY49P87Vbea/Fi9x2Ey+uXs=",
         "owner": "abjelosevic88",
         "repo": "pocket-homelab-inventory",
-        "rev": "207d85deb1d7a4a132b4864aa978d0c7d53afaf2",
+        "rev": "2ee9778c380d7d70451417d7cba0a183290e4031",
         "type": "github"
       },
       "original": {
         "owner": "abjelosevic88",
-        "ref": "v0.6.0",
+        "ref": "v0.7.0",
         "repo": "pocket-homelab-inventory",
         "type": "github"
       }
@@ -665,16 +682,16 @@
     "pocket-invoicing": {
       "flake": false,
       "locked": {
-        "lastModified": 1795169592,
-        "narHash": "sha256-zeo5QXR3wDrRl385LDrxxKpQiDRADRrf5+5DqowbxOM=",
+        "lastModified": 1795802032,
+        "narHash": "sha256-+1MjWjfs8+eHNkTrh0oTI8YKpRPSZz1bGmyBHyfit8c=",
         "owner": "abjelosevic88",
         "repo": "pocket-homelab-invoicing",
-        "rev": "e5a2e180a1cecf6c418f913a1766c7dbd691f70a",
+        "rev": "985db897f9733afe8d34f50a73a033e551f1825a",
         "type": "github"
       },
       "original": {
         "owner": "abjelosevic88",
-        "ref": "v0.16.0",
+        "ref": "v0.17.0",
         "repo": "pocket-homelab-invoicing",
         "type": "github"
       }
@@ -682,16 +699,16 @@
     "pocket-jam": {
       "flake": false,
       "locked": {
-        "lastModified": 1795169704,
-        "narHash": "sha256-mQ025ZYphrtZ/tBHwkYXktfYVbi19+sSgGTUmh3OobU=",
+        "lastModified": 1795803025,
+        "narHash": "sha256-h+yP0nayvc+3gTK84+Au957jPXfm+8hU15a5Hzkng0w=",
         "owner": "abjelosevic88",
         "repo": "pocket-homelab-jam",
-        "rev": "e43fff3a3b8903c1a028047dfdc1ad9c9a62bf57",
+        "rev": "e7905ffae8b5a35dcb951d682dcfa21874930f0c",
         "type": "github"
       },
       "original": {
         "owner": "abjelosevic88",
-        "ref": "v0.8.0",
+        "ref": "v0.9.0",
         "repo": "pocket-homelab-jam",
         "type": "github"
       }
@@ -784,16 +801,16 @@
     "pocket-library": {
       "flake": false,
       "locked": {
-        "lastModified": 1795168645,
-        "narHash": "sha256-gLHu0NFIZcQQrUUW7r9AtxzdCSiNV8N1mAlMQUnj088=",
+        "lastModified": 1795789994,
+        "narHash": "sha256-H32ZW+1bd1BiK8/tKcwUUzh5WomOKFPTYswhKYQplc0=",
         "owner": "abjelosevic88",
         "repo": "pocket-homelab-library",
-        "rev": "588bfa71b4d4c535aff1daa4d4007c75b4d4e27b",
+        "rev": "4d335679f6e6fcbc0bad03828435a62116200f84",
         "type": "github"
       },
       "original": {
         "owner": "abjelosevic88",
-        "ref": "v0.12.0",
+        "ref": "v0.13.1",
         "repo": "pocket-homelab-library",
         "type": "github"
       }
@@ -801,16 +818,16 @@
     "pocket-lookout": {
       "flake": false,
       "locked": {
-        "lastModified": 1795167198,
-        "narHash": "sha256-Nq3q8Uu2Hc0WgukLSMy1FdaQs9bn8U0Ianjj2i2CXSc=",
+        "lastModified": 1795789418,
+        "narHash": "sha256-e4HPG0nEnEEOICT0cqKvBD/lxfmJNMiGgu88f2WMU+Y=",
         "owner": "abjelosevic88",
         "repo": "pocket-homelab-lookout",
-        "rev": "93ca06d060deedb4d1d313bda23358d39e888382",
+        "rev": "70e13ecbd8c198c02ab63c7ac839145c0a38889d",
         "type": "github"
       },
       "original": {
         "owner": "abjelosevic88",
-        "ref": "v0.3.0",
+        "ref": "v0.4.0",
         "repo": "pocket-homelab-lookout",
         "type": "github"
       }
@@ -818,16 +835,16 @@
     "pocket-mail": {
       "flake": false,
       "locked": {
-        "lastModified": 1795167937,
-        "narHash": "sha256-QnM/mJKLepbFpBmalo8DG0MiT2ZwfufHmrgaRPtoslk=",
+        "lastModified": 1795787703,
+        "narHash": "sha256-YIyX3EzR9O09M01gRu3H8AMMW2ufTWiR6xVfuYNM92g=",
         "owner": "abjelosevic88",
         "repo": "pocket-homelab-email",
-        "rev": "22f22f85aafa31dee8737446b7ec36b24d682674",
+        "rev": "fd456add8b02536dfdaea26831fe579a19260b21",
         "type": "github"
       },
       "original": {
         "owner": "abjelosevic88",
-        "ref": "v0.4.0",
+        "ref": "v0.5.0",
         "repo": "pocket-homelab-email",
         "type": "github"
       }
@@ -835,16 +852,16 @@
     "pocket-map": {
       "flake": false,
       "locked": {
-        "lastModified": 1795168293,
-        "narHash": "sha256-aaCKZKwfoP5GYjN+KUZrLuRhUXJjyfv19XoiyeeRBzg=",
+        "lastModified": 1795802753,
+        "narHash": "sha256-cNrQIDP2N0evuv5vYDWyO808bCY11pcKt/qUmZXswpc=",
         "owner": "abjelosevic88",
         "repo": "pocket-homelab-map",
-        "rev": "952992544c8580c8c8200d4692800e8128b887b1",
+        "rev": "3a15ca2ad4155f15f356a7ab2216058766002bee",
         "type": "github"
       },
       "original": {
         "owner": "abjelosevic88",
-        "ref": "v0.2.0",
+        "ref": "v0.3.0",
         "repo": "pocket-homelab-map",
         "type": "github"
       }
@@ -852,16 +869,16 @@
     "pocket-math": {
       "flake": false,
       "locked": {
-        "lastModified": 1795170141,
-        "narHash": "sha256-jEE6lZLA9zxNqXL560Vv75Ry68IqPG/M3X/IHwsjuRU=",
+        "lastModified": 1795790268,
+        "narHash": "sha256-QazUYk1qS8tZlQA+BeWEz9dQH+P6nk4FEW57zuQWCz0=",
         "owner": "abjelosevic88",
         "repo": "pocket-homelab-math",
-        "rev": "9eedffe1c81090921c1d5293fa236de288890957",
+        "rev": "8cf4c170d6c6a19e5c1a6078d057e80e40b3ad12",
         "type": "github"
       },
       "original": {
         "owner": "abjelosevic88",
-        "ref": "v0.2.0",
+        "ref": "v0.3.0",
         "repo": "pocket-homelab-math",
         "type": "github"
       }
@@ -869,16 +886,16 @@
     "pocket-money": {
       "flake": false,
       "locked": {
-        "lastModified": 1795125122,
-        "narHash": "sha256-qgDqwOpBDk/QhskcdCwRN3tEdQtWtmtq/0yNb5Qv0PU=",
+        "lastModified": 1795788084,
+        "narHash": "sha256-YhYNs4GPT9frRDsF86aN7OZpacPlr4zlh1Eod0IXrkE=",
         "owner": "abjelosevic88",
         "repo": "pocket-homelab-money",
-        "rev": "1916b172355a7efd09de46e3139fd2947fadc53a",
+        "rev": "a3e1a54354132eeb7e1a5d8413ec71eb5bf5e71c",
         "type": "github"
       },
       "original": {
         "owner": "abjelosevic88",
-        "ref": "v0.23.0",
+        "ref": "v0.24.0",
         "repo": "pocket-homelab-money",
         "type": "github"
       }
@@ -886,33 +903,50 @@
     "pocket-monitoring": {
       "flake": false,
       "locked": {
-        "lastModified": 1793872040,
-        "narHash": "sha256-cxENqfNkCh/dIYPGH7KAyw0LPDwfYbb0L9rQGnCKe/g=",
+        "lastModified": 1795804028,
+        "narHash": "sha256-quWrqUj/qU+R+VqKBkS7hfJbgNHQYN6JbddjchGbvzI=",
         "owner": "abjelosevic88",
         "repo": "pocket-homelab-monitoring",
-        "rev": "af63bf0185d183e12acf946397fe228119b58728",
+        "rev": "4b2036896dec10d2b8139f4303ddb7dcb096774f",
         "type": "github"
       },
       "original": {
         "owner": "abjelosevic88",
-        "ref": "v0.6.3",
+        "ref": "v0.8.0",
         "repo": "pocket-homelab-monitoring",
+        "type": "github"
+      }
+    },
+    "pocket-move": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1795286663,
+        "narHash": "sha256-4vg64+eqNsuixiwdpCTGJZa69hPr7Z7DlYkKtoqqZLY=",
+        "owner": "abjelosevic88",
+        "repo": "pocket-homelab-move",
+        "rev": "71c558cb70a0fef27d8ecfa8068d62526ea0c3c1",
+        "type": "github"
+      },
+      "original": {
+        "owner": "abjelosevic88",
+        "ref": "v0.1.8",
+        "repo": "pocket-homelab-move",
         "type": "github"
       }
     },
     "pocket-movement": {
       "flake": false,
       "locked": {
-        "lastModified": 1795125269,
-        "narHash": "sha256-lEFIewRV5YTrZEFzmY1PK6Z//pQDFqvAlBERIkUGwe4=",
+        "lastModified": 1795801308,
+        "narHash": "sha256-OIhr/+5e+BcrniUKyJPSmBhNAONnOE23tKrUPjR+Dv4=",
         "owner": "abjelosevic88",
         "repo": "pcket-homelab-movent",
-        "rev": "7d02b7405fd9e6105942b2506d0e695ff2be27eb",
+        "rev": "41e20bebeeeb37118ec6791fc867d6b4c4818580",
         "type": "github"
       },
       "original": {
         "owner": "abjelosevic88",
-        "ref": "v0.4.0",
+        "ref": "v0.5.0",
         "repo": "pcket-homelab-movent",
         "type": "github"
       }
@@ -920,16 +954,16 @@
     "pocket-music": {
       "flake": false,
       "locked": {
-        "lastModified": 1795167312,
-        "narHash": "sha256-8Qiyar8DgGtkfepMflZ4I/ndcw6TmfVjfwJTaqbe/xo=",
+        "lastModified": 1795790416,
+        "narHash": "sha256-mQL97RhEBLOQOwWp87SGbkhbMF8FGhOOqw8ulRr92B0=",
         "owner": "abjelosevic88",
         "repo": "pocket-homelab-music",
-        "rev": "204dfd62bf3f5938294e78a342a45269b8aeefce",
+        "rev": "9fdb8a8ae2abb9778163270b088efbfe4a6a3486",
         "type": "github"
       },
       "original": {
         "owner": "abjelosevic88",
-        "ref": "v0.9.0",
+        "ref": "v0.10.0",
         "repo": "pocket-homelab-music",
         "type": "github"
       }
@@ -954,16 +988,16 @@
     "pocket-notes": {
       "flake": false,
       "locked": {
-        "lastModified": 1795124920,
-        "narHash": "sha256-n7hP51L5nXPcQI9wUnvvtVdSOzaNSDD4jozm0huxdVU=",
+        "lastModified": 1795816206,
+        "narHash": "sha256-B/zy4B8o25Aamvgd0r92aaLnB6jZwEb6Ae2eFEfJHy4=",
         "owner": "abjelosevic88",
         "repo": "pocket-homelab-notes",
-        "rev": "008ad6c2469747782415af61bff4d3cc4accdfb9",
+        "rev": "4edd099788c934f1ca539acf451b7c6727c55d2b",
         "type": "github"
       },
       "original": {
         "owner": "abjelosevic88",
-        "ref": "v0.15.0",
+        "ref": "v0.17.0",
         "repo": "pocket-homelab-notes",
         "type": "github"
       }
@@ -971,16 +1005,16 @@
     "pocket-nutrition": {
       "flake": false,
       "locked": {
-        "lastModified": 1795168362,
-        "narHash": "sha256-LfRTl6jT7Mt6wiTfnIQn0Us6khjEGYJJvBVecRUXicc=",
+        "lastModified": 1795803066,
+        "narHash": "sha256-I4s1UBDrH7k5j6l0yfi/W73DwLeeXRRxA11PWSXn97U=",
         "owner": "abjelosevic88",
         "repo": "pocket-homelab-nutrition",
-        "rev": "fc17106fab2312c503d9878f871a7d9363013732",
+        "rev": "5228a718625fe357a9ee35ae5a3bf83558ace0a8",
         "type": "github"
       },
       "original": {
         "owner": "abjelosevic88",
-        "ref": "v0.2.0",
+        "ref": "v0.3.0",
         "repo": "pocket-homelab-nutrition",
         "type": "github"
       }
@@ -988,16 +1022,16 @@
     "pocket-office": {
       "flake": false,
       "locked": {
-        "lastModified": 1795180556,
-        "narHash": "sha256-51qcs3mNidaLbg0ZbWe/SVbgXE2R+KlYr+XYDlGSh9Y=",
+        "lastModified": 1795803147,
+        "narHash": "sha256-PCUH/rdP6HFTwyk/iycgCMfoBe20bUBL7kzuV3rcYWA=",
         "owner": "abjelosevic88",
         "repo": "pocket-homelab-office",
-        "rev": "a69e46d839fde08a008d5f91f30338758606b614",
+        "rev": "4d0d99b31c778cc913613d0ef7315ac063fd6d32",
         "type": "github"
       },
       "original": {
         "owner": "abjelosevic88",
-        "ref": "v0.8.2",
+        "ref": "v0.9.0",
         "repo": "pocket-homelab-office",
         "type": "github"
       }
@@ -1005,16 +1039,16 @@
     "pocket-parcels": {
       "flake": false,
       "locked": {
-        "lastModified": 1795168519,
-        "narHash": "sha256-05oTJC5Ig/gs/GDUTzvUeZ2VnSHPKtxP+zBqQKDIlGg=",
+        "lastModified": 1795802130,
+        "narHash": "sha256-C1kmLEizj0vnDsdX//CYoTfFzXYEKULGf4sM9jRrSr4=",
         "owner": "abjelosevic88",
         "repo": "pocket-homelab-parcels",
-        "rev": "cc07640cd8871b978626fcb7e69af8825ed75fe2",
+        "rev": "2c2223b86bc3230ad641972b44f76df84974824a",
         "type": "github"
       },
       "original": {
         "owner": "abjelosevic88",
-        "ref": "v0.2.0",
+        "ref": "v0.3.0",
         "repo": "pocket-homelab-parcels",
         "type": "github"
       }
@@ -1022,16 +1056,16 @@
     "pocket-pets": {
       "flake": false,
       "locked": {
-        "lastModified": 1795168649,
-        "narHash": "sha256-TThb3l8jzlH0U6WGzEajtNsJWKDCmH6i93Wja9GoKfQ=",
+        "lastModified": 1795782828,
+        "narHash": "sha256-otDje6sbZuWMp1+qH1TVoxIlcsFZttHDG3fEhyieK+s=",
         "owner": "abjelosevic88",
         "repo": "pocket-homelab-pets",
-        "rev": "b65fcedb8ff276130f234b58bf117d09c9c0e707",
+        "rev": "0b4a5cd8045020bda877ceaea81d36cb47abbf43",
         "type": "github"
       },
       "original": {
         "owner": "abjelosevic88",
-        "ref": "v0.2.0",
+        "ref": "v0.3.0",
         "repo": "pocket-homelab-pets",
         "type": "github"
       }
@@ -1039,16 +1073,16 @@
     "pocket-photolab": {
       "flake": false,
       "locked": {
-        "lastModified": 1795169176,
-        "narHash": "sha256-spXvz4Dhh+FG3IhAgsSLSSJJmzjcfOkbD4kafq8CuHs=",
+        "lastModified": 1795622605,
+        "narHash": "sha256-gVWukLEII1IhITh/QQ62qR/ju3Sjn0R4f9NYQXs7pR4=",
         "owner": "abjelosevic88",
         "repo": "pocket-homelab-photo-lab",
-        "rev": "8e4cffead115d3eca2803d6dd35df47535d9e81a",
+        "rev": "4e1a459f36d4497b5e48b67123bffa518102f79c",
         "type": "github"
       },
       "original": {
         "owner": "abjelosevic88",
-        "ref": "v0.3.0",
+        "ref": "v0.3.1",
         "repo": "pocket-homelab-photo-lab",
         "type": "github"
       }
@@ -1056,16 +1090,16 @@
     "pocket-photos": {
       "flake": false,
       "locked": {
-        "lastModified": 1795175034,
-        "narHash": "sha256-rzHKG1msLOkbwlUxCIxFpF75wyMKK1+U9xC96b+Ae+0=",
+        "lastModified": 1795787969,
+        "narHash": "sha256-+EouM8xmoBAkvudPEBu1sPERhHbwpGA9jTWFV9f4vjE=",
         "owner": "abjelosevic88",
         "repo": "pocket-homelab-photos",
-        "rev": "a45bf093280e283e22037aed04726b8c74330f0d",
+        "rev": "784f991a39f8f5d82a691d4b53b14e9ac67e2ff0",
         "type": "github"
       },
       "original": {
         "owner": "abjelosevic88",
-        "ref": "v0.6.3",
+        "ref": "v0.8.0",
         "repo": "pocket-homelab-photos",
         "type": "github"
       }
@@ -1073,16 +1107,16 @@
     "pocket-places": {
       "flake": false,
       "locked": {
-        "lastModified": 1795125521,
-        "narHash": "sha256-+UJFWdzr3NQoTgYNjFjnFy63vfHFaidDK+bJI57RWK8=",
+        "lastModified": 1795801163,
+        "narHash": "sha256-/jjRuRiPHwG2iMQ+CcsAyRMS9oi5EyTy3lskKR7MxOk=",
         "owner": "abjelosevic88",
         "repo": "pocket-homelab-places",
-        "rev": "1f3e7be04114f0eaab00b11374879fdbf5069055",
+        "rev": "9bc8d680df6286aac3bfd0d71f6f7bb76ee841f7",
         "type": "github"
       },
       "original": {
         "owner": "abjelosevic88",
-        "ref": "v0.2.0",
+        "ref": "v0.3.0",
         "repo": "pocket-homelab-places",
         "type": "github"
       }
@@ -1090,16 +1124,16 @@
     "pocket-podcasts": {
       "flake": false,
       "locked": {
-        "lastModified": 1795189480,
-        "narHash": "sha256-9QpM/bsujQAHd5WjFMTzQCJLRZw8alCZqym4+zAUru4=",
+        "lastModified": 1795789687,
+        "narHash": "sha256-ca0QC5frS6LbzEqVZgF139Ll6ZZp3FiG1r3pVbQY04I=",
         "owner": "abjelosevic88",
         "repo": "pocket-homelab-podcasts",
-        "rev": "ae80d41eb07bde394070ad0e611b0b530c72d541",
+        "rev": "7c7d0badda350cf02cacf3d85ebe970e4acee6ae",
         "type": "github"
       },
       "original": {
         "owner": "abjelosevic88",
-        "ref": "v0.5.1",
+        "ref": "v0.6.0",
         "repo": "pocket-homelab-podcasts",
         "type": "github"
       }
@@ -1107,33 +1141,50 @@
     "pocket-pr-review": {
       "flake": false,
       "locked": {
-        "lastModified": 1795168804,
-        "narHash": "sha256-wcD22GYn+AmOnWhWFavNPBDqo9Qky5045BL3gsjKfKE=",
+        "lastModified": 1795803936,
+        "narHash": "sha256-XhFtUOo20JXRfc81I0hFxqcYdTDc1idNNmcrfRba+mQ=",
         "owner": "abjelosevic88",
         "repo": "pocket-homelab-pr-review",
-        "rev": "79faec6f54984b3dc665fad99d8fdac57447b710",
+        "rev": "7be4dda52b282cc6a052c60709649f93aab7f139",
         "type": "github"
       },
       "original": {
         "owner": "abjelosevic88",
-        "ref": "v0.10.0",
+        "ref": "v0.11.0",
         "repo": "pocket-homelab-pr-review",
+        "type": "github"
+      }
+    },
+    "pocket-printfarm": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1795790451,
+        "narHash": "sha256-Ongn7xlbvdPEIK8oHsGz7R5Cuv9ypNZpcgUD495dQ0Q=",
+        "owner": "abjelosevic88",
+        "repo": "pocket-homelab-print-farm",
+        "rev": "e64033586881573249a515ee4c554276b4ebefe9",
+        "type": "github"
+      },
+      "original": {
+        "owner": "abjelosevic88",
+        "ref": "v0.3.0",
+        "repo": "pocket-homelab-print-farm",
         "type": "github"
       }
     },
     "pocket-projects": {
       "flake": false,
       "locked": {
-        "lastModified": 1795169534,
-        "narHash": "sha256-W81jICgVkEfR/TbOwVeTUKLpvgW7hW/D5DyieWUMTAo=",
+        "lastModified": 1795800533,
+        "narHash": "sha256-zFJ+KYlpzWIOnZQL4GRtRQKQ42BuGNcY34f5VLndqTA=",
         "owner": "abjelosevic88",
         "repo": "pocket-homelab-projects",
-        "rev": "6671d65c3de02df0638bf51cf78509fcbadaf69f",
+        "rev": "2a4729da1e989c7a5534005c5f0c72ea1aef0ec3",
         "type": "github"
       },
       "original": {
         "owner": "abjelosevic88",
-        "ref": "v0.47.0",
+        "ref": "v0.52.0",
         "repo": "pocket-homelab-projects",
         "type": "github"
       }
@@ -1141,16 +1192,16 @@
     "pocket-puzzlecraft": {
       "flake": false,
       "locked": {
-        "lastModified": 1795167243,
-        "narHash": "sha256-aF65rSLVrEWGrjrkYs0QqUq9hD0BkNdgT2c8kuktlB8=",
+        "lastModified": 1795790279,
+        "narHash": "sha256-L/CIjLlBLxmf+cfFJUlixVkhseJEqw+3hoc/kzUyhpQ=",
         "owner": "abjelosevic88",
         "repo": "pocket-homelab-puzzlecraft",
-        "rev": "a84efdf627884d6203cd938baeb92d5f23158e1d",
+        "rev": "5299a912a05824585999edcf597837a74dbf4c50",
         "type": "github"
       },
       "original": {
         "owner": "abjelosevic88",
-        "ref": "v0.2.0",
+        "ref": "v0.3.0",
         "repo": "pocket-homelab-puzzlecraft",
         "type": "github"
       }
@@ -1158,16 +1209,16 @@
     "pocket-quest": {
       "flake": false,
       "locked": {
-        "lastModified": 1795167463,
-        "narHash": "sha256-8dwOmoad86uLgormRrBGrk8ryW8llA0SPddrEkZ3Sro=",
+        "lastModified": 1795802882,
+        "narHash": "sha256-hBUBukDCVSuMc6ANFoi9UqD5D34Bg3X06oSbFXNqyOY=",
         "owner": "abjelosevic88",
         "repo": "pocket-homelab-quest",
-        "rev": "89bdebc8d70974e447a513b65d76dffde38339bb",
+        "rev": "4d5820f67090d108b753daac963a8bb550896184",
         "type": "github"
       },
       "original": {
         "owner": "abjelosevic88",
-        "ref": "v0.2.0",
+        "ref": "v0.3.0",
         "repo": "pocket-homelab-quest",
         "type": "github"
       }
@@ -1175,16 +1226,16 @@
     "pocket-radio": {
       "flake": false,
       "locked": {
-        "lastModified": 1795167660,
-        "narHash": "sha256-2TqmKK0FDbbTTz6riv5HUdBviKxhxfBrMa4/WmvsF34=",
+        "lastModified": 1795803031,
+        "narHash": "sha256-NnGC+NMd/0HTx027tc+R5WWkqaXCPaz+E/UWNq7oQTI=",
         "owner": "abjelosevic88",
         "repo": "pocket-homelab-radio",
-        "rev": "22d5da88ec57102ca0897555339b797e76167646",
+        "rev": "9e13d9eb6fad8c233778460c785c7925bcbef20a",
         "type": "github"
       },
       "original": {
         "owner": "abjelosevic88",
-        "ref": "v0.2.0",
+        "ref": "v0.3.0",
         "repo": "pocket-homelab-radio",
         "type": "github"
       }
@@ -1192,16 +1243,16 @@
     "pocket-reader": {
       "flake": false,
       "locked": {
-        "lastModified": 1795125064,
-        "narHash": "sha256-a00m1e8lkjZrcNMs6AwF6sfYZSINslNl+obWONEh9nw=",
+        "lastModified": 1795789551,
+        "narHash": "sha256-yF5PS9bW90NHvSYwaXOB0LIcpFkXf6U9x6mjU8aIw74=",
         "owner": "abjelosevic88",
         "repo": "pocket-homelab-reader",
-        "rev": "f63e80294905cc7a026922b9cb447db55f8fb79a",
+        "rev": "3197574be49827bb847071d2be2e4557c4a07172",
         "type": "github"
       },
       "original": {
         "owner": "abjelosevic88",
-        "ref": "v0.2.0",
+        "ref": "v0.3.0",
         "repo": "pocket-homelab-reader",
         "type": "github"
       }
@@ -1209,16 +1260,16 @@
     "pocket-remote": {
       "flake": false,
       "locked": {
-        "lastModified": 1795174288,
-        "narHash": "sha256-Nv1xb0DVcBvhGKEwwTRKesM+0vYmiK8Xn1ncvcGYvpw=",
+        "lastModified": 1795691682,
+        "narHash": "sha256-KJz+YzC6m63Cz29wos8htH/rl922SZMcssWVYu6ffYk=",
         "owner": "abjelosevic88",
         "repo": "pocket-homelab-remote",
-        "rev": "4f90f5872c8e62a70849d01e7b496ff55aab45e8",
+        "rev": "2a34dee7e866df6fffa454e71383a82b07c0c4c7",
         "type": "github"
       },
       "original": {
         "owner": "abjelosevic88",
-        "ref": "v0.4.1",
+        "ref": "v0.6.3",
         "repo": "pocket-homelab-remote",
         "type": "github"
       }
@@ -1226,16 +1277,16 @@
     "pocket-renewals": {
       "flake": false,
       "locked": {
-        "lastModified": 1795167948,
-        "narHash": "sha256-8Z/ZaFx/Q7zzpOwrEzRAQDJ8hMlPfE9FU59GnqAxtXc=",
+        "lastModified": 1795801986,
+        "narHash": "sha256-bnTXNtVuICbnJaCuCQFj4jNY6BfzKW7Xca/sX9ReUR8=",
         "owner": "abjelosevic88",
         "repo": "pocket-homelab-renewals",
-        "rev": "abc6ef8d3793adc8fdab375329aae8f800d0000f",
+        "rev": "398345659075dce20041514800d6d64e617dc09f",
         "type": "github"
       },
       "original": {
         "owner": "abjelosevic88",
-        "ref": "v0.8.0",
+        "ref": "v0.9.0",
         "repo": "pocket-homelab-renewals",
         "type": "github"
       }
@@ -1243,16 +1294,16 @@
     "pocket-rentals": {
       "flake": false,
       "locked": {
-        "lastModified": 1795168047,
-        "narHash": "sha256-M6Z8Kw7EJ9ID8Yzbg+6f2TZ7bz7EpX/VaVl6/gUTXf8=",
+        "lastModified": 1795790684,
+        "narHash": "sha256-PLLu32selC54tEwvd5grzXI+09B19ENP2YSKK+xgDQU=",
         "owner": "abjelosevic88",
         "repo": "pocket-homelab-rentals",
-        "rev": "5530b75a579117023964d9ecad7ecb99d1d6abb2",
+        "rev": "ca41ee4d59db1eaf489b79890efa83b3000f6e86",
         "type": "github"
       },
       "original": {
         "owner": "abjelosevic88",
-        "ref": "v0.2.0",
+        "ref": "v0.3.0",
         "repo": "pocket-homelab-rentals",
         "type": "github"
       }
@@ -1260,16 +1311,16 @@
     "pocket-requests": {
       "flake": false,
       "locked": {
-        "lastModified": 1795168236,
-        "narHash": "sha256-8tFvMsVn29lW7NbBw4mvJb7UHpaVj8Y4TKd/sb/z/Rw=",
+        "lastModified": 1795803807,
+        "narHash": "sha256-hEq4PWX9laqErUUeG/cxwmqX1GQ439vJEpdrMFnjSP0=",
         "owner": "abjelosevic88",
         "repo": "pocket-homelab-requests",
-        "rev": "7ad7c31e853dfa60a7304168e0a0f63bab96651d",
+        "rev": "392e45b177bd403564e5a070de5474985cda557c",
         "type": "github"
       },
       "original": {
         "owner": "abjelosevic88",
-        "ref": "v0.11.0",
+        "ref": "v0.12.0",
         "repo": "pocket-homelab-requests",
         "type": "github"
       }
@@ -1277,16 +1328,16 @@
     "pocket-review": {
       "flake": false,
       "locked": {
-        "lastModified": 1795168579,
-        "narHash": "sha256-I+kbg963TyXGj0s0V+xhA7kpHHKkq9liDCYA57hVkQs=",
+        "lastModified": 1795803754,
+        "narHash": "sha256-wcdLiZvmiDhbDvaKMjyS/BTv0mfC/LD+qdF9+kJECjQ=",
         "owner": "abjelosevic88",
         "repo": "pocket-homelab-review",
-        "rev": "9890bc065ba20dd129ac97aec418b95918f4bb5e",
+        "rev": "28cb05dad86773bd418006ed23aa8bde98252650",
         "type": "github"
       },
       "original": {
         "owner": "abjelosevic88",
-        "ref": "v0.8.0",
+        "ref": "v0.9.0",
         "repo": "pocket-homelab-review",
         "type": "github"
       }
@@ -1294,16 +1345,16 @@
     "pocket-rooms": {
       "flake": false,
       "locked": {
-        "lastModified": 1795168695,
-        "narHash": "sha256-hpslq18t3iW5UKTBKiAnsOrVo80w51l8TyFppbjx9Ag=",
+        "lastModified": 1795789448,
+        "narHash": "sha256-AhkN+BuU5ueG/U9U+Cncl4weBR0sIGLpdr2nxf5sRCU=",
         "owner": "abjelosevic88",
         "repo": "pocket-homelab-rooms",
-        "rev": "e5e2fa0b32be31bf42d11afbc9907b4a9e8c1497",
+        "rev": "170009b8c9644b23ce3f40f2a44435702b1a715d",
         "type": "github"
       },
       "original": {
         "owner": "abjelosevic88",
-        "ref": "v0.2.0",
+        "ref": "v0.3.0",
         "repo": "pocket-homelab-rooms",
         "type": "github"
       }
@@ -1311,16 +1362,16 @@
     "pocket-search": {
       "flake": false,
       "locked": {
-        "lastModified": 1795168834,
-        "narHash": "sha256-Z4D20r/jlz0LivoJqF7FfR6siGmXZwAJSfcY0ejWiDQ=",
+        "lastModified": 1795805232,
+        "narHash": "sha256-d+nQkeLFP+ZyMcSAsmHozlarFhu6hIEEGUW2TaSFBiU=",
         "owner": "abjelosevic88",
         "repo": "pocket-homelab-search",
-        "rev": "6f7b2d80ebb34d15fcd323e3e55c62b6bade0aec",
+        "rev": "9508e838f0c0b4ddcb88fb308a5a5ca118b9cb1e",
         "type": "github"
       },
       "original": {
         "owner": "abjelosevic88",
-        "ref": "v0.23.0",
+        "ref": "v0.25.0",
         "repo": "pocket-homelab-search",
         "type": "github"
       }
@@ -1328,16 +1379,16 @@
     "pocket-sign": {
       "flake": false,
       "locked": {
-        "lastModified": 1795168958,
-        "narHash": "sha256-R65VcIBQoZ/afvnf/SMa9Nyj9RwRS6L1s0SlQoqh0uA=",
+        "lastModified": 1795802112,
+        "narHash": "sha256-mY0DtgRRRBUPDSFxHr0fdxv0b6Ssy1fCwQrVnO1LPZM=",
         "owner": "abjelosevic88",
         "repo": "pocket-homelab-sign",
-        "rev": "f75b41323a7c70c38d2528e55c18eff8f8164c80",
+        "rev": "aa5786ce49e6e2af8ff67b4b23e29936c5b50c25",
         "type": "github"
       },
       "original": {
         "owner": "abjelosevic88",
-        "ref": "v0.2.0",
+        "ref": "v0.3.0",
         "repo": "pocket-homelab-sign",
         "type": "github"
       }
@@ -1345,16 +1396,16 @@
     "pocket-sky": {
       "flake": false,
       "locked": {
-        "lastModified": 1795167160,
-        "narHash": "sha256-opkm5GULQG7dMQ8ok8y/pimlDmA0zESbnL2aftYc++g=",
+        "lastModified": 1795790415,
+        "narHash": "sha256-25rPsL023CQqqksfcfYM3XfSJkAfe68ZRW3lws6KjSc=",
         "owner": "abjelosevic88",
         "repo": "pocket-homelab-sky",
-        "rev": "e35cdd1ba2187748b7e23ec37f776af37b4a5401",
+        "rev": "dc6a25c1cb0e517ade01a123754373e55defebc0",
         "type": "github"
       },
       "original": {
         "owner": "abjelosevic88",
-        "ref": "v0.7.0",
+        "ref": "v0.8.0",
         "repo": "pocket-homelab-sky",
         "type": "github"
       }
@@ -1362,16 +1413,16 @@
     "pocket-slides": {
       "flake": false,
       "locked": {
-        "lastModified": 1795167738,
-        "narHash": "sha256-JbIE5XjnxFdgvJDWqbHAPqTeElnF6pHCE5nId7U1Ev8=",
+        "lastModified": 1795802978,
+        "narHash": "sha256-yipwCPqrJdlFW7/aHgB7IwDosBhPC3BCie6fV28u068=",
         "owner": "abjelosevic88",
         "repo": "pocket-homelab-slides",
-        "rev": "500737149d97dfcffc16a04f542c7dee38138bd3",
+        "rev": "f840c3db37c14e4650b37b812f30ce73742aa148",
         "type": "github"
       },
       "original": {
         "owner": "abjelosevic88",
-        "ref": "v0.2.0",
+        "ref": "v0.3.0",
         "repo": "pocket-homelab-slides",
         "type": "github"
       }
@@ -1396,16 +1447,16 @@
     "pocket-split": {
       "flake": false,
       "locked": {
-        "lastModified": 1795168553,
-        "narHash": "sha256-S9OOeROVtBa8bUBxmqf6WrCl5pplunKOcmBi/UNwwXU=",
+        "lastModified": 1795801976,
+        "narHash": "sha256-j2pWOCh/kHtN9HwLh97MT/FzGUQL4JRN/YZLDs9XF4g=",
         "owner": "abjelosevic88",
         "repo": "pocket-homelab-cost-split",
-        "rev": "a2b8db56553f59667d0707281e26bf825c7b33f9",
+        "rev": "a7444af0ffb23da8a7a61664af3588a07246af96",
         "type": "github"
       },
       "original": {
         "owner": "abjelosevic88",
-        "ref": "v0.9.0",
+        "ref": "v0.10.0",
         "repo": "pocket-homelab-cost-split",
         "type": "github"
       }
@@ -1413,16 +1464,16 @@
     "pocket-still": {
       "flake": false,
       "locked": {
-        "lastModified": 1795168815,
-        "narHash": "sha256-z5rUUKy/YIGbYDdSAN9DP/qVAEprusjZ8woF07BT6lo=",
+        "lastModified": 1795816183,
+        "narHash": "sha256-1JjQpuHnhBAanxpmev+VY08G0/w5LBNDIOwVGeQMVtg=",
         "owner": "abjelosevic88",
         "repo": "pocket-homelab-still",
-        "rev": "134c48e7456472cdd509508951338b4b5e5e2480",
+        "rev": "67a3b75e35c7723fde931e2a288fa9115078aa63",
         "type": "github"
       },
       "original": {
         "owner": "abjelosevic88",
-        "ref": "v0.2.0",
+        "ref": "v0.4.0",
         "repo": "pocket-homelab-still",
         "type": "github"
       }
@@ -1430,16 +1481,16 @@
     "pocket-subtitles": {
       "flake": false,
       "locked": {
-        "lastModified": 1793871871,
-        "narHash": "sha256-sPw0IGFuHoItwzVIOHX2EnSte0ZIsBOzt8FKNnX/NX4=",
+        "lastModified": 1795440586,
+        "narHash": "sha256-PXhlSQCACAB6xOXJ4/wMASgTIAVoDdvHqygzAhzF73E=",
         "owner": "abjelosevic88",
         "repo": "pocket-homelab-subtitles",
-        "rev": "c3e72d1a18a537e2e9e6e8b2960799d68e53723c",
+        "rev": "f800472ba4108187aa5aedbeddb5476c03aa7af6",
         "type": "github"
       },
       "original": {
         "owner": "abjelosevic88",
-        "ref": "v0.6.1",
+        "ref": "v0.6.2",
         "repo": "pocket-homelab-subtitles",
         "type": "github"
       }
@@ -1447,16 +1498,16 @@
     "pocket-tables": {
       "flake": false,
       "locked": {
-        "lastModified": 1795169103,
-        "narHash": "sha256-qCACIocceQZTqh45F9H4j8DpyM6PfkQJ/RMGno3urSA=",
+        "lastModified": 1795790109,
+        "narHash": "sha256-gezcWAk0ycst9O5qyV6qy9cCQeqZfvjU5oy8sHpxY6w=",
         "owner": "abjelosevic88",
         "repo": "pocket-homelab-tables",
-        "rev": "c43da5c7eba3841b393b462c31abaef9f493d8f3",
+        "rev": "5c389daf75134677b5284774eba90541beda051c",
         "type": "github"
       },
       "original": {
         "owner": "abjelosevic88",
-        "ref": "v0.3.0",
+        "ref": "v0.4.0",
         "repo": "pocket-homelab-tables",
         "type": "github"
       }
@@ -1464,16 +1515,16 @@
     "pocket-tasks": {
       "flake": false,
       "locked": {
-        "lastModified": 1795124926,
-        "narHash": "sha256-BxWR4lZWGff6t9Derv+ZE/iqeXo9NRpCfAjmoRO723c=",
+        "lastModified": 1795816176,
+        "narHash": "sha256-bozOuuTS7ZlLWySDw8E4WqsAqtzZFDdzqwPOhGnrO/8=",
         "owner": "abjelosevic88",
         "repo": "pocket-homelab-tasks",
-        "rev": "62853dcb1730b2a29a63710ba10664efb6ec5559",
+        "rev": "0f4eca6a39f533e65ffd58a31c068dd9b26e6a65",
         "type": "github"
       },
       "original": {
         "owner": "abjelosevic88",
-        "ref": "v0.6.0",
+        "ref": "v0.8.0",
         "repo": "pocket-homelab-tasks",
         "type": "github"
       }
@@ -1481,16 +1532,16 @@
     "pocket-time": {
       "flake": false,
       "locked": {
-        "lastModified": 1795169211,
-        "narHash": "sha256-sdq9VSpJQ+9I4QxVFRmfuGhB2fLQvXR4yOlj4JNh9jw=",
+        "lastModified": 1795801896,
+        "narHash": "sha256-a5UFhTuzTczaJaasYel4sn/x1NRoM6XhGo6b8WeYFpQ=",
         "owner": "abjelosevic88",
         "repo": "pocket-homelab-time",
-        "rev": "ca8a2a39e82edf7fb64eb65bf62b7a6cf0e45ec0",
+        "rev": "c2353fd6d9da56c7c745b063986388764f199087",
         "type": "github"
       },
       "original": {
         "owner": "abjelosevic88",
-        "ref": "v0.2.0",
+        "ref": "v0.3.0",
         "repo": "pocket-homelab-time",
         "type": "github"
       }
@@ -1498,16 +1549,16 @@
     "pocket-trails": {
       "flake": false,
       "locked": {
-        "lastModified": 1795169362,
-        "narHash": "sha256-8ebxw/YEKH547DixmBZlB8zmm0fpdCNE3upB0KjS6Wc=",
+        "lastModified": 1795790465,
+        "narHash": "sha256-6YLQKB699VUUph+mrRg+sOJlN7gpEmKjZCM/b9jA0VU=",
         "owner": "abjelosevic88",
         "repo": "pocket-homelab-trails",
-        "rev": "c47e92d2284fa11b8b2e14192d38c82624b4a12d",
+        "rev": "53517349f595852254adc82f6e40ee6c3cb46da4",
         "type": "github"
       },
       "original": {
         "owner": "abjelosevic88",
-        "ref": "v0.2.0",
+        "ref": "v0.3.0",
         "repo": "pocket-homelab-trails",
         "type": "github"
       }
@@ -1515,16 +1566,16 @@
     "pocket-translate": {
       "flake": false,
       "locked": {
-        "lastModified": 1795174304,
-        "narHash": "sha256-lCruvsxYSuhVEUCLvFlUlXX2GzKNi3tKCxn7RnwJmSg=",
+        "lastModified": 1795802889,
+        "narHash": "sha256-yuRmuXyJONorKN43UjpGr7JInQZTqAiW3QGFSsE0TQI=",
         "owner": "abjelosevic88",
         "repo": "pocket-homelab-translate",
-        "rev": "3d56c96d37e66ba54c3fcfb2894ab130f13a46d7",
+        "rev": "41b136e20dc598ca37a49a2da7e653e2458ca61f",
         "type": "github"
       },
       "original": {
         "owner": "abjelosevic88",
-        "ref": "v0.2.1",
+        "ref": "v0.3.0",
         "repo": "pocket-homelab-translate",
         "type": "github"
       }
@@ -1532,16 +1583,16 @@
     "pocket-travel": {
       "flake": false,
       "locked": {
-        "lastModified": 1795169519,
-        "narHash": "sha256-f+SyzbqfF/z3Ou40pTmaRpE5DdLGgwSLliU2TwIBpuI=",
+        "lastModified": 1795789557,
+        "narHash": "sha256-7FaMOtOxN2i91ZkkF8Gj6FQYgsxDtPkvRmyyqD8Sm5o=",
         "owner": "abjelosevic88",
         "repo": "pocket-homelab-travel",
-        "rev": "990f22065d568f44c3b1e4fbddf7cc947efe4edf",
+        "rev": "5c75a432e3007b278a3d1d1f9a140b35db4b8573",
         "type": "github"
       },
       "original": {
         "owner": "abjelosevic88",
-        "ref": "v0.14.0",
+        "ref": "v0.15.0",
         "repo": "pocket-homelab-travel",
         "type": "github"
       }
@@ -1566,16 +1617,16 @@
     "pocket-voice": {
       "flake": false,
       "locked": {
-        "lastModified": 1795167458,
-        "narHash": "sha256-gvj1MaCD1kevzWbncPVpntUWb5JHySEUZ1BUui4ErRQ=",
+        "lastModified": 1795801960,
+        "narHash": "sha256-N4vMaZb9b0YO50SskXjfJ7ad4dgnQeI+3JHKjkx/OFQ=",
         "owner": "abjelosevic88",
         "repo": "pocket-homelab-voice",
-        "rev": "c109a0ed204d21631fa0588ebe2a6e46c9236be2",
+        "rev": "bca0efbcf79366fd1b91c070e2a53ec2ce776fdf",
         "type": "github"
       },
       "original": {
         "owner": "abjelosevic88",
-        "ref": "v0.9.0",
+        "ref": "v0.10.0",
         "repo": "pocket-homelab-voice",
         "type": "github"
       }
@@ -1583,16 +1634,16 @@
     "pocket-wallet": {
       "flake": false,
       "locked": {
-        "lastModified": 1795167490,
-        "narHash": "sha256-zykmvy0ikq92Hw0h9J4sNINoXcaTGRXeiM1JMIalwGM=",
+        "lastModified": 1795801866,
+        "narHash": "sha256-hX98u6jqTy3GRrkrvAKWCnDQ3ZxdBQoLK48oh8ct0CA=",
         "owner": "abjelosevic88",
         "repo": "pocket-homelab-wallet",
-        "rev": "c29a064d7f9d87788867dd15189fc58a77223253",
+        "rev": "aa855c16e3b2a2c0b767c77c8ad615b229aa628a",
         "type": "github"
       },
       "original": {
         "owner": "abjelosevic88",
-        "ref": "v0.2.0",
+        "ref": "v0.3.0",
         "repo": "pocket-homelab-wallet",
         "type": "github"
       }
@@ -1600,16 +1651,16 @@
     "pocket-wardrobe": {
       "flake": false,
       "locked": {
-        "lastModified": 1795167970,
-        "narHash": "sha256-RkcSCsRYsrEFdJ/iWiS7dd0TbIsrDt/KDUK8lqhxU1U=",
+        "lastModified": 1795782704,
+        "narHash": "sha256-1BAnE0Oip7kdsgMeNsw3gtDl3qmDIjY4mT4Ty78u/Fc=",
         "owner": "abjelosevic88",
         "repo": "pocket-homelab-wardrobe",
-        "rev": "985d88da7be5d9ffaccaab37088ad69797317d68",
+        "rev": "1cd3516b5890407b91a78b7aa99521a116adca3f",
         "type": "github"
       },
       "original": {
         "owner": "abjelosevic88",
-        "ref": "v0.2.0",
+        "ref": "v0.3.0",
         "repo": "pocket-homelab-wardrobe",
         "type": "github"
       }
@@ -1617,16 +1668,16 @@
     "pocket-watch": {
       "flake": false,
       "locked": {
-        "lastModified": 1795168352,
-        "narHash": "sha256-2HLeAh6tKiPtkKwKpOFU7TopTr+tMmUn/G3ACdnPY1E=",
+        "lastModified": 1795801240,
+        "narHash": "sha256-1G7kjQn+xbKjq5CmZWgq/DxKMAxLTe0tw5vDdq/Fd5U=",
         "owner": "abjelosevic88",
         "repo": "pocket-homelab-watch",
-        "rev": "aac31fc99c78daca60cec78d7ff9ad42b3e82404",
+        "rev": "6661a1e2ca104233036592f281fb1148e928070c",
         "type": "github"
       },
       "original": {
         "owner": "abjelosevic88",
-        "ref": "v0.8.0",
+        "ref": "v0.9.0",
         "repo": "pocket-homelab-watch",
         "type": "github"
       }
@@ -1634,16 +1685,16 @@
     "pocket-wealth": {
       "flake": false,
       "locked": {
-        "lastModified": 1795167483,
-        "narHash": "sha256-wB1LOua6K6nKM1IyL0t5DCM03VLYy4TgRSSPxPaxSoc=",
+        "lastModified": 1795801950,
+        "narHash": "sha256-SdbNOQyu36oHDsVRv1GhPKhsUU0BKibzo4hVUMgZjZ0=",
         "owner": "abjelosevic88",
         "repo": "pocket-homelab-wealth",
-        "rev": "251c7e4e4626ec30d112b92fc4aa7273068f6f17",
+        "rev": "75d880c42cc6925effa36f62cae0d7579a4f6b9e",
         "type": "github"
       },
       "original": {
         "owner": "abjelosevic88",
-        "ref": "v0.3.0",
+        "ref": "v0.4.0",
         "repo": "pocket-homelab-wealth",
         "type": "github"
       }
@@ -1651,16 +1702,16 @@
     "pocket-weather": {
       "flake": false,
       "locked": {
-        "lastModified": 1795167924,
-        "narHash": "sha256-wSyY46YisxNblamBZ4s9VQxmvchi4PAfhab9xZJVhg8=",
+        "lastModified": 1795801329,
+        "narHash": "sha256-cOQp/veo+/LVV9wKzJ12lhuihhWlCZAAwoNEkghrNa0=",
         "owner": "abjelosevic88",
         "repo": "pocket-homelab-weather",
-        "rev": "fb3b83e4c3e377b0ac89a25b09e0024485c624f2",
+        "rev": "1e5a585acdff628269a485dfefabd67ffe197dce",
         "type": "github"
       },
       "original": {
         "owner": "abjelosevic88",
-        "ref": "v0.4.0",
+        "ref": "v0.5.0",
         "repo": "pocket-homelab-weather",
         "type": "github"
       }
@@ -1668,16 +1719,16 @@
     "pocket-whiteboard": {
       "flake": false,
       "locked": {
-        "lastModified": 1795167939,
-        "narHash": "sha256-Ig44GbeTheX2ESGaIClIlE+D+dZ9AyVvBEuNRwbk4lY=",
+        "lastModified": 1795803050,
+        "narHash": "sha256-QH00Z9FZvukVWcOaNq5wdvDL9JmEA0HJ/hkWlh67naY=",
         "owner": "abjelosevic88",
         "repo": "pocket-homelab-whiteboard",
-        "rev": "a0f854de621f0862fe3757c71b02fdb83f2ba6c9",
+        "rev": "2222412a791e39871b557aa0662796e3be03d7c2",
         "type": "github"
       },
       "original": {
         "owner": "abjelosevic88",
-        "ref": "v0.5.0",
+        "ref": "v0.6.0",
         "repo": "pocket-homelab-whiteboard",
         "type": "github"
       }
@@ -1685,16 +1736,16 @@
     "pocket-wishlist": {
       "flake": false,
       "locked": {
-        "lastModified": 1795168272,
-        "narHash": "sha256-AxnViT8gYLFt5pp7tmD8BRWI+afqgHKa5vBLMfnKBo0=",
+        "lastModified": 1795789706,
+        "narHash": "sha256-R8eVzvIFZzL8yUNgl4wjxDpry0ZenrQddcBZFtXj4uA=",
         "owner": "abjelosevic88",
         "repo": "pocket-homelab-whishlist",
-        "rev": "595b4c72d80e8c4e2d9be966d5b4e5bcb3242791",
+        "rev": "5a73c1cd244b6e3a3cf992309c72989c92bc631c",
         "type": "github"
       },
       "original": {
         "owner": "abjelosevic88",
-        "ref": "v0.5.0",
+        "ref": "v0.6.0",
         "repo": "pocket-homelab-whishlist",
         "type": "github"
       }
@@ -1721,6 +1772,7 @@
         "pocket-crm": "pocket-crm",
         "pocket-database": "pocket-database",
         "pocket-day": "pocket-day",
+        "pocket-devices": "pocket-devices",
         "pocket-documents": "pocket-documents",
         "pocket-draw": "pocket-draw",
         "pocket-errors": "pocket-errors",
@@ -1754,6 +1806,7 @@
         "pocket-math": "pocket-math",
         "pocket-money": "pocket-money",
         "pocket-monitoring": "pocket-monitoring",
+        "pocket-move": "pocket-move",
         "pocket-movement": "pocket-movement",
         "pocket-music": "pocket-music",
         "pocket-network": "pocket-network",
@@ -1767,6 +1820,7 @@
         "pocket-places": "pocket-places",
         "pocket-podcasts": "pocket-podcasts",
         "pocket-pr-review": "pocket-pr-review",
+        "pocket-printfarm": "pocket-printfarm",
         "pocket-projects": "pocket-projects",
         "pocket-puzzlecraft": "pocket-puzzlecraft",
         "pocket-quest": "pocket-quest",

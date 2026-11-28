@@ -3,7 +3,7 @@
 </p>
 <h1 align="center">Pocket Box</h1>
 <p align="center">
-  A NixOS appliance that turns a spare PC into a home server running <a href="https://github.com/abjelosevic88/pocket-homelab-core">Pocket Core</a> and all 98 Pocket apps: HTTPS on every app, one sign-in, Jellyfin, Navidrome, Immich and ONLYOFFICE set up on first boot, TPM disk encryption, and nightly updates that roll themselves back.<br>
+  A NixOS appliance that turns a spare PC into a home server running <a href="https://github.com/abjelosevic88/pocket-homelab-core">Pocket Core</a> and all 101 Pocket apps: HTTPS on every app, one sign-in, Jellyfin, Navidrome, Immich and ONLYOFFICE set up on first boot, TPM disk encryption, and nightly updates that roll themselves back.<br>
   <b>Boot the USB stick · pick a disk · open pocket.local.</b>
 </p>
 <p align="center">
@@ -22,7 +22,7 @@ The whole system is declared in this flake. The installer ISO already contains t
 
 ## What's on the box
 
-All 98 Pocket apps and Pocket Core, each at `https://<slug>.<the box's name>` (and `https://<slug>.pocket.local`; the port is where it listens on loopback). [pockethomelab.com/apps](https://pockethomelab.com/apps) has a page for every one of them.
+All 101 Pocket apps and Pocket Core, each at `https://<slug>.<the box's name>` (and `https://<slug>.pocket.local`; the port is where it listens on loopback). [pockethomelab.com/apps](https://pockethomelab.com/apps) has a page for every one of them.
 
 | App | Port |
 |---|---|
@@ -45,6 +45,7 @@ All 98 Pocket apps and Pocket Core, each at `https://<slug>.<the box's name>` (a
 | Pocket CRM | 8249 |
 | Pocket Database | 8209 |
 | Pocket Day | 8177 |
+| Pocket Devices | 8282 |
 | Pocket Documents | 8183 |
 | Pocket Draw | 8213 |
 | Pocket Errors | 8256 |
@@ -78,6 +79,7 @@ All 98 Pocket apps and Pocket Core, each at `https://<slug>.<the box's name>` (a
 | Pocket Math | 8272 |
 | Pocket Money | 8178 |
 | Pocket Monitoring | 8192 |
+| Pocket Move | 8281 |
 | Pocket Movement | 8197 |
 | Pocket Music | 8200 |
 | Pocket Network | 8207 |
@@ -91,6 +93,7 @@ All 98 Pocket apps and Pocket Core, each at `https://<slug>.<the box's name>` (a
 | Pocket Places | 8236 |
 | Pocket Podcasts | 8181 |
 | Pocket PR Review | 8220 |
+| Pocket Print Farm | 8274 |
 | Pocket Projects | 8196 |
 | Pocket Puzzlecraft | 8266 |
 | Pocket Quest | 8264 |
@@ -272,9 +275,9 @@ Apps update with the box, not one by one. Descriptions and icons come from the p
 
 ## Bundles and Pocket Box Lite
 
-`bundles.json` lists app bundles (essentials, office, developer, media, family, money, health) and `base`, the apps Pocket Box Lite carries. `pocket-install` reads it, and so does [pockethomelab.com/box/bundles](https://pockethomelab.com/box/bundles), where you pick bundles and apps and get the line to type. The flake check `bundles` fails if a bundle names an app `apps.nix` doesn't have.
+`bundles.json` lists app bundles (essentials, office, developer, media, family, money, health), `base`, the apps Pocket Box Lite carries, and `flagship`, **Tier 1**: the 20 daily drivers (Hub, AI, Notes, Tasks, Calendar, Contacts, Files, Documents, Photos, Mail, Money, Vault, Search, Day, Alerts, Backups, Habits, Health, Watch, Music) a full box installs when nobody picks. Every other app is **Tier 2, optional**: on the disk, not running, one click away in Core → Install an app. `pocket-install` reads it, and so does [pockethomelab.com/box/bundles](https://pockethomelab.com/box/bundles), where you pick bundles and apps and get the line to type. The flake check `bundles` fails if a bundle (or `flagship`) names an app `apps.nix` doesn't have.
 
-- `sudo pocket-install` without a choice (or with `--pick`, or `--apps` alone) shows a **checklist**: bundles first (ticking one ticks its apps), then every app. ↑/↓ move, Space ticks, `+` all, `-` none, a letter jumps to an app, Enter installs, Esc goes back to typing names. On Lite the base apps stay ticked; on the full ISO everything starts ticked.
+- `sudo pocket-install` without a choice (or with `--pick`, or `--apps` alone) shows a **checklist**: bundles first (ticking one ticks its apps), then every app. ↑/↓ move, Space ticks, `+` all, `-` none, a letter jumps to an app, Enter installs, Esc goes back to typing names. `flagship` is the first row. On Lite the base apps stay ticked; on the full ISO the flagship apps start ticked, and Enter at the typed question installs them too (type `all` for every app).
 - `sudo pocket-install office media voice` (any word that isn't a disk is a bundle or app; `--bundle office,media --apps voice` works too, and so do typed names) does the same without the checklist. The chosen apps, plus `base`, go to `/var/lib/pocket-box/apps.json`. `--help` lists the bundles. With every app chosen, the box keeps no list.
 - A box with that list starts with just those apps. The full ISO has the rest on the disk, unused; the Lite ISO (`nix build .#iso-lite`) doesn't carry them, and **`pocket-box-apply`** downloads them on the first boot (it needs the internet then).
 - `pocket-box-apply` (`modules/updater.py --apply`) builds this same release (its full revision is in `/etc/pocket-box/release.json`) with the box's list through `lib.boxToplevel { variant; apps; }`, gets the apps from the cache, switches, and checks the box is healthy. If not, it goes back and drops the new apps from the list. Core's **Install** of an app the box doesn't carry adds it to the list and runs it, showing its progress in Core.

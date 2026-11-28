@@ -1,12 +1,13 @@
 {
-  "about": "App bundles for Pocket Box. `base` is what Pocket Box Lite carries (Pocket Core always runs too); `sudo pocket-install --bundle office,media` or `--apps notes,tasks` picks more, and so does pockethomelab.com/box/bundles, which reads this file. Every slug must be in apps.nix (the flake checks).",
+  "about": "App bundles for Pocket Box. `base` is what Pocket Box Lite carries (Pocket Core always runs too); `sudo pocket-install --bundle office,media` or `--apps notes,tasks` picks more, and so does pockethomelab.com/box/bundles, which reads this file. `flagship` is Tier 1: the daily drivers a full box installs when nobody picks (Enter in pocket-install, or the word `flagship`); every other app is optional, one click away in Core → Install an app (`all` still installs everything). Every slug must be in apps.nix (the flake checks).",
   "base": ["ai", "alerts", "backups"],
+  "flagship": ["hub", "ai", "notes", "tasks", "calendar", "contacts", "files", "documents", "photos", "mail", "money", "vault", "search", "day", "alerts", "backups", "habits", "health", "watch", "music"],
   "bundles": [
     {
       "id": "essentials",
       "name": "Essentials",
-      "description": "The everyday basics for a household: notes, tasks, a shared calendar and contacts, files and photos, passwords, private search and a home page.",
-      "apps": ["notes", "tasks", "calendar", "contacts", "files", "photos", "search", "hub", "day", "vault"]
+      "description": "The everyday basics for a household: notes, tasks, a shared calendar and contacts, files and photos, passwords, private search, a home page, and moving your data in and out.",
+      "apps": ["notes", "tasks", "calendar", "contacts", "files", "photos", "search", "hub", "day", "vault", "move"]
     },
     {
       "id": "office",
@@ -17,8 +18,8 @@
     {
       "id": "developer",
       "name": "Developer",
-      "description": "For people who build software and run servers: issues and roadmaps, code and pull-request review, error tracking, monitoring, databases, remote desktops, whiteboards, passwords and automations.",
-      "apps": ["projects", "review", "pr-review", "blueprint", "errors", "monitoring", "database", "network", "remote", "flows", "lookout", "notes", "draw", "time", "whiteboard", "vault"]
+      "description": "For people who build software and run servers: issues and roadmaps, code and pull-request review, error tracking, monitoring, databases, remote desktops, whiteboards, passwords, automations and 3D printers.",
+      "apps": ["projects", "review", "pr-review", "blueprint", "errors", "monitoring", "database", "network", "remote", "flows", "lookout", "notes", "draw", "time", "whiteboard", "vault", "printfarm"]
     },
     {
       "id": "media",
@@ -29,8 +30,8 @@
     {
       "id": "family",
       "name": "Home & family",
-      "description": "Run the household: who picks up the children, the week's meals and shopping, chores, chat and a family forum, shared costs, the house, its rooms and cameras, the pets, gift lists and time capsules.",
-      "apps": ["family", "calendar", "tasks", "kitchen", "chat", "split", "home", "pets", "wishlist", "parcels", "renewals", "photos", "capsule", "forum", "rooms", "cameras"]
+      "description": "Run the household: who picks up the children, the week's meals and shopping, chores, chat and a family forum, shared costs, the house, its rooms and cameras, the pets, gift lists, time capsules and your own sensors and smart plugs.",
+      "apps": ["family", "calendar", "tasks", "kitchen", "chat", "split", "home", "pets", "wishlist", "parcels", "renewals", "photos", "capsule", "forum", "rooms", "cameras", "devices"]
     },
     {
       "id": "money",

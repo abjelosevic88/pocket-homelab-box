@@ -68,10 +68,10 @@ let
         echo "Type bundles and apps, e.g.  office, media  or  notes, tasks  (all of them: pockethomelab.com/box/bundles)."
         ${if lite
           then ''read -rp "Or press Enter for just Pocket Core with ${baseNames}: " pick''
-          else ''read -rp "Or press Enter for every app (${toString (lib.length (lib.attrNames appTitles))}): " pick''}
-        [ -z "''${pick// /}" ] && pick=${if lite then "base" else "all"}
+          else ''read -rp "Or press Enter for the ${toString (lib.length bundles.flagship)} flagship apps (type all for every app): " pick''}
+        [ -z "''${pick// /}" ] && pick=${if lite then "base" else "flagship"}
       fi
-      [ -z "''${pick// /}" ] && pick=${if lite then "base" else "all"}
+      [ -z "''${pick// /}" ] && pick=${if lite then "base" else "flagship"}
       apps=""
       if ! apps=$(${pick-apps} ${pickConfig} ${lib.optionalString lite "--lite"} "$pick"); then exit 1; fi
       echo
